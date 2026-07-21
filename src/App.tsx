@@ -20,7 +20,13 @@ export default function App() {
 
   // Scroll-spy: highlight whichever featured project's full section is
   // currently in view, on the systems-overview quick cards above it.
+  // Guarded so it can never activate while the quick-cards grid (#systems)
+  // is itself still on screen — without this, a very tall first project
+  // section can drift into the detection band on a large monitor while
+  // someone is still just looking at the quick cards, before they've
+  // actually scrolled down into that project's content.
   useEffect(() => {
+    const systemsEl = document.getElementById('systems')
     const els = featuredProjects
       .map((p) => document.getElementById(p.id))
       .filter((el): el is HTMLElement => el !== null)
@@ -29,7 +35,10 @@ export default function App() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveId(entry.target.id)
+          if (!entry.isIntersecting) return
+          const stillShowingQuickCards = (systemsEl?.getBoundingClientRect().bottom ?? 0) > 0
+          if (stillShowingQuickCards) return
+          setActiveId(entry.target.id)
         })
       },
       { rootMargin: '-40% 0px -50% 0px', threshold: 0 },
