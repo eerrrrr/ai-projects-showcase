@@ -75,6 +75,10 @@ body{
   width:58%;height:100%;
   pointer-events:none;
   z-index:0;
+  /* Static fallback in case WebGL2 itself isn't available (a different,
+     unrelated failure mode from prefers-reduced-motion) — subtle enough to
+     stay invisible once the real WebGL effect is drawing over it. */
+  background:radial-gradient(60% 60% at 70% 40%, rgba(31,122,85,.08), transparent 70%);
 }
 /* Same 1200px column + 48px padding as .nav-inner/.wrap, so the hero text
    lines up with the nav above it instead of hugging the physical viewport
@@ -278,6 +282,7 @@ ol.stages{list-style:none}
 .stage--selected .s-marker::after{background:var(--accent) !important;border-color:var(--accent) !important}
 .stage + .stage{border-top:1px solid var(--line-soft)}
 .stage-media{
+  grid-column:1 / -1;
   margin-top:20px;padding:20px;
   background:var(--accent-soft);border-radius:4px;
 }

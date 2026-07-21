@@ -13,7 +13,6 @@ function WorkflowStages({
   selectedStageNum: number | null
   setSelectedStageNum: (fn: (prev: number | null) => number | null) => void
 }) {
-  const selectedStage = project.stages.find((s) => s.num === selectedStageNum)
   return (
     <div className="stages-wrap">
       <div className="stages-label">
@@ -44,10 +43,10 @@ function WorkflowStages({
               <span>{stage.body}</span>
             </div>
             <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
+            {selectedStageNum === stage.num && <StageMedia stage={stage} />}
           </li>
         ))}
       </ol>
-      {selectedStage && <StageMedia stage={selectedStage} />}
     </div>
   )
 }
