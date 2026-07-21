@@ -230,6 +230,33 @@ section{padding:104px 0 0}
   background:var(--accent-soft);padding:1px 5px;border-radius:2px;
 }
 
+/* Smooth reveal for the expand panel — CSS-only (max-height + opacity),
+   deliberately not a JS animation library: calm, not flashy. */
+.expand-panel{
+  max-height:0;opacity:0;overflow:hidden;
+  transition:max-height .45s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+}
+.expand-panel--open{max-height:4000px;opacity:1}
+@media (prefers-reduced-motion:reduce){
+  .expand-panel{transition:none}
+}
+
+/* Compact cards (the 4 featured projects): a calmer hover state on the
+   whole meta block hints the card is interactive without implying the
+   entire row is one giant click target — only the button toggles. */
+.project--compact.project--collapsed .p-meta-inner{
+  transition:transform .2s ease, box-shadow .2s ease;
+  border-radius:8px;
+}
+.project--compact.project--collapsed:hover .p-meta-inner{
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(17,17,16,.08);
+}
+@media (prefers-reduced-motion:reduce){
+  .project--compact.project--collapsed .p-meta-inner{transition:none}
+  .project--compact.project--collapsed:hover .p-meta-inner{transform:none}
+}
+
 /* ---------- vertical stage diagram ---------- */
 .stages-wrap{margin-bottom:8px}
 .stages-label{
@@ -296,27 +323,12 @@ ol.stages{list-style:none}
 .s-actor--sys{color:var(--ink-3);border:1px solid var(--line)}
 .s-actor--out{color:#fff;background:var(--ink)}
 
-/* ---------- transfer accordion ---------- */
-.transfer{margin-top:36px;border-top:1px solid var(--line)}
-.transfer summary{
-  list-style:none;cursor:pointer;user-select:none;
-  display:flex;align-items:center;gap:14px;
-  padding:16px 0;
-  transition:color .15s ease;
-}
-.transfer summary:hover .mono--accent{color:var(--ink)}
-.transfer summary::-webkit-details-marker{display:none}
-.transfer summary .plus{
-  width:22px;height:22px;border:1px solid var(--accent);border-radius:50%;
-  display:inline-flex;align-items:center;justify-content:center;
-  color:var(--accent);font-size:14px;font-weight:400;flex:none;
-  transition:transform .2s ease;
-}
-.transfer[open] summary .plus{transform:rotate(45deg)}
-.transfer .t-body{padding:4px 0 20px 36px;font-size:14px;color:var(--ink-2)}
-.transfer .t-body ul{list-style:none;max-width:70ch}
-.transfer .t-body li{padding:8px 0;border-top:1px solid var(--line-soft)}
-.transfer .t-body li:first-child{border-top:none;padding-top:0}
+/* ---------- transfer (plain block — already gated behind the expand
+   panel above it, so no second click/accordion is needed) ---------- */
+.transfer-block{margin-top:36px;border-top:1px solid var(--line);padding-top:20px}
+.transfer-block ul{list-style:none;max-width:70ch;margin-top:12px}
+.transfer-block li{padding:8px 0;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink-2)}
+.transfer-block li:first-child{border-top:none;padding-top:0}
 
 /* ---------- supporting (archive infra cards) ---------- */
 .mini-grid{
