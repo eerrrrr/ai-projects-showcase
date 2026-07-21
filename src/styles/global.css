@@ -71,10 +71,14 @@ body{
   background:var(--paper);
 }
 .hero-plasma{
-  position:absolute;inset:0 0 0 auto;
-  width:58%;height:100%;
+  position:absolute;inset:0;
+  width:100%;height:100%;
   pointer-events:none;
   z-index:0;
+  /* Static fallback in case WebGL2 itself isn't available (a different,
+     unrelated failure mode from prefers-reduced-motion) — subtle enough to
+     stay invisible once the real WebGL effect is drawing over it. */
+  background:radial-gradient(60% 60% at 70% 40%, rgba(31,122,85,.08), transparent 70%);
 }
 /* Same 1200px column + 48px padding as .nav-inner/.wrap, so the hero text
    lines up with the nav above it instead of hugging the physical viewport
@@ -86,7 +90,7 @@ body{
 }
 .hero-text{
   max-width:640px;
-  padding:64px 0;
+  padding:80px 0;
 }
 .hero-cover h1{
   font-family:'Inter Tight',sans-serif;font-weight:700;
@@ -97,12 +101,12 @@ body{
 .hero-tagline{
   font-family:'Inter Tight',sans-serif;font-weight:700;
   font-size:clamp(22px,2.6vw,32px);letter-spacing:-0.02em;color:var(--accent);
-  margin-bottom:16px;
+  margin-bottom:22px;
 }
-.focus-line{color:var(--ink-2);margin-bottom:32px;text-transform:none;letter-spacing:normal;font-size:13px}
+.focus-line{color:var(--ink-2);margin-bottom:40px;text-transform:none;letter-spacing:normal;font-size:13px}
 .keyword-rhythm{
   display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
-  padding-top:24px;border-top:1px solid var(--line);margin-bottom:28px;
+  padding-top:32px;border-top:1px solid var(--line);margin-bottom:36px;
 }
 .keyword{color:var(--ink);font-weight:600;letter-spacing:.14em}
 .keyword-sep{color:var(--ink-3);font-weight:400}
@@ -114,10 +118,10 @@ body{
 .scroll-cue:hover{color:var(--accent)}
 
 /* ---------- section heads ---------- */
-section{padding:104px 0 0}
+section{padding:168px 0 0}
 .sec-head{
   border-top:1px solid var(--ink);
-  padding-top:20px;margin-bottom:56px;
+  padding-top:28px;margin-bottom:80px;
   display:flex;align-items:baseline;gap:28px;
 }
 .sec-head .no{
@@ -135,7 +139,7 @@ section{padding:104px 0 0}
 /* ---------- systems overview (below the cover hero) ---------- */
 .systems-overview{
   max-width:1200px;margin:0 auto;
-  padding:104px 48px 0;
+  padding:168px 48px 0;
 }
 .systems-grid{
   display:grid;grid-template-columns:repeat(4,1fr);
@@ -143,16 +147,16 @@ section{padding:104px 0 0}
 }
 .system-card{
   display:block;text-decoration:none;color:inherit;
-  padding:28px 24px 32px;
+  padding:40px 32px 48px;
   border-right:1px solid var(--line-soft);
   position:relative;
   transition:background .18s ease;
 }
 .system-card:last-child{border-right:none}
-.system-card .mono--accent{display:block;margin-bottom:14px}
+.system-card .mono--accent{display:block;margin-bottom:18px}
 .system-card h3{
   font-family:'Inter Tight',sans-serif;font-weight:700;font-size:19px;
-  letter-spacing:-0.02em;margin-bottom:14px;
+  letter-spacing:-0.02em;margin-bottom:18px;
 }
 .system-card .kl{margin-top:0;line-height:1.6;color:var(--ink-2);font-size:13.5px}
 .system-card-arrow{
@@ -169,10 +173,10 @@ section{padding:104px 0 0}
 /* ---------- project ---------- */
 .project{
   border-top:1px solid var(--ink);
-  padding:40px 0 72px;
+  padding:64px 0 96px;
 }
-.project--collapsed{padding-bottom:40px}
-.p-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:0 32px}
+.project--collapsed{padding-bottom:64px}
+.p-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:0 48px}
 .p-meta{grid-column:1 / span 4}
 .p-meta-inner{position:sticky;top:88px}
 .p-num{
@@ -186,7 +190,7 @@ section{padding:104px 0 0}
   font-size:clamp(22px,2.2vw,27px);letter-spacing:-0.025em;line-height:1.15;
   margin-bottom:18px;
 }
-.tags{display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:28px}
+.tags{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:36px}
 .tag{
   font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;
   letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
@@ -220,7 +224,7 @@ section{padding:104px 0 0}
 .view-details:hover{background:var(--accent);color:#fff}
 
 .p-content{grid-column:5 / span 8}
-.gmr{display:grid;grid-template-columns:96px 1fr;gap:14px 28px;margin-bottom:44px}
+.gmr{display:grid;grid-template-columns:96px 1fr;gap:22px 28px;margin-bottom:56px}
 .gmr dt{padding-top:3px}
 .gmr dd{color:var(--ink-2);font-size:14.5px}
 .gmr dd strong{color:var(--ink);font-weight:600}
@@ -230,18 +234,29 @@ section{padding:104px 0 0}
   background:var(--accent-soft);padding:1px 5px;border-radius:2px;
 }
 
+/* Smooth reveal for the expand panel — CSS-only (max-height + opacity),
+   deliberately not a JS animation library: calm, not flashy. */
+.expand-panel{
+  max-height:0;opacity:0;overflow:hidden;
+  transition:max-height .45s cubic-bezier(.4,0,.2,1), opacity .3s ease;
+}
+.expand-panel--open{max-height:4000px;opacity:1}
+@media (prefers-reduced-motion:reduce){
+  .expand-panel{transition:none}
+}
+
 /* ---------- vertical stage diagram ---------- */
-.stages-wrap{margin-bottom:8px}
+.stages-wrap{margin-bottom:24px}
 .stages-label{
   display:flex;justify-content:space-between;gap:16px;
-  padding-bottom:14px;border-bottom:1px solid var(--line);
-  margin-bottom:4px;
+  padding-bottom:18px;border-bottom:1px solid var(--line);
+  margin-bottom:8px;
 }
 ol.stages{list-style:none}
 .stage{
   display:grid;grid-template-columns:44px 30px 1fr 84px;
   gap:0 16px;align-items:start;
-  padding:16px 0;
+  padding:22px 0;
   position:relative;
   cursor:pointer;
 }
@@ -251,6 +266,7 @@ ol.stages{list-style:none}
 .stage--selected .s-marker::after{background:var(--accent) !important;border-color:var(--accent) !important}
 .stage + .stage{border-top:1px solid var(--line-soft)}
 .stage-media{
+  grid-column:1 / -1;
   margin-top:20px;padding:20px;
   background:var(--accent-soft);border-radius:4px;
 }
@@ -296,27 +312,12 @@ ol.stages{list-style:none}
 .s-actor--sys{color:var(--ink-3);border:1px solid var(--line)}
 .s-actor--out{color:#fff;background:var(--ink)}
 
-/* ---------- transfer accordion ---------- */
-.transfer{margin-top:36px;border-top:1px solid var(--line)}
-.transfer summary{
-  list-style:none;cursor:pointer;user-select:none;
-  display:flex;align-items:center;gap:14px;
-  padding:16px 0;
-  transition:color .15s ease;
-}
-.transfer summary:hover .mono--accent{color:var(--ink)}
-.transfer summary::-webkit-details-marker{display:none}
-.transfer summary .plus{
-  width:22px;height:22px;border:1px solid var(--accent);border-radius:50%;
-  display:inline-flex;align-items:center;justify-content:center;
-  color:var(--accent);font-size:14px;font-weight:400;flex:none;
-  transition:transform .2s ease;
-}
-.transfer[open] summary .plus{transform:rotate(45deg)}
-.transfer .t-body{padding:4px 0 20px 36px;font-size:14px;color:var(--ink-2)}
-.transfer .t-body ul{list-style:none;max-width:70ch}
-.transfer .t-body li{padding:8px 0;border-top:1px solid var(--line-soft)}
-.transfer .t-body li:first-child{border-top:none;padding-top:0}
+/* ---------- transfer (plain block — already gated behind the expand
+   panel above it, so no second click/accordion is needed) ---------- */
+.transfer-block{margin-top:36px;border-top:1px solid var(--line);padding-top:20px}
+.transfer-block ul{list-style:none;max-width:70ch;margin-top:12px}
+.transfer-block li{padding:8px 0;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink-2)}
+.transfer-block li:first-child{border-top:none;padding-top:0}
 
 /* ---------- supporting (archive infra cards) ---------- */
 .mini-grid{
@@ -325,19 +326,19 @@ ol.stages{list-style:none}
   border-left:1px solid var(--line-soft);
 }
 .mini{
-  padding:32px 36px 36px 0;
+  padding:44px 48px 48px 0;
   border-bottom:1px solid var(--line-soft);
-  padding-left:36px;border-left:1px solid var(--line-soft);
+  padding-left:44px;border-left:1px solid var(--line-soft);
   margin-left:-1px;
 }
 .mini h3{
   font-family:'Inter Tight',sans-serif;font-weight:700;font-size:18px;
-  letter-spacing:-0.02em;margin:14px 0 10px;
+  letter-spacing:-0.02em;margin:18px 0 14px;
 }
 .mini p{font-size:13.5px;color:var(--ink-2)}
 
 footer{
-  padding:36px 0 48px;
+  padding:64px 0 80px;
   display:flex;justify-content:space-between;gap:24px;
   border-top:1px solid var(--line-soft);
 }
@@ -355,11 +356,13 @@ footer{
   .wrap{padding:0 22px}
   .nav-inner{padding:0 22px}
   .nav a{display:none}
+  section{padding-top:96px}
+  .sec-head{margin-bottom:48px}
   .hero-cover{min-height:auto}
   .hero-plasma{display:none}
   .hero-content{padding:0 22px}
   .hero-text{padding:56px 0 40px;max-width:none}
-  .systems-overview{padding:64px 22px 0}
+  .systems-overview{padding:96px 22px 0}
   .systems-grid{grid-template-columns:repeat(2,1fr)}
   .system-card:nth-child(2n){border-right:none}
   .system-card:nth-child(n+3){border-top:1px solid var(--line-soft)}
@@ -367,8 +370,8 @@ footer{
   .sec-head .sub{text-align:left;margin-top:8px}
   .sec-head h2{margin-top:8px}
   .p-grid{display:block}
-  .p-meta-inner{position:static;margin-bottom:36px}
-  .gmr{grid-template-columns:1fr;gap:4px 0}
+  .p-meta-inner{position:static;margin-bottom:48px}
+  .gmr{grid-template-columns:1fr;gap:8px 0}
   .gmr dt{margin-top:16px}
   .stage{grid-template-columns:32px 24px 1fr}
   .s-actor{grid-column:3;justify-self:start;margin-top:8px}

@@ -4,17 +4,69 @@ import { Html } from './Html'
 import { useReveal } from '../hooks/useReveal'
 import { StageMedia } from './StageMedia'
 
+function WorkflowStages({
+  project,
+  selectedStageNum,
+  setSelectedStageNum,
+}: {
+  project: Project
+  selectedStageNum: number | null
+  setSelectedStageNum: (fn: (prev: number | null) => number | null) => void
+}) {
+  return (
+    <div className="stages-wrap">
+      <div className="stages-label">
+        <span className="mono">{project.stagesLabel}</span>
+        <span className="mono">{project.stageCountLabel}</span>
+      </div>
+      <ol className="stages">
+        {project.stages.map((stage) => (
+          <li
+            className={`${stage.actor === 'sys' ? 'stage' : `stage stage--${stage.actor}`}${
+              selectedStageNum === stage.num ? ' stage--selected' : ''
+            }`}
+            key={stage.num}
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))
+              }
+            }}
+          >
+            <span className="s-num">{stage.num}</span>
+            <span className="s-marker" />
+            <div className="s-body">
+              <b>{stage.title}</b>
+              <span>{stage.body}</span>
+            </div>
+            <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
+            {selectedStageNum === stage.num && <StageMedia stage={stage} />}
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 export function ProjectCard({ project }: { project: Project }) {
   const { ref, className } = useReveal<HTMLElement>()
   const articleRef = useRef<HTMLElement | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [selectedStageNum, setSelectedStageNum] = useState<number | null>(null)
-  const selectedStage = project.stages.find((s) => s.num === selectedStageNum)
 
   const setArticleRef = (el: HTMLElement | null) => {
     ref.current = el
     articleRef.current = el
   }
+
+  // Compact layout: Problem/Workflow/Result reveal, workflow stages gated
+  // behind "View workflow" too. Falls back to the older Goal/Logic/Build
+  // evidence layout (stages always visible) for projects that don't have
+  // the new short-form fields — currently the 3 Archive projects.
+  const compact = Boolean(project.problemHtml || project.workflowHtml || project.resultShortHtml)
 
   // Clicking a ProofSummary link (or loading with a direct #id URL) should
   // expand this card, not just scroll to it.
@@ -55,7 +107,7 @@ export function ProjectCard({ project }: { project: Project }) {
     <article
       ref={setArticleRef}
       id={project.id}
-      className={`project ${className}${expanded ? '' : ' project--collapsed'}`}
+      className={`project ${className}${expanded ? '' : ' project--collapsed'}${compact ? ' project--compact' : ''}`}
       style={{ scrollMarginTop: '88px' }}
     >
       <div className="p-grid">
@@ -69,13 +121,15 @@ export function ProjectCard({ project }: { project: Project }) {
             <div className="p-num">{String(project.index).padStart(2, '0')}</div>
             <Html as="h3" html={project.title} />
             <div className="tags">
-              {project.tags.map((tag) => (
+              {(compact ? project.tags.slice(0, 3) : project.tags).map((tag) => (
                 <span className="tag" key={tag}>
                   {tag}
                 </span>
               ))}
             </div>
-            {project.whatItProvesHtml || project.productionSignalHtml ? (
+            {compact ? (
+              project.valueHtml && <Html as="p" className="p-tagline" html={project.valueHtml} />
+            ) : project.whatItProvesHtml || project.productionSignalHtml ? (
               <div className="p-proof">
                 {project.whatItProvesHtml && (
                   <>
@@ -105,96 +159,68 @@ export function ProjectCard({ project }: { project: Project }) {
         </aside>
 
         <div className="p-content">
-          {/* Workflow preview — always visible, collapsed or expanded. This
-              is the "what does it actually do" proof; Goal/Method/Result
-              below is the "how I think about it" explanation, opt-in. */}
-          <div className="stages-wrap">
-            <div className="stages-label">
-              <span className="mono">{project.stagesLabel}</span>
-              <span className="mono">{project.stageCountLabel}</span>
-            </div>
-            <ol className="stages">
-              {project.stages.map((stage) => (
-                <li
-                  className={`${stage.actor === 'sys' ? 'stage' : `stage stage--${stage.actor}`}${
-                    selectedStageNum === stage.num ? ' stage--selected' : ''
-                  }`}
-                  key={stage.num}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))
-                    }
-                  }}
-                >
-                  <span className="s-num">{stage.num}</span>
-                  <span className="s-marker" />
-                  <div className="s-body">
-                    <b>{stage.title}</b>
-                    <span>{stage.body}</span>
-                  </div>
-                  <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
-                </li>
-              ))}
-            </ol>
-            {selectedStage && <StageMedia stage={selectedStage} />}
-          </div>
+          {/* Workflow diagram is always visible — the button only gates the
+              extra Problem/Result prose below, not this. */}
+          <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
 
-          {expanded && (
-            <>
-              {project.taglineHtml && (
-                <div className="p-key p-key--inline">
-                  <div className="kn">{project.keyNumber}</div>
-                  <div className="kl mono">{project.keyLabel}</div>
-                </div>
-              )}
+          <div className={`expand-panel${expanded ? ' expand-panel--open' : ''}`}>
+            {compact ? (
               <dl className="gmr">
-                <dt className="mono">Goal</dt>
-                <Html as="dd" html={project.goalHtml} />
-                <dt className="mono">Logic</dt>
-                <Html as="dd" html={project.methodHtml} />
-                <dt className="mono">Build evidence</dt>
-                <Html as="dd" html={project.resultHtml} />
-                {project.failureHandledHtml && (
-                  <>
-                    <dt className="mono">Failure handled</dt>
-                    <Html as="dd" html={project.failureHandledHtml} />
-                  </>
-                )}
-                {project.decisionHtml && (
-                  <>
-                    <dt className="mono">Decision</dt>
-                    <Html as="dd" html={project.decisionHtml} />
-                  </>
-                )}
-                {project.limitationHtml && (
-                  <>
-                    <dt className="mono">Limitation</dt>
-                    <Html as="dd" html={project.limitationHtml} />
-                  </>
-                )}
+                <dt className="mono">Problem</dt>
+                <Html as="dd" html={project.problemHtml ?? ''} />
+                <dt className="mono">Workflow</dt>
+                <Html as="dd" html={project.workflowHtml ?? ''} />
+                <dt className="mono">Result</dt>
+                <Html as="dd" html={project.resultShortHtml ?? ''} />
               </dl>
-
-              {project.transferHeading && project.transferItems && (
-                <details className="transfer">
-                  <summary>
-                    <span className="plus">+</span>
-                    <span className="mono mono--accent">{project.transferHeading}</span>
-                  </summary>
-                  <div className="t-body">
-                    <ul>
-                      {project.transferItems.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
+            ) : (
+              <>
+                {project.taglineHtml && (
+                  <div className="p-key p-key--inline">
+                    <div className="kn">{project.keyNumber}</div>
+                    <div className="kl mono">{project.keyLabel}</div>
                   </div>
-                </details>
-              )}
-            </>
-          )}
+                )}
+                <dl className="gmr">
+                  <dt className="mono">Goal</dt>
+                  <Html as="dd" html={project.goalHtml} />
+                  <dt className="mono">Logic</dt>
+                  <Html as="dd" html={project.methodHtml} />
+                  <dt className="mono">Build evidence</dt>
+                  <Html as="dd" html={project.resultHtml} />
+                  {project.failureHandledHtml && (
+                    <>
+                      <dt className="mono">Failure handled</dt>
+                      <Html as="dd" html={project.failureHandledHtml} />
+                    </>
+                  )}
+                  {project.decisionHtml && (
+                    <>
+                      <dt className="mono">Decision</dt>
+                      <Html as="dd" html={project.decisionHtml} />
+                    </>
+                  )}
+                  {project.limitationHtml && (
+                    <>
+                      <dt className="mono">Limitation</dt>
+                      <Html as="dd" html={project.limitationHtml} />
+                    </>
+                  )}
+                </dl>
+              </>
+            )}
+
+            {project.transferHeading && project.transferItems && (
+              <div className="transfer-block">
+                <span className="mono mono--accent">{project.transferHeading}</span>
+                <ul>
+                  {project.transferItems.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </article>

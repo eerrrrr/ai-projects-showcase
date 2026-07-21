@@ -29,6 +29,7 @@ export interface Project {
   taglineHtml?: string // one-line proof, shown on the collapsed card and in the proof summary
   whatItProvesHtml?: string // collapsed-card field: the capability this project demonstrates
   productionSignalHtml?: string // collapsed-card field: concrete, verified execution evidence
+  valueHtml?: string // compact-card one-line value statement (replaces whatItProves/productionSignal in the compact layout)
   tags: string[]
   keyNumber: string
   keyLabel: string
@@ -38,6 +39,14 @@ export interface Project {
   failureHandledHtml?: string
   decisionHtml?: string
   limitationHtml?: string
+  // Compact-layout fields: when problemHtml/workflowHtml/resultShortHtml are
+  // present, ProjectCard renders the short Problem/Workflow/Result reveal
+  // instead of the full Goal/Logic/Build evidence/Failure handled/Decision/
+  // Limitation one. The longer fields above are kept, not deleted, so this
+  // is a reversible display choice, not a content loss.
+  problemHtml?: string
+  workflowHtml?: string
+  resultShortHtml?: string
   stagesLabel: string
   stageCountLabel: string
   stages: Stage[]
