@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+
+# Nested unrelated git repo (github.com/eerrrrr/ERIN_AI_PROJECT) — do not
+# absorb into this repo's history; flagged to the user, not deleted.
+ERIN_AI_PROJECT/
+
+# tsc -b composite artifacts (we only build via vite)
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

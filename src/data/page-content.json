@@ -1,0 +1,63 @@
+{
+  "nav": {
+    "who": "Erin",
+    "whoAccent": "— AI workflow systems",
+    "links": [
+      {
+        "href": "#flagship-featured",
+        "label": "Systems"
+      },
+      {
+        "href": "#flagship",
+        "label": "Archive"
+      },
+      {
+        "href": "https://erin-wong-portfolio.vercel.app/",
+        "label": "Visual Portfolio",
+        "external": true
+      }
+    ]
+  },
+  "heroName": "Erin Wong",
+  "heroTagline": "AI Workflow Systems",
+  "focusLineHtml": "Process thinking &middot; data visualization &middot; human-reviewed AI workflows",
+  "thinkingList": [
+    "Source",
+    "Criteria",
+    "AI assist",
+    "Human review",
+    "Debug",
+    "Reuse"
+  ],
+  "systemsSectionNo": "01",
+  "systemsHeading": "Selected systems",
+  "flagshipSectionNo": "02",
+  "flagshipHeading": "Archive",
+  "flagshipSub": "Additional systems, kept compact.",
+  "supporting": {
+    "sectionNo": "03",
+    "heading": "Supporting infrastructure",
+    "sub": "The systems the<br>projects above stand on",
+    "cards": [
+      {
+        "eyebrow": "Knowledge capture",
+        "title": "Debug Memory Infrastructure",
+        "body": "Structured note format for recording bugs, lessons and what to avoid next time. Dry-run by default; nothing writes without confirmation."
+      },
+      {
+        "eyebrow": "Layout engine",
+        "title": "Auto-Typesetting Cover Tool",
+        "body": "React + Vite tool that turns raw text into poster / cover layouts and exports PNG, SVG and JSON."
+      },
+      {
+        "eyebrow": "Process transfer demo",
+        "title": "Finance-style Exception Review",
+        "body": "Mock invoice / PO / payment dataset testing source → classify → human-review logic. 8 mock invoices, 6 exception types, 0 auto-resolved."
+      }
+    ]
+  },
+  "footer": {
+    "left": "Erin · figures taken from project logs, databases and local files · 2026-07-20",
+    "right": "Code walkthroughs & live demos available on request"
+  }
+}
