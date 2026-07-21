@@ -153,21 +153,15 @@ export function ProjectCard({ project }: { project: Project }) {
               </div>
             )}
             <button type="button" className="view-details" onClick={() => setExpanded((v) => !v)}>
-              {expanded
-                ? compact
-                  ? 'Hide workflow −'
-                  : 'Hide details −'
-                : compact
-                  ? 'View workflow ↓'
-                  : 'View details ↓'}
+              {expanded ? 'Hide details −' : 'View details ↓'}
             </button>
           </div>
         </aside>
 
         <div className="p-content">
-          {!compact && (
-            <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
-          )}
+          {/* Workflow diagram is always visible — the button only gates the
+              extra Problem/Result prose below, not this. */}
+          <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
 
           <div className={`expand-panel${expanded ? ' expand-panel--open' : ''}`}>
             {compact ? (
@@ -175,10 +169,7 @@ export function ProjectCard({ project }: { project: Project }) {
                 <dt className="mono">Problem</dt>
                 <Html as="dd" html={project.problemHtml ?? ''} />
                 <dt className="mono">Workflow</dt>
-                <dd>
-                  {project.workflowHtml && <Html as="p" html={project.workflowHtml} />}
-                  <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
-                </dd>
+                <Html as="dd" html={project.workflowHtml ?? ''} />
                 <dt className="mono">Result</dt>
                 <Html as="dd" html={project.resultShortHtml ?? ''} />
               </dl>
