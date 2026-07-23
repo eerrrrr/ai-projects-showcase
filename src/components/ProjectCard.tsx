@@ -3,6 +3,8 @@ import type { Project } from '../data/types'
 import { Html } from './Html'
 import { useReveal } from '../hooks/useReveal'
 import { StageMedia } from './StageMedia'
+import { ProjectLogicCard } from './ProjectLogicCard'
+import { WorkflowWalkthrough } from './WorkflowWalkthrough'
 
 function WorkflowStages({
   project,
@@ -68,6 +70,11 @@ export function ProjectCard({ project }: { project: Project }) {
   // the new short-form fields — currently the 3 Archive projects.
   const compact = Boolean(project.problemHtml || project.workflowHtml || project.resultShortHtml)
 
+  // Walkthrough prototype (Project 01 only — see 00_SYSTEM.md v19). Only
+  // true when all three fields are present, so every other project renders
+  // through the existing compact/full paths completely unchanged.
+  const hasWalkthrough = Boolean(project.valueLine && project.miniRoadmap && project.proofChips)
+
   // Clicking a ProofSummary link (or loading with a direct #id URL) should
   // expand this card, not just scroll to it.
   useEffect(() => {
@@ -113,55 +120,65 @@ export function ProjectCard({ project }: { project: Project }) {
       <div className="p-grid">
         <aside className="p-meta">
           <div className="p-meta-inner">
-            <span className="mono">
-              Project {String(project.index).padStart(2, '0')} / {String(project.total).padStart(2, '0')}
-              {' · '}
-              {project.tierLabel}
-            </span>
-            <div className="p-num">{String(project.index).padStart(2, '0')}</div>
-            <Html as="h3" html={project.title} />
-            <div className="tags">
-              {(compact ? project.tags.slice(0, 3) : project.tags).map((tag) => (
-                <span className="tag" key={tag}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-            {compact ? (
-              project.valueHtml && <Html as="p" className="p-tagline" html={project.valueHtml} />
-            ) : project.whatItProvesHtml || project.productionSignalHtml ? (
-              <div className="p-proof">
-                {project.whatItProvesHtml && (
-                  <>
-                    <span className="mono">What it proves</span>
-                    <Html as="p" html={project.whatItProvesHtml} />
-                  </>
-                )}
-                {project.productionSignalHtml && (
-                  <>
-                    <span className="mono">Production signal</span>
-                    <Html as="p" className="p-proof-signal" html={project.productionSignalHtml} />
-                  </>
-                )}
-              </div>
-            ) : project.taglineHtml ? (
-              <Html as="p" className="p-tagline" html={project.taglineHtml} />
+            {hasWalkthrough ? (
+              <ProjectLogicCard project={project} expanded={expanded} onToggleDetails={() => setExpanded((v) => !v)} />
             ) : (
-              <div className="p-key">
-                <div className="kn">{project.keyNumber}</div>
-                <div className="kl mono">{project.keyLabel}</div>
-              </div>
+              <>
+                <span className="mono">
+                  Project {String(project.index).padStart(2, '0')} / {String(project.total).padStart(2, '0')}
+                  {' · '}
+                  {project.tierLabel}
+                </span>
+                <div className="p-num">{String(project.index).padStart(2, '0')}</div>
+                <Html as="h3" html={project.title} />
+                <div className="tags">
+                  {(compact ? project.tags.slice(0, 3) : project.tags).map((tag) => (
+                    <span className="tag" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                {compact ? (
+                  project.valueHtml && <Html as="p" className="p-tagline" html={project.valueHtml} />
+                ) : project.whatItProvesHtml || project.productionSignalHtml ? (
+                  <div className="p-proof">
+                    {project.whatItProvesHtml && (
+                      <>
+                        <span className="mono">What it proves</span>
+                        <Html as="p" html={project.whatItProvesHtml} />
+                      </>
+                    )}
+                    {project.productionSignalHtml && (
+                      <>
+                        <span className="mono">Production signal</span>
+                        <Html as="p" className="p-proof-signal" html={project.productionSignalHtml} />
+                      </>
+                    )}
+                  </div>
+                ) : project.taglineHtml ? (
+                  <Html as="p" className="p-tagline" html={project.taglineHtml} />
+                ) : (
+                  <div className="p-key">
+                    <div className="kn">{project.keyNumber}</div>
+                    <div className="kl mono">{project.keyLabel}</div>
+                  </div>
+                )}
+                <button type="button" className="view-details" onClick={() => setExpanded((v) => !v)}>
+                  {expanded ? 'Hide details −' : 'View details ↓'}
+                </button>
+              </>
             )}
-            <button type="button" className="view-details" onClick={() => setExpanded((v) => !v)}>
-              {expanded ? 'Hide details −' : 'View details ↓'}
-            </button>
           </div>
         </aside>
 
         <div className="p-content">
           {/* Workflow diagram is always visible — the button only gates the
               extra Problem/Result prose below, not this. */}
-          <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
+          {hasWalkthrough ? (
+            <WorkflowWalkthrough project={project} />
+          ) : (
+            <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
+          )}
 
           <div className={`expand-panel${expanded ? ' expand-panel--open' : ''}`}>
             {compact ? (

@@ -14,6 +14,10 @@ export interface Stage {
   body: string
   image?: string // path under /case-media/<project-id>/ — may not exist on disk yet
   caption?: string
+  // Walkthrough-only: 2-4 short phrases revealed progressively while this
+  // stage is the active step. `body` doubles as the walkthrough explanation
+  // — no separate field, so there's one place to edit the stage's meaning.
+  miniNodes?: string[]
 }
 
 export type ProjectTier = 1 | 2 | 3
@@ -52,6 +56,16 @@ export interface Project {
   stages: Stage[]
   transferHeading?: string
   transferItems?: string[]
+  // Walkthrough prototype fields (Project 01 only for now — see 00_SYSTEM.md
+  // v19). When all three are present, ProjectCard renders the simplified
+  // ProjectLogicCard left column + the interactive WorkflowWalkthrough
+  // instead of the existing compact/full layouts. Absent on every other
+  // project, which keeps their rendering completely untouched.
+  valueLine?: string
+  miniRoadmap?: string[]
+  proofChips?: string[]
+  finalRoadmap?: string
+  finalTakeaway?: string
 }
 
 export interface MiniCard {

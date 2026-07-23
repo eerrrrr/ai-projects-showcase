@@ -1035,6 +1035,115 @@ though it still reports `prefers-reduced-motion:reduce` (previously it did
 not mount under that condition) — confirming the gate is genuinely gone,
 not just visually similar.
 
+## v19 — coded workflow walkthrough, Project 01 prototype only (2026-07-22)
+
+The user relayed a detailed external spec (Swiss-style, node/edge visual
+language, 5-phase plan) for replacing the always-visible workflow-stage list
+with an interactive "How it works" walkthrough: play/pause/next/previous/
+restart controls, mini-nodes revealing progressively per step, ending on a
+static roadmap recap. The spec itself recommended the safe path — build
+Project 01 only first, apply site-wide after it's proven — and that's what
+was built. **Projects 02–07 are completely untouched**, both in code and in
+rendered output.
+
+**Guardrails honored, same as every prior pass:** no redesign of hero/
+archive/footer/deployment/routing; existing JSON-driven architecture reused,
+not replaced; no hardcoded per-project copy in components; no animation
+library (`ogl`/Plasma stays the only exception, from v13) — this feature is
+React state + `setTimeout` + CSS transitions only; no PNG diagrams, no fake
+n8n canvas, no new modal or route; `prefers-reduced-motion` respected; "View
+details" stays a fully separate toggle from the walkthrough's own play state.
+
+**What changed:**
+- `types.ts`: `Stage` gained optional `miniNodes?: string[]` (2–4 short
+  phrases revealed progressively while a stage is active — `body` doubles as
+  the walkthrough's explanation text, no separate field). `Project` gained
+  five optional fields — `valueLine`, `miniRoadmap`, `proofChips`,
+  `finalRoadmap`, `finalTakeaway` — populated only on Project 01 in
+  `projects.json`. `ProjectCard.tsx` derives
+  `hasWalkthrough = Boolean(valueLine && miniRoadmap && proofChips)`; every
+  other project renders through the exact same compact/full paths as before,
+  completely unchanged.
+- New `ProjectLogicCard.tsx` — the simplified left column for
+  walkthrough-enabled projects: number, title, one `valueLine`, a
+  mini-roadmap breadcrumb (`Input → Criteria → Review state → Human
+  decision`), 2–3 proof chips, "View details" button. Replaces the old
+  tags/valueHtml block only when `hasWalkthrough` is true.
+- New `WorkflowWalkthrough.tsx` — the core new component. A small
+  timer-driven state machine (`activeStep`, `revealedCount`, `completed`
+  set, `playState: idle|playing|paused|done`): autoplay reveals one
+  mini-node every 300ms, dwells 1400ms on the completed step, then advances;
+  manual `Previous`/`Next`/spine-row-click all route through a single
+  `jumpTo` function; `Restart` resets to a clean first step. Ends on a
+  `.w-recap` block showing `project.finalRoadmap`/`finalTakeaway`.
+- `ProjectCard.tsx`: `hasWalkthrough` branches both the left meta column
+  (`ProjectLogicCard` vs. the original block) and the right content column
+  (`WorkflowWalkthrough` vs. the original `WorkflowStages`). Everything below
+  — the `expand-panel` with Problem/Workflow/Result and the Transfer block —
+  is untouched and shared by all projects, so "View details" keeps working
+  identically for Project 01 as for every other card.
+- `global.css`: new `.mini-roadmap`/`.proof-chips` styles for the left
+  column, and a full `.walkthrough`/`.w-spine`/`.w-step`/`.w-active-panel`/
+  `.w-mini-node`/`.w-recap`/`.w-controls`/`.w-btn` block for the right
+  column, plus a `@media (prefers-reduced-motion: reduce)` override that
+  disables the mini-node CSS transition (the JS-level reduced-motion
+  short-circuit, below, is the real gate — this is the belt-and-braces CSS
+  half of it) and a mobile tweak (`.w-step` grid narrows, actor pill hides).
+
+**Two real bugs found and fixed during live-DOM verification, not just
+"looked right in the code":**
+1. **Stale-closure bug in `Next`/`Previous`.** `jumpTo(activeStep + 1)` /
+   `jumpTo(activeStep - 1)` closed over the `activeStep` value from the
+   render each button was created in. Caught it directly: three rapid,
+   same-tick `Next` clicks in a Puppeteer test only advanced the step by
+   one, not three. Fixed by changing `jumpTo` to accept either a plain index
+   or an updater function, and routing it through `setActiveStep`'s own
+   functional form (`setActiveStep((prevStep) => ...)`) so every click reads
+   the latest state regardless of batching timing — the correct general fix,
+   not a workaround for how the test happened to fire clicks.
+2. **Recap unreachable under reduced motion via manual navigation.** `Next`
+   disables once `activeStep` is the last index, and `resume()` is a no-op
+   when `reduceMotion` is true (it sets `playState` to `'paused'`, which it
+   already was) — so a reduced-motion user stepping through by hand could
+   reach the last step but `playState` would never become `'done'`, and the
+   recap would never render. There was no way to "finish" without autoplay.
+   Fixed by adding a `finish()` action and having the last-step button read
+   "Finish" instead of "Next" (`isLastStep` check) — clicking it explicitly
+   marks the last step complete and sets `playState` to `'done'`. Verified:
+   `Finish` appears only on the true last step, clicking it shows `.w-recap`
+   with the correct `finalRoadmap`/`finalTakeaway` text, `Previous` from
+   `done` correctly un-marks the last step and hides the recap again, and
+   `Restart` cleanly resets to step 0 with nothing marked done.
+
+**Verified, all via live-DOM Puppeteer checks (not screenshots — this
+sandbox's Plasma+scroll+screenshot crash from v16 is still standing
+guidance):**
+- Isolation across all 7 project cards: only `job-application-filter` has
+  `.walkthrough`/`.mini-roadmap`/lacks `.stages-wrap`; all 6 others have the
+  reverse — zero cross-contamination.
+- Reduced-motion short-circuit: `start()` under `reduceMotion: true`
+  instantly reveals all of the first step's mini-nodes and sets `playState`
+  to `'paused'` (button reads "Play", not "Pause") rather than the
+  timer-driven staggered reveal a non-reduced-motion browser gets.
+- Full manual walkthrough of all 4 steps via single, separately-dispatched
+  `Next` clicks (one per Puppeteer call, matching real click timing rather
+  than same-tick batching) correctly advanced one step per click, marked
+  each prior step done, reached `Finish` only at step 4, and produced the
+  correct recap text. Direct spine-row click (`jumpTo(i)` for a
+  non-adjacent step) correctly jumps and marks all preceding steps done,
+  without triggering the recap (jumping to view a step is not the same as
+  finishing).
+- `npm run build` — zero TypeScript errors, both before and after the two
+  bug fixes; 111 modules; CSS bundle 14.88 kB.
+
+**Not yet done, explicitly deferred pending user go-ahead:** applying
+`ProjectLogicCard`/`WorkflowWalkthrough` to Projects 02–04 (Phase 4 of the
+user's own 5-phase plan) — this is a JSON-data-only extension once approved,
+no component changes needed, same pattern as every other JSON-driven
+addition in this project's history. `docs/` rebuilt and committed locally
+this pass; still needs a GitHub Desktop push to go live (this terminal
+cannot authenticate `git push`, same standing limitation since v17).
+
 ## Not built / explicitly out of scope
 
 - No backend, no database, no external API calls.
