@@ -258,10 +258,11 @@ section{padding:168px 0 0}
    (ProjectLogicCard only) — the gap replaces .view-details's own
    margin-top so the two buttons space evenly. */
 .p-controls{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-top:28px}
-/* Quieter secondary treatment than the base .view-details pill (used
-   as-is on Archive cards, which have no "How it works" to sit next to) —
-   plain text-link style here so "How it works" reads as the one primary
-   action. */
+/* Quieter secondary treatment than the base .view-details pill (that base
+   style still covers any future system added before its walkthrough data
+   is ready — currently all 7 have it, so nothing renders the plain pill
+   today) — plain text-link style here so "How it works" reads as the one
+   primary action. */
 .p-controls .view-details{
   margin-top:0;border:none;background:none;padding:0;
   color:var(--ink-3);text-decoration:underline;text-decoration-color:transparent;

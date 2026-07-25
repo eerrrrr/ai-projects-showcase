@@ -8,6 +8,7 @@ import { ProofSummary } from './components/ProofSummary'
 import { ProjectCard } from './components/ProjectCard'
 import { SupportingSystems } from './components/SupportingSystems'
 import { Footer } from './components/Footer'
+import { useSoftPageHandoff } from './hooks/useSoftPageHandoff'
 import './styles/global.css'
 
 const content = pageContent as PageContent
@@ -17,6 +18,8 @@ const otherProjects = projects.filter((p) => p.tier !== 1)
 
 export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null)
+
+  useSoftPageHandoff()
 
   // Scroll-spy: highlight whichever featured project's full section is
   // currently in view, on the systems-overview quick cards above it.

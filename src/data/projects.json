@@ -182,6 +182,7 @@
     "tier": 2,
     "tierLabel": "Supporting system",
     "title": "Method of Loci — automated document-ingestion pipeline",
+    "taglineHtml": "Turns saved social-media archives into a searchable, offline knowledge base.",
     "tags": ["Document ingestion", "AI extraction", "Scheduled automation", "Python · Gemini · SQLite"],
     "overviewChips": ["Python", "Gemini AI", "SQLite"],
     "keyNumber": "860",
@@ -192,12 +193,17 @@
     "stagesLabel": "Workflow — runs unattended at login",
     "stageCountLabel": "5 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "ZIP inbox", "body": "Export archives enter a watched folder." },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Import + normalize", "body": "Files are unpacked, renamed and registered." },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "AI extraction", "body": "Gemini writes searchable image and video descriptions." },
-      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Sync to Notion", "body": "Each post carries a pipeline status." },
-      { "num": 5, "actor": "out", "actorLabel": "Output", "title": "Searchable database", "body": "SQLite remains the offline source of truth." }
-    ]
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "ZIP inbox", "body": "Export archives enter a watched folder.", "miniNodes": ["Watched folder", "Export archive arrives"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Import + normalize", "body": "Files are unpacked, renamed and registered.", "miniNodes": ["Unpacked", "Renamed", "Registered"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "AI extraction", "body": "Gemini writes searchable image and video descriptions.", "miniNodes": ["Gemini AI", "Image descriptions", "Video descriptions"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Sync to Notion", "body": "Each post carries a pipeline status.", "miniNodes": ["Synced to Notion", "Pipeline status tracked"] },
+      { "num": 5, "actor": "out", "actorLabel": "Output", "title": "Searchable database", "body": "SQLite remains the offline source of truth.", "miniNodes": ["SQLite database", "Offline source of truth"] }
+    ],
+    "valueLine": "Scheduled Python pipeline that turns saved archives into a searchable, offline knowledge base.",
+    "miniRoadmap": ["Inbox", "Import", "AI extract", "Sync", "Database"],
+    "proofChips": ["860 AI extracts", "175 posts", "3.5 months hands-off"],
+    "finalRoadmap": "ZIP inbox → import + normalize → AI extraction → sync to Notion → searchable database",
+    "finalTakeaway": "Runs unattended. SQLite stays the source of truth."
   },
   {
     "id": "video-pipeline",
@@ -206,6 +212,7 @@
     "tier": 3,
     "tierLabel": "Learning lab",
     "title": "AI-Assisted Video Pipeline — &ldquo;decide before render&rdquo;",
+    "taglineHtml": "Plan-before-render editing pipeline for phone footage &rarr; publishable vertical reels.",
     "tags": ["Process design", "Cost control", "Privacy automation", "ffmpeg · Resolve API · DCTL"],
     "overviewChips": ["ffmpeg", "Resolve API", "Privacy pass"],
     "keyNumber": "2",
@@ -216,13 +223,18 @@
     "stagesLabel": "Workflow — plan approved before compute is spent",
     "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Footage ingest", "body": "Read metadata and group clips." },
-      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Privacy pass", "body": "Mosaic bystander faces with a QA contact sheet." },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Triage + EDIT_PLAN", "body": "Mark KEEP / TRIM / KILL and write the edit plan." },
-      { "num": 4, "actor": "human", "actorLabel": "Human", "title": "Human approval", "body": "No render before sign-off." },
-      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Build the cut", "body": "ffmpeg assembles the approved plan." },
-      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Final export", "body": "Exported, metadata-stripped, versioned output." }
-    ]
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Footage ingest", "body": "Read metadata and group clips.", "miniNodes": ["Read metadata", "Group clips"] },
+      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Privacy pass", "body": "Mosaic bystander faces with a QA contact sheet.", "miniNodes": ["Mosaic bystander faces", "QA contact sheet"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Triage + EDIT_PLAN", "body": "Mark KEEP / TRIM / KILL and write the edit plan.", "miniNodes": ["KEEP / TRIM / KILL", "Edit plan written"] },
+      { "num": 4, "actor": "human", "actorLabel": "Human", "title": "Human approval", "body": "No render before sign-off.", "miniNodes": ["Human sign-off required", "No render before approval"] },
+      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Build the cut", "body": "ffmpeg assembles the approved plan.", "miniNodes": ["ffmpeg assembly", "Approved plan only"] },
+      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Final export", "body": "Exported, metadata-stripped, versioned output.", "miniNodes": ["Metadata stripped", "Versioned output"] }
+    ],
+    "valueLine": "Plan-before-render editing pipeline — nothing renders until a human approves the edit plan.",
+    "miniRoadmap": ["Ingest", "Privacy", "Triage", "Approval", "Render", "Export"],
+    "proofChips": ["2 productions", "Privacy pass", "Human approval gate"],
+    "finalRoadmap": "Footage ingest → privacy pass → triage + EDIT_PLAN → human approval → build the cut → final export",
+    "finalTakeaway": "Compute is spent only after a human-approved plan."
   },
   {
     "id": "blender-comfyui-previs",
@@ -231,6 +243,7 @@
     "tier": 3,
     "tierLabel": "Learning lab",
     "title": "Blender + ComfyUI — controllable AI video on free local models",
+    "taglineHtml": "Tests whether local AI video tools can produce controllable motion, camera and material effects.",
     "tags": ["Generative AI", "Prototyping", "Build-vs-buy", "Blender · Wan2.1 · IPAdapter"],
     "overviewChips": ["Blender", "ComfyUI", "Wan2.1"],
     "keyNumber": "3",
@@ -241,12 +254,17 @@
     "stagesLabel": "Workflow — a 3D control layer feeds the video model",
     "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "3D", "title": "Blender greybox", "body": "Rough 3D scene defines camera and blocking." },
-      { "num": 2, "actor": "sys", "actorLabel": "3D", "title": "Depth render", "body": "Depth pass becomes the control signal." },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Wan2.1 VACE generation", "body": "Local model generates motion from control inputs." },
-      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Grade + upscale", "body": "Improve the raw output." },
-      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Finish", "body": "Add interpolation and room tone." },
-      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Release packages", "body": "Export vertical, square and showcase formats." }
-    ]
+      { "num": 1, "actor": "sys", "actorLabel": "3D", "title": "Blender greybox", "body": "Rough 3D scene defines camera and blocking.", "miniNodes": ["Rough 3D scene", "Camera blocking"] },
+      { "num": 2, "actor": "sys", "actorLabel": "3D", "title": "Depth render", "body": "Depth pass becomes the control signal.", "miniNodes": ["Depth pass", "Control signal"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Wan2.1 VACE generation", "body": "Local model generates motion from control inputs.", "miniNodes": ["Local model", "Motion generation", "Control inputs"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Grade + upscale", "body": "Improve the raw output.", "miniNodes": ["Grade the output", "Upscale"] },
+      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Finish", "body": "Add interpolation and room tone.", "miniNodes": ["Interpolation", "Room tone"] },
+      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Release packages", "body": "Export vertical, square and showcase formats.", "miniNodes": ["Vertical format", "Square format", "Showcase format"] }
+    ],
+    "valueLine": "A 3D control layer (Blender) drives local AI video generation for controllable motion and camera.",
+    "miniRoadmap": ["Greybox", "Depth", "AI generate", "Grade", "Finish", "Release"],
+    "proofChips": ["3 content tracks", "Graded masters", "Local models"],
+    "finalRoadmap": "Blender greybox → depth render → Wan2.1 VACE generation → grade + upscale → finish → release packages",
+    "finalTakeaway": "A 3D control layer keeps local AI video generation controllable."
   }
 ]

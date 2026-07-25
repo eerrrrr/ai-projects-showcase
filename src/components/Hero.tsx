@@ -15,7 +15,7 @@ import Plasma from './Plasma'
 // unrelated failure mode from reduced-motion.
 export function Hero({ content }: { content: PageContent }) {
   return (
-    <header className="hero hero-cover">
+    <header className="hero hero-cover" data-page-section="hero">
       <div className="hero-plasma" aria-hidden="true">
         <Plasma color="#1f7a55" speed={0.35} direction="forward" scale={1.25} opacity={0.22} mouseInteractive={false} />
       </div>

@@ -14,7 +14,7 @@ function shortName(title: string) {
 // below the cover hero (not inside it). Every card links to its full
 // project section; `activeId` (driven by scroll-spy in App.tsx) highlights
 // whichever featured project is currently in view. Tier 2/3 projects (the
-// ones with a fuller write-up further down in the Systems Lab section)
+// ones with a fuller write-up further down the page, under "System details")
 // render in the exact same card form and color — no separate heading, no
 // detached link row, no muted styling; they're still real, clickable cards
 // in the same catalogue, not a demoted afterthought.
@@ -30,7 +30,7 @@ export function ProofSummary({
   activeId: string | null
 }) {
   return (
-    <section id="systems" className="systems-overview">
+    <section id="systems" className="systems-overview" data-page-section="systems">
       <div className="sec-head">
         <span className="no">{sectionNo}</span>
         <h2>{heading}</h2>

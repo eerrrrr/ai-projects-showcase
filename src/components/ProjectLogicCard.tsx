@@ -27,7 +27,7 @@ export function ProjectLogicCard({
   return (
     <>
       <span className="mono">
-        Project {String(project.index).padStart(2, '0')} / {String(project.total).padStart(2, '0')}
+        System {String(project.index).padStart(2, '0')}
         {' · '}
         {project.tierLabel}
       </span>

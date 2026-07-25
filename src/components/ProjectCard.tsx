@@ -69,12 +69,12 @@ export function ProjectCard({ project }: { project: Project }) {
   // Compact layout: Problem/Workflow/Result reveal, workflow stages gated
   // behind "View workflow" too. Falls back to the older Goal/Logic/Build
   // evidence layout (stages always visible) for projects that don't have
-  // the new short-form fields — currently the 3 Archive projects.
+  // the new short-form fields — currently Systems 05-07.
   const compact = Boolean(project.problemHtml || project.workflowHtml || project.resultShortHtml)
 
-  // Walkthrough prototype (Project 01 only — see 00_SYSTEM.md v19/v20). Only
-  // true when all three fields are present, so every other project renders
-  // through the existing compact/full paths completely unchanged.
+  // Interactive walkthrough (see 00_SYSTEM.md v19-v22) — true when all three
+  // fields are present. Started with Project 01 only, then extended to all
+  // 7 systems once each had truthful stage data to support it.
   const hasWalkthrough = Boolean(project.valueLine && project.miniRoadmap && project.proofChips)
 
   // Zip the card back to its default clean state — details closed, and
@@ -140,7 +140,7 @@ export function ProjectCard({ project }: { project: Project }) {
             ) : (
               <>
                 <span className="mono">
-                  Project {String(project.index).padStart(2, '0')} / {String(project.total).padStart(2, '0')}
+                  System {String(project.index).padStart(2, '0')}
                   {' · '}
                   {project.tierLabel}
                 </span>
