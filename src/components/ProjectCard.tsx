@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Project } from '../data/types'
 import { Html } from './Html'
 import { useReveal } from '../hooks/useReveal'
+import { useWorkflowWalkthrough } from '../hooks/useWorkflowWalkthrough'
 import { StageMedia } from './StageMedia'
 import { ProjectLogicCard } from './ProjectLogicCard'
 import { WorkflowWalkthrough } from './WorkflowWalkthrough'
@@ -58,6 +59,7 @@ export function ProjectCard({ project }: { project: Project }) {
   const articleRef = useRef<HTMLElement | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [selectedStageNum, setSelectedStageNum] = useState<number | null>(null)
+  const walkthrough = useWorkflowWalkthrough(project.stages)
 
   const setArticleRef = (el: HTMLElement | null) => {
     ref.current = el
@@ -70,29 +72,28 @@ export function ProjectCard({ project }: { project: Project }) {
   // the new short-form fields — currently the 3 Archive projects.
   const compact = Boolean(project.problemHtml || project.workflowHtml || project.resultShortHtml)
 
-  // Walkthrough prototype (Project 01 only — see 00_SYSTEM.md v19). Only
+  // Walkthrough prototype (Project 01 only — see 00_SYSTEM.md v19/v20). Only
   // true when all three fields are present, so every other project renders
   // through the existing compact/full paths completely unchanged.
   const hasWalkthrough = Boolean(project.valueLine && project.miniRoadmap && project.proofChips)
 
-  // Clicking a ProofSummary link (or loading with a direct #id URL) should
-  // expand this card, not just scroll to it.
+  // Zip the card back to its default clean state — details closed, and
+  // (for walkthrough projects) the "How it works" walkthrough reset —
+  // once it's scrolled fully out of view. Keeps only the project the user
+  // is actually looking at in an expanded/active state, instead of an
+  // earlier project's finished walkthrough or open details sitting around
+  // while browsing later ones. "hasBeenVisible" guards against the
+  // observer's very first callback firing before an anchor-triggered
+  // scroll has actually arrived, which would otherwise immediately
+  // re-collapse a card someone just clicked open from the
+  // systems-overview cards.
+  //
+  // This observer only ever resets state on exit — it never reads which
+  // workflow step is active and never selects one. `walkthrough.reset` is
+  // a stable (useCallback) reference, so this effect only re-runs on the
+  // meaningful open/close transitions below, not on every autoplay tick.
   useEffect(() => {
-    function checkHash() {
-      if (window.location.hash === `#${project.id}`) setExpanded(true)
-    }
-    checkHash()
-    window.addEventListener('hashchange', checkHash)
-    return () => window.removeEventListener('hashchange', checkHash)
-  }, [project.id])
-
-  // Zip the detail back up once the card has scrolled fully out of view —
-  // "hasBeenVisible" guards against the observer's very first callback
-  // firing before an anchor-triggered scroll has actually arrived, which
-  // would otherwise immediately re-collapse a card someone just clicked
-  // open from the systems-overview cards.
-  useEffect(() => {
-    if (!expanded) return
+    if (!expanded && !walkthrough.started) return
     const el = articleRef.current
     if (!el) return
     let hasBeenVisible = false
@@ -102,13 +103,14 @@ export function ProjectCard({ project }: { project: Project }) {
           hasBeenVisible = true
         } else if (hasBeenVisible) {
           setExpanded(false)
+          walkthrough.reset()
         }
       },
       { threshold: 0 },
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [expanded])
+  }, [expanded, walkthrough.started, walkthrough.reset])
 
   return (
     <article
@@ -121,7 +123,12 @@ export function ProjectCard({ project }: { project: Project }) {
         <aside className="p-meta">
           <div className="p-meta-inner">
             {hasWalkthrough ? (
-              <ProjectLogicCard project={project} expanded={expanded} onToggleDetails={() => setExpanded((v) => !v)} />
+              <ProjectLogicCard
+                project={project}
+                expanded={expanded}
+                onToggleDetails={() => setExpanded((v) => !v)}
+                onStartWalkthrough={walkthrough.start}
+              />
             ) : (
               <>
                 <span className="mono">
@@ -172,10 +179,10 @@ export function ProjectCard({ project }: { project: Project }) {
         </aside>
 
         <div className="p-content">
-          {/* Workflow diagram is always visible — the button only gates the
-              extra Problem/Result prose below, not this. */}
+          {/* Workflow diagram is always visible — "View details" only gates
+              the extra Problem/Result prose below, not this. */}
           {hasWalkthrough ? (
-            <WorkflowWalkthrough project={project} />
+            <WorkflowWalkthrough project={project} walkthrough={walkthrough} />
           ) : (
             <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
           )}

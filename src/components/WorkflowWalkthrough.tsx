@@ -1,115 +1,33 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment } from 'react'
 import type { Project } from '../data/types'
 import { StageMedia } from './StageMedia'
+import type { WorkflowWalkthroughState } from '../hooks/useWorkflowWalkthrough'
 
-type PlayState = 'idle' | 'playing' | 'paused' | 'done'
-
-const NODE_REVEAL_MS = 300
-const STEP_DWELL_MS = 1400
-
-// Coded, data-driven workflow walkthrough — no PNG diagrams, no fake canvas,
-// no animation library. CSS transitions + a small timer-driven state
-// machine only. One major step active at a time; its mini-nodes reveal
-// progressively during autoplay, then the step collapses to a completed
-// state before the next one opens. Ends on a static recap, no looping.
-export function WorkflowWalkthrough({ project }: { project: Project }) {
+// Coded, data-driven workflow walkthrough display — no PNG diagrams, no fake
+// canvas, no animation library, no manual step player. State comes from
+// useWorkflowWalkthrough (owned by ProjectCard, shared with the "How it
+// works" trigger on ProjectLogicCard) — this component only renders it.
+//
+// Every row always shows its title + one-line explanation, same as the
+// static workflow list on non-walkthrough projects. Clicking "How it works"
+// (left column) or a row directly expands that row's mini-nodes + proof
+// capture as an accordion panel directly under it — exclusive accordion:
+// only one panel is open at a time, the previous step folds the moment the
+// next one opens.
+//
+// Row visual grammar deliberately matches the archive's static .stage rows
+// (number + spine + shape marker + title/desc + actor label) — the stage
+// number never becomes a checkmark; active/done state is carried by the
+// marker shape/colour instead, same principle as .stage--selected.
+export function WorkflowWalkthrough({
+  project,
+  walkthrough,
+}: {
+  project: Project
+  walkthrough: WorkflowWalkthroughState
+}) {
   const stages = project.stages
-  const [playState, setPlayState] = useState<PlayState>('idle')
-  const [activeStep, setActiveStep] = useState(0)
-  const [revealedCount, setRevealedCount] = useState(0)
-  const [completed, setCompleted] = useState<Set<number>>(new Set())
-  const [reduceMotion, setReduceMotion] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setReduceMotion(mq.matches)
-    const onChange = () => setReduceMotion(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [])
-
-  // Autoplay driver: only runs while playState === 'playing'. Reveals mini
-  // nodes one at a time, dwells on the finished step, then advances.
-  useEffect(() => {
-    if (playState !== 'playing') return
-    const stage = stages[activeStep]
-    const nodeCount = stage.miniNodes?.length ?? 0
-
-    if (revealedCount < nodeCount) {
-      timerRef.current = setTimeout(() => setRevealedCount((n) => n + 1), NODE_REVEAL_MS)
-      return () => {
-        if (timerRef.current) clearTimeout(timerRef.current)
-      }
-    }
-
-    timerRef.current = setTimeout(() => {
-      setCompleted((prev) => new Set(prev).add(activeStep))
-      if (activeStep >= stages.length - 1) {
-        setPlayState('done')
-      } else {
-        setActiveStep((s) => s + 1)
-        setRevealedCount(0)
-      }
-    }, STEP_DWELL_MS)
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [playState, activeStep, revealedCount, stages])
-
-  const start = () => {
-    setCompleted(new Set())
-    setActiveStep(0)
-    setRevealedCount(reduceMotion ? (stages[0].miniNodes?.length ?? 0) : 0)
-    setPlayState(reduceMotion ? 'paused' : 'playing')
-  }
-
-  const pause = () => setPlayState('paused')
-  const resume = () => {
-    if (playState === 'done') return
-    setPlayState(reduceMotion ? 'paused' : 'playing')
-  }
-
-  // Accepts a target index or an updater reading the latest step — the
-  // updater form is what Next/Previous use so rapid clicks each read fresh
-  // state instead of the value closed over at render time.
-  const jumpTo = (indexOrFn: number | ((prev: number) => number)) => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-    setPlayState('paused')
-    setActiveStep((prevStep) => {
-      const target = typeof indexOrFn === 'function' ? indexOrFn(prevStep) : indexOrFn
-      const clamped = Math.max(0, Math.min(stages.length - 1, target))
-      setCompleted((prev) => {
-        const next = new Set(prev)
-        for (let i = 0; i < clamped; i++) next.add(i)
-        for (let i = clamped; i < stages.length; i++) next.delete(i)
-        return next
-      })
-      setRevealedCount(stages[clamped].miniNodes?.length ?? 0)
-      return clamped
-    })
-  }
-
-  // Marks the last step done and shows the recap — the only way to reach
-  // 'done' outside autoplay. Needed because Next disables at the last step
-  // and, under reduced motion, Play/resume is a no-op (reduceMotion keeps
-  // playState at 'paused'), so without this a manual walkthrough could reach
-  // the last step but never see the recap.
-  const finish = () => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-    setCompleted((prev) => new Set(prev).add(stages.length - 1))
-    setPlayState('done')
-  }
-
-  const isActive = playState !== 'idle'
-  const isLastStep = activeStep >= stages.length - 1
-  const activeStage = stages[activeStep]
+  const { activeStep, completed, isDone, jumpTo } = walkthrough
 
   return (
     <div className="walkthrough">
@@ -120,84 +38,56 @@ export function WorkflowWalkthrough({ project }: { project: Project }) {
 
       <ol className="w-spine">
         {stages.map((stage, i) => {
-          const state = playState === 'done' || completed.has(i) ? 'done' : i === activeStep && isActive ? 'active' : 'pending'
+          const isOpen = i === activeStep
+          const isCompleted = completed.has(i)
           return (
-            <li
-              key={stage.num}
-              className={`w-step w-step--${state}`}
-              role="button"
-              tabIndex={0}
-              onClick={() => jumpTo(i)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  jumpTo(i)
-                }
-              }}
-            >
-              <span className="w-step-num">{state === 'done' ? '✓' : stage.num}</span>
-              <span className="w-step-title">{stage.title}</span>
-              <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
-            </li>
+            <Fragment key={stage.num}>
+              <li
+                className={`w-step${stage.actor === 'sys' ? '' : ` w-step--${stage.actor}`}${isOpen ? ' w-step--active' : ''}${isCompleted ? ' w-step--done' : ''}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => jumpTo(i)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    jumpTo(i)
+                  }
+                }}
+              >
+                <span className="w-step-num">{stage.num}</span>
+                <span className="w-step-marker" />
+                <div className="w-step-body">
+                  <span className="w-step-title">{stage.title}</span>
+                  <span className="w-step-desc">{stage.body}</span>
+                </div>
+                <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
+              </li>
+              {isOpen && (stage.miniNodes?.length || stage.image) && (
+                <li className="w-active-panel">
+                  {stage.miniNodes && (
+                    <div className="w-mini-nodes">
+                      {stage.miniNodes.map((node) => (
+                        <span key={node} className="w-mini-node w-mini-node--in">
+                          {node}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <StageMedia stage={stage} />
+                </li>
+              )}
+            </Fragment>
           )
         })}
       </ol>
 
-      {isActive && (
-        <div className="w-active-panel">
-          <div className="w-mini-nodes">
-            {(activeStage.miniNodes ?? []).map((node, i) => (
-              <span key={node} className={`w-mini-node${i < revealedCount ? ' w-mini-node--in' : ''}`}>
-                {node}
-              </span>
-            ))}
-          </div>
-          <p className="w-explanation">{activeStage.body}</p>
-          <StageMedia stage={activeStage} />
-        </div>
-      )}
-
-      {playState === 'done' && project.finalRoadmap && (
+      {isDone && project.finalRoadmap && (
         <div className="w-recap">
           <span className="mono mono--accent">Roadmap recap</span>
           <p className="w-recap-flow">{project.finalRoadmap}</p>
           {project.finalTakeaway && <p className="w-recap-takeaway">{project.finalTakeaway}</p>}
         </div>
       )}
-
-      <div className="w-controls">
-        {!isActive ? (
-          <button type="button" className="w-btn w-btn--primary" onClick={start}>
-            How it works ▶
-          </button>
-        ) : (
-          <>
-            {playState === 'playing' ? (
-              <button type="button" className="w-btn" onClick={pause}>
-                Pause
-              </button>
-            ) : (
-              <button type="button" className="w-btn" onClick={resume} disabled={playState === 'done'}>
-                {playState === 'done' ? 'Finished' : 'Play'}
-              </button>
-            )}
-            <button type="button" className="w-btn" onClick={() => jumpTo((s) => s - 1)} disabled={activeStep === 0 && playState !== 'done'}>
-              Previous
-            </button>
-            <button
-              type="button"
-              className="w-btn"
-              onClick={() => (isLastStep ? finish() : jumpTo((s) => s + 1))}
-              disabled={playState === 'done'}
-            >
-              {isLastStep ? 'Finish' : 'Next'}
-            </button>
-            <button type="button" className="w-btn" onClick={start}>
-              Restart
-            </button>
-          </>
-        )}
-      </div>
     </div>
   )
 }

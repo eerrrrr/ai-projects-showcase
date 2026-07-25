@@ -4,7 +4,7 @@
     "whoAccent": "— AI workflow systems",
     "links": [
       {
-        "href": "#flagship-featured",
+        "href": "#systems",
         "label": "Systems"
       },
       {
@@ -14,6 +14,11 @@
       {
         "href": "https://erin-wong-portfolio.vercel.app/",
         "label": "Visual Portfolio",
+        "external": true
+      },
+      {
+        "href": "https://github.com/eerrrrr",
+        "label": "GitHub",
         "external": true
       }
     ]

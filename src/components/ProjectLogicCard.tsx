@@ -5,14 +5,24 @@ import { Html } from './Html'
 // value line, a mini roadmap, and 2-3 proof chips — readable in a few
 // seconds. Heavier fields (tags list, key stat, Goal/Logic/etc.) stay out
 // of the default view; "View details" still reveals them separately.
+//
+// "How it works" lives here too, not inside the right-side walkthrough
+// component — both user-facing actions for this card (start the
+// walkthrough, open the written detail) belong in one control stack on the
+// left, next to each other. It stays visible even while the walkthrough is
+// running — clicking it again just restarts, so there's no separate
+// Restart control anywhere. The button only starts the walkthrough; the
+// actual state and rendering live in WorkflowWalkthrough on the right.
 export function ProjectLogicCard({
   project,
   expanded,
   onToggleDetails,
+  onStartWalkthrough,
 }: {
   project: Project
   expanded: boolean
   onToggleDetails: () => void
+  onStartWalkthrough: () => void
 }) {
   return (
     <>
@@ -46,9 +56,14 @@ export function ProjectLogicCard({
         </div>
       )}
 
-      <button type="button" className="view-details" onClick={onToggleDetails}>
-        {expanded ? 'Hide details −' : 'View details ↓'}
-      </button>
+      <div className="p-controls">
+        <button type="button" className="how-it-works-btn" onClick={onStartWalkthrough}>
+          How it works ▶
+        </button>
+        <button type="button" className="view-details" onClick={onToggleDetails}>
+          {expanded ? 'Hide details −' : 'View details ↓'}
+        </button>
+      </div>
     </>
   )
 }

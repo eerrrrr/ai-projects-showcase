@@ -4,9 +4,9 @@ export function Nav({ nav }: { nav: PageContent['nav'] }) {
   return (
     <nav className="nav">
       <div className="nav-inner">
-        <span className="who">
+        <a href="#" className="who">
           {nav.who}&nbsp;<span>{nav.whoAccent}</span>
-        </span>
+        </a>
         {nav.links.map((link) =>
           link.external ? (
             <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="mono--accent">

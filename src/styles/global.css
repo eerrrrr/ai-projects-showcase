@@ -44,6 +44,7 @@ body{
 .nav .who{
   font-family:'Inter Tight',sans-serif;font-weight:700;font-size:15px;
   letter-spacing:-0.02em;margin-right:auto;
+  color:var(--ink);text-decoration:none;
 }
 .nav .who span{color:var(--accent)}
 .nav a{
@@ -139,7 +140,9 @@ section{padding:168px 0 0}
 /* ---------- systems overview (below the cover hero) ---------- */
 .systems-overview{
   max-width:1200px;margin:0 auto;
-  padding:168px 48px 0;
+  padding:168px 48px;
+  min-height:calc(100vh - 56px);
+  display:flex;flex-direction:column;justify-content:center;
 }
 .systems-grid{
   display:grid;grid-template-columns:repeat(4,1fr);
@@ -174,6 +177,7 @@ section{padding:168px 0 0}
 .project{
   border-top:1px solid var(--ink);
   padding:64px 0 96px;
+  min-height:calc(100vh - 56px);
 }
 .project--collapsed{padding-bottom:64px}
 .p-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:0 48px}
@@ -217,11 +221,11 @@ section{padding:168px 0 0}
 
 /* ---------- walkthrough-mode left column (ProjectLogicCard) ---------- */
 .mini-roadmap{
-  margin-top:16px;color:var(--ink-2);font-size:10px;line-height:1.8;
+  margin-top:18px;color:var(--ink-2);font-size:10px;line-height:1.8;
   max-width:280px;
 }
 .mini-roadmap-arrow{color:var(--ink-3)}
-.proof-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.proof-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
 .proof-chip{
   font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;
   letter-spacing:.06em;color:var(--accent);
@@ -237,6 +241,29 @@ section{padding:168px 0 0}
   padding:9px 16px;cursor:pointer;transition:background .15s ease,color .15s ease;
 }
 .view-details:hover{background:var(--accent);color:#fff}
+
+/* "How it works" + "View details" as one left-side control stack
+   (ProjectLogicCard only) — the gap replaces .view-details's own
+   margin-top so the two buttons space evenly. */
+.p-controls{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-top:28px}
+/* Quieter secondary treatment than the base .view-details pill (used
+   as-is on Archive cards, which have no "How it works" to sit next to) —
+   plain text-link style here so "How it works" reads as the one primary
+   action. */
+.p-controls .view-details{
+  margin-top:0;border:none;background:none;padding:0;
+  color:var(--ink-3);text-decoration:underline;text-decoration-color:transparent;
+  transition:color .15s ease,text-decoration-color .15s ease;
+}
+.p-controls .view-details:hover{background:none;color:var(--ink);text-decoration-color:var(--ink-3)}
+.how-it-works-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:#fff;
+  background:var(--accent);border:1px solid var(--accent);border-radius:100px;
+  padding:9px 16px;cursor:pointer;transition:opacity .15s ease;
+}
+.how-it-works-btn:hover{opacity:.85}
 
 .p-content{grid-column:5 / span 8}
 .gmr{display:grid;grid-template-columns:96px 1fr;gap:22px 28px;margin-bottom:56px}
@@ -335,36 +362,98 @@ ol.stages{list-style:none}
 .transfer-block li:first-child{border-top:none;padding-top:0}
 
 /* ---------- coded workflow walkthrough ---------- */
+/* Deliberately its own set of classes, not shared with .stage/.s-marker
+   (the archive workflow diagram) — same visual grammar (number, spine,
+   shape marker, title+desc, actor label) copied on purpose so Projects
+   01-04 read as the same kind of diagram as the archive rows, but kept
+   fully separate so nothing here can ever affect the archive's static
+   list. */
 .walkthrough{margin-bottom:8px}
 .w-spine{list-style:none}
 .w-step{
-  display:grid;grid-template-columns:32px 1fr 84px;
-  gap:0 16px;align-items:center;
-  padding:16px 0;
+  display:grid;grid-template-columns:44px 30px 1fr 84px;
+  gap:0 16px;align-items:start;
+  padding:22px 0;
+  position:relative;
   cursor:pointer;
   transition:background .18s ease;
 }
 .w-step + .w-step{border-top:1px solid var(--line-soft)}
 .w-step:hover{background:rgba(30,107,78,.04)}
 .w-step-num{
-  font-family:'Inter Tight',sans-serif;font-weight:700;font-size:15px;
-  color:var(--ink-3);font-variant-numeric:tabular-nums;
+  font-family:'Inter Tight',sans-serif;font-weight:700;font-size:19px;
+  letter-spacing:-0.02em;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;padding-top:1px;
   transition:color .18s ease;
 }
+/* Same spine-line + shape-marker technique as .s-marker: a vertical line
+   connecting steps, plus a shape that encodes actor type at a glance —
+   hollow circle (script), filled circle (AI), dashed circle (human),
+   filled square (output) — before any text is even read. */
+.w-step-marker{position:relative;height:100%}
+.w-step-marker::before{
+  content:"";position:absolute;left:50%;top:26px;bottom:-22px;
+  width:1px;background:var(--line);transform:translateX(-50%);
+}
+.w-step:last-child .w-step-marker::before{display:none}
+.w-step-marker::after{
+  content:"";position:absolute;left:50%;top:6px;transform:translateX(-50%);
+  width:13px;height:13px;border-radius:50%;
+  background:var(--paper);border:1.5px solid var(--ink-3);
+  transition:background .18s ease,border-color .18s ease;
+}
+.w-step--ai .w-step-marker::after{background:var(--accent);border-color:var(--accent)}
+.w-step--human .w-step-marker::after{background:#fff;border:1.5px dashed var(--ink)}
+.w-step--out .w-step-marker::after{background:var(--ink);border-color:var(--ink);border-radius:2px}
+.w-step-body{display:block}
 .w-step-title{
+  display:block;
   font-family:'Inter Tight',sans-serif;font-weight:600;font-size:15.5px;
   letter-spacing:-0.01em;color:var(--ink-2);
   transition:color .18s ease;
 }
+/* Same treatment as .s-body span (the archive workflow rows) — the
+   explanation is visible by default, not gated behind clicking the row or
+   starting the walkthrough. */
+.w-step-desc{
+  display:block;margin-top:3px;
+  font-size:13px;color:var(--ink-2);line-height:1.55;max-width:52ch;
+}
+/* Active/done state never turns the stage number into a checkmark — the
+   marker shape/colour carries that state instead (same principle as
+   .stage--selected tinting .s-marker rather than replacing the number).
+   Row-level accent (inset box-shadow, same technique .system-card already
+   uses) only on the currently-open step; done steps just keep the tinted
+   marker with no row background, so the eye still reads left-to-right
+   progress along the spine rather than a wall of highlighted rows. */
+.w-step--active{
+  background:rgba(30,107,78,.03);
+  margin:0 -12px;padding-left:12px;padding-right:12px;
+  box-shadow:inset 3px 0 0 var(--accent);
+}
 .w-step--active .w-step-title{color:var(--ink)}
-.w-step--active .w-step-num{color:var(--accent)}
-.w-step--done .w-step-num{color:var(--accent)}
+.w-step--active .w-step-marker::after,
+.w-step--done .w-step-marker::after{
+  background:var(--accent) !important;border-color:var(--accent) !important;border-style:solid !important;
+}
 .w-step--done .w-step-title{color:var(--ink-2)}
 
+/* Rendered as an <li> directly under the active step's own row (accordion
+   style), not as one fixed block after the whole spine — so the panel
+   inserted between two .w-step rows still needs to restore the divider
+   .w-step + .w-step would otherwise have provided. Exclusive accordion:
+   only one panel open at a time — the previous step folds the moment the
+   next one opens, whether that's triggered by scroll or by clicking a row
+   directly. Left padding (44+16+30+16=106px) indents the content to align
+   under the title/description column instead of starting at the far left
+   under the number/marker. */
 .w-active-panel{
-  margin:4px 0 20px;padding:20px;
+  display:block;
+  margin:4px 0 20px;
+  padding:16px 20px 20px 106px;
   background:var(--accent-soft);border-radius:4px;
 }
+.w-active-panel + .w-step{border-top:1px solid var(--line-soft)}
 .w-mini-nodes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .w-mini-node{
   font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;
@@ -373,10 +462,14 @@ ol.stages{list-style:none}
   opacity:0;transform:translateY(6px);
   transition:opacity .3s ease, transform .3s ease;
 }
+/* CSS-only stagger (no JS timing) — each chip fades in slightly after the
+   last, up to 4 mini-nodes per stage (the current data model's max). */
+.w-mini-node:nth-child(2){transition-delay:.08s}
+.w-mini-node:nth-child(3){transition-delay:.16s}
+.w-mini-node:nth-child(4){transition-delay:.24s}
 .w-mini-node--in{opacity:1;transform:none}
-.w-explanation{font-size:14px;color:var(--ink-2);line-height:1.6;margin-bottom:4px}
 @media (prefers-reduced-motion:reduce){
-  .w-mini-node{transition:none;opacity:1;transform:none}
+  .w-mini-node{transition:none;transition-delay:0s !important;opacity:1;transform:none}
 }
 
 .w-recap{
@@ -385,18 +478,6 @@ ol.stages{list-style:none}
 }
 .w-recap-flow{margin-top:10px;font-size:14.5px;color:var(--ink);line-height:1.7}
 .w-recap-takeaway{margin-top:10px;font-family:'Inter Tight',sans-serif;font-weight:600;font-size:15px;color:var(--accent)}
-
-.w-controls{display:flex;flex-wrap:wrap;gap:10px}
-.w-btn{
-  font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;
-  letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
-  background:none;border:1px solid var(--accent);border-radius:100px;
-  padding:9px 16px;cursor:pointer;transition:background .15s ease,color .15s ease,opacity .15s ease;
-}
-.w-btn:hover:not(:disabled){background:var(--accent);color:#fff}
-.w-btn:disabled{opacity:.35;cursor:not-allowed}
-.w-btn--primary{background:var(--accent);color:#fff}
-.w-btn--primary:hover{background:var(--accent);opacity:.85}
 
 /* ---------- supporting (archive infra cards) ---------- */
 .mini-grid{
@@ -438,10 +519,11 @@ footer{
   section{padding-top:96px}
   .sec-head{margin-bottom:48px}
   .hero-cover{min-height:auto}
+  .project{min-height:auto}
   .hero-plasma{display:none}
   .hero-content{padding:0 22px}
   .hero-text{padding:56px 0 40px;max-width:none}
-  .systems-overview{padding:96px 22px 0}
+  .systems-overview{padding:96px 22px 0;min-height:auto;display:block}
   .systems-grid{grid-template-columns:repeat(2,1fr)}
   .system-card:nth-child(2n){border-right:none}
   .system-card:nth-child(n+3){border-top:1px solid var(--line-soft)}
@@ -457,6 +539,8 @@ footer{
   .mini-grid{grid-template-columns:1fr}
   .w-step{grid-template-columns:24px 1fr}
   .w-step .s-actor{display:none}
+  .w-step-marker{display:none}
+  .w-active-panel{padding-left:20px}
 }
 /* ---------- print ---------- */
 @media print{
