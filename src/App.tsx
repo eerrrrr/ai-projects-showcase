@@ -25,25 +25,36 @@ export default function App() {
   // section can drift into the detection band on a large monitor while
   // someone is still just looking at the quick cards, before they've
   // actually scrolled down into that project's content.
+  //
+  // #systems is also observed directly (not just used for the bounding-rect
+  // check above) so activeId explicitly clears back to null when the user
+  // scrolls back up to it — without this, a project's card stayed
+  // permanently highlighted after its section was first visited, since
+  // nothing ever reset activeId once set.
   useEffect(() => {
     const systemsEl = document.getElementById('systems')
-    const els = featuredProjects
+    const projectEls = featuredProjects
       .map((p) => document.getElementById(p.id))
       .filter((el): el is HTMLElement => el !== null)
-    if (els.length === 0) return
+    if (projectEls.length === 0 || !systemsEl) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          if (entry.target === systemsEl) {
+            if (entry.isIntersecting) setActiveId(null)
+            return
+          }
           if (!entry.isIntersecting) return
-          const stillShowingQuickCards = (systemsEl?.getBoundingClientRect().bottom ?? 0) > 0
+          const stillShowingQuickCards = systemsEl.getBoundingClientRect().bottom > 0
           if (stillShowingQuickCards) return
           setActiveId(entry.target.id)
         })
       },
       { rootMargin: '-40% 0px -50% 0px', threshold: 0 },
     )
-    els.forEach((el) => observer.observe(el))
+    observer.observe(systemsEl)
+    projectEls.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [])
 
@@ -53,7 +64,7 @@ export default function App() {
       <Hero content={content} />
 
       <ProofSummary
-        projects={featuredProjects}
+        projects={projects}
         sectionNo={content.systemsSectionNo}
         heading={content.systemsHeading}
         activeId={activeId}

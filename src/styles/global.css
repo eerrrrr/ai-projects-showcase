@@ -155,13 +155,26 @@ section{padding:168px 0 0}
   position:relative;
   transition:background .18s ease;
 }
+/* 7 cards in a 4-column grid wrap to a second row (5-7) — row-end cards
+   (4th column, and whichever card is actually last) shouldn't show a
+   trailing right border; row 2 gets a top rule separating it from row 1. */
+.system-card:nth-child(4n){border-right:none}
 .system-card:last-child{border-right:none}
+.system-card:nth-child(n+5){border-top:1px solid var(--line-soft)}
 .system-card .mono--accent{display:block;margin-bottom:18px}
 .system-card h3{
   font-family:'Inter Tight',sans-serif;font-weight:700;font-size:19px;
   letter-spacing:-0.02em;margin-bottom:18px;
 }
-.system-card .kl{margin-top:0;line-height:1.6;color:var(--ink-2);font-size:13.5px}
+.system-card-chips{display:flex;flex-wrap:wrap;gap:6px}
+.system-card-chip{
+  font-size:10px;letter-spacing:.05em;padding:3px 8px;border-radius:100px;
+  color:var(--ink-2);border:1px solid var(--line-soft);
+  transition:color .15s ease,border-color .15s ease;
+}
+.system-card:hover .system-card-chip,.system-card.is-active .system-card-chip{
+  color:var(--accent);border-color:var(--accent);
+}
 .system-card-arrow{
   display:block;margin-top:18px;opacity:0;color:var(--accent);
   transition:opacity .15s ease;
@@ -172,7 +185,6 @@ section{padding:168px 0 0}
 }
 .system-card:hover h3,.system-card.is-active h3{color:var(--accent)}
 .system-card:hover .system-card-arrow,.system-card.is-active .system-card-arrow,.system-card:focus-visible .system-card-arrow{opacity:1}
-
 /* ---------- project ---------- */
 .project{
   border-top:1px solid var(--ink);

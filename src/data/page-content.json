@@ -9,7 +9,7 @@
       },
       {
         "href": "#flagship",
-        "label": "Archive"
+        "label": "Systems Lab"
       },
       {
         "href": "https://erin-wong-portfolio.vercel.app/",
@@ -37,8 +37,8 @@
   "systemsSectionNo": "01",
   "systemsHeading": "Selected systems",
   "flagshipSectionNo": "02",
-  "flagshipHeading": "Archive",
-  "flagshipSub": "Additional systems, kept compact.",
+  "flagshipHeading": "Systems Lab",
+  "flagshipSub": "Full detail behind the systems above, plus supporting infrastructure.",
   "supporting": {
     "sectionNo": "03",
     "heading": "Supporting infrastructure",

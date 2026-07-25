@@ -92,6 +92,14 @@ export function ProjectCard({ project }: { project: Project }) {
   // workflow step is active and never selects one. `walkthrough.reset` is
   // a stable (useCallback) reference, so this effect only re-runs on the
   // meaningful open/close transitions below, not on every autoplay tick.
+  //
+  // rootMargin shrinks the effective viewport by 15% on each edge — plain
+  // threshold:0 alone can miscount a project as still "intersecting" when
+  // it lands exactly edge-to-edge against an equally tall adjacent section
+  // (both are full-viewport-height via CSS min-height), leaving ~0px of
+  // residual overlap that still satisfies threshold:0. This margin gives a
+  // real buffer so scrolling to the next project reliably resets this one,
+  // without resetting prematurely while still mostly in view.
   useEffect(() => {
     if (!expanded && !walkthrough.started) return
     const el = articleRef.current
@@ -106,7 +114,7 @@ export function ProjectCard({ project }: { project: Project }) {
           walkthrough.reset()
         }
       },
-      { threshold: 0 },
+      { threshold: 0, rootMargin: '-15% 0px -15% 0px' },
     )
     observer.observe(el)
     return () => observer.disconnect()

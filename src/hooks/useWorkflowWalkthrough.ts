@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Stage } from '../data/types'
 
-const STEP_DWELL_MS = 1800
+// 3600ms — enough time to actually read the marker, title, description and
+// mini-node chips before the step folds and the next one opens (1800ms was
+// too fast to be a readable animated diagram, more like a fast slideshow).
+const STEP_DWELL_MS = 3600
 
 // Timer-driven autoplay walkthrough, exclusive accordion: only one step's
 // panel is open at a time — the previous one folds the moment the next one

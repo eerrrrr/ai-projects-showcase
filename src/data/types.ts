@@ -66,6 +66,11 @@ export interface Project {
   proofChips?: string[]
   finalRoadmap?: string
   finalTakeaway?: string
+  // Selected-systems grid card only (ProofSummary.tsx) — 4-5 verified
+  // capability/tool keywords. No intro sentence: the grid is deliberately
+  // tag-first (number, title, chips, "Open case"), not a second place to
+  // read a description already covered by taglineHtml on the full section.
+  overviewChips?: string[]
 }
 
 export interface MiniCard {
