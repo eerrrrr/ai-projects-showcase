@@ -32,11 +32,8 @@
   ],
   "systemsSectionNo": "01",
   "systemsHeading": "Selected systems",
-  "flagshipSectionNo": "02",
-  "flagshipHeading": "System details",
-  "flagshipSub": "Full detail behind each system, plus supporting infrastructure.",
   "supporting": {
-    "sectionNo": "03",
+    "sectionNo": "02",
     "heading": "Supporting infrastructure",
     "sub": "The systems the<br>projects above stand on",
     "cards": [

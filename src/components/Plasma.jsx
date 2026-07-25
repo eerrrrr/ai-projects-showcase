@@ -31,16 +31,30 @@ uniform float uScale;
 uniform float uOpacity;
 uniform vec2 uMouse;
 uniform float uMouseInteractive;
+uniform float uDriftY;
+uniform float uStretch;
+uniform float uMorph;
+uniform float uFlowOffset;
 out vec4 fragColor;
 
 void mainImage(out vec4 o, vec2 C) {
   vec2 center = iResolution.xy * 0.5;
   C = (C - center) / uScale + center;
+  // Vertical-only stretch + offset, driven by smoothed scroll progress (see
+  // Plasma's own render loop and AmbientBackground.tsx) — identical to the
+  // original shape when uStretch=1, uDriftY=0 (top of page), so Hero is
+  // pixel-for-pixel unchanged from before this was added.
+  C.y = center.y + (C.y - center.y) * uStretch + uDriftY;
 
   vec2 mouseOffset = (uMouse - center) * 0.0002;
   C += mouseOffset * length(C - center) * step(0.5, uMouseInteractive);
 
-  float i, d, z, T = iTime * uSpeed * uDirection;
+  // uFlowOffset advances the same phase variable iTime already drives —
+  // scrolling further "un-spools" more of the flow, the same way waiting
+  // longer would, instead of just displacing/stretching a still frame.
+  // This is what makes it read as one continuous field being travelled
+  // through, not a static shape with a section-colored tint on top.
+  float i, d, z, T = iTime * uSpeed * uDirection + uFlowOffset;
   vec3 O, p, S;
 
   for (vec2 r = iResolution.xy, Q; ++i < 60.; O += o.w/d*o.xyz) {
@@ -49,7 +63,7 @@ void mainImage(out vec4 o, vec2 C) {
     S = p;
     d = p.y-T;
 
-    p.x += .4*(1.+p.y)*sin(d + p.x*0.1)*cos(.34*d + p.x*0.05);
+    p.x += .4*(1.+uMorph)*(1.+p.y)*sin(d + p.x*0.1)*cos(.34*d + p.x*0.05);
     Q = p.xz *= mat2(cos(p.y+vec4(0,11,33,0)-T));
     z+= d = abs(sqrt(length(Q*Q)) - .25*(5.+S.y))/3.+8e-4;
     o = 1.+sin(S.y+p.z*.5+S.z-length(S-p)+vec4(2,1,0,8));
@@ -86,7 +100,22 @@ export const Plasma = ({
   direction = 'forward',
   scale = 1,
   opacity = 1,
-  mouseInteractive = true
+  mouseInteractive = true,
+  // Optional ref (0-1, e.g. from AmbientBackground.tsx's passive scroll
+  // listener) read once per frame inside this component's own render loop —
+  // a plain mutable ref, not a prop value, so scrolling never triggers a
+  // React re-render or re-runs this effect. Purely visual: never read
+  // elsewhere, never written to by this component, never touches
+  // scroll/layout/workflow state itself.
+  scrollProgressRef,
+  // Optional array of hex colors (2+) — if given, replaces the single
+  // fixed `color` for the *animated* hue: continuously interpolated (never
+  // stepped) between the two nearest stops based on the same smoothed
+  // scroll progress that drives the shape distortion below, so the shape
+  // and its color always change together as one thing, not "shape drifts,
+  // then color separately snaps to a new section preset." Falls back to a
+  // single fixed `color` (the original, unchanged behavior) when omitted.
+  colorStops
 }) => {
   const containerRef = useRef(null);
   const mousePos = useRef({ x: 0, y: 0 });
@@ -97,6 +126,7 @@ export const Plasma = ({
 
     const useCustomColor = color ? 1.0 : 0.0;
     const customColorRgb = color ? hexToRgb(color) : [1, 1, 1];
+    const colorStopsRgb = colorStops && colorStops.length > 1 ? colorStops.map(hexToRgb) : null;
 
     const directionMultiplier = direction === 'reverse' ? -1.0 : 1.0;
 
@@ -134,7 +164,11 @@ export const Plasma = ({
         uScale: { value: scale },
         uOpacity: { value: opacity },
         uMouse: { value: new Float32Array([0, 0]) },
-        uMouseInteractive: { value: mouseInteractive ? 1.0 : 0.0 }
+        uMouseInteractive: { value: mouseInteractive ? 1.0 : 0.0 },
+        uDriftY: { value: 0 },
+        uStretch: { value: 1 },
+        uMorph: { value: 0 },
+        uFlowOffset: { value: 0 }
       }
     });
 
@@ -171,10 +205,53 @@ export const Plasma = ({
     let raf = 0;
     let contextLost = false;
     let isVisible = true;
+    let smoothedProgress = 0;
     const t0 = performance.now();
 
     const loop = t => {
       if (contextLost || !isVisible) return;
+
+      // Smoothed (lerped) scroll progress, not the raw value — a fast
+      // scroll never jumps the shape, it eases toward the new position
+      // over several frames. 0 at the top of the page reproduces the
+      // exact original shape (uDriftY 0, uStretch 1, uFlowOffset 0, hero
+      // opacity/color); every visual change below is a single continuous
+      // function of this one number — there is no per-section preset to
+      // snap between, which is what makes this read as one field, not a
+      // sequence of separate background patches.
+      const targetProgress = scrollProgressRef ? scrollProgressRef.current : 0;
+      smoothedProgress += (targetProgress - smoothedProgress) * 0.04;
+      program.uniforms.uDriftY.value = smoothedProgress * gl.drawingBufferHeight * 0.22;
+      program.uniforms.uStretch.value = 1 + smoothedProgress * 0.45;
+      program.uniforms.uMorph.value = smoothedProgress * 0.6;
+      program.uniforms.uFlowOffset.value = smoothedProgress * 4.5;
+
+      // Continuous opacity: an exponential ease from the Hero-strength
+      // value (the `opacity` prop, unchanged meaning) down to a floor that
+      // still reads as "the same field, just quieter" rather than fading
+      // to nothing — most of the drop-off happens over the first ~25% of
+      // the document (Hero -> Selected systems -> early projects), then it
+      // levels off gently for the rest of the scroll, instead of a linear
+      // fade that would barely register until deep in the page.
+      const floorOpacity = opacity * 0.32;
+      program.uniforms.uOpacity.value = floorOpacity + (opacity - floorOpacity) * Math.exp(-4.2 * smoothedProgress);
+
+      // Continuous color: interpolated between the nearest two colorStops
+      // (if provided) using the exact same smoothedProgress — the shape's
+      // own hue drifts in lockstep with its distortion, never stepping.
+      if (colorStopsRgb) {
+        const segments = colorStopsRgb.length - 1;
+        const scaled = smoothedProgress * segments;
+        const idx = Math.min(segments - 1, Math.floor(scaled));
+        const localT = scaled - idx;
+        const a = colorStopsRgb[idx];
+        const b = colorStopsRgb[idx + 1];
+        const custom = program.uniforms.uCustomColor.value;
+        custom[0] = a[0] + (b[0] - a[0]) * localT;
+        custom[1] = a[1] + (b[1] - a[1]) * localT;
+        custom[2] = a[2] + (b[2] - a[2]) * localT;
+      }
+
       let timeValue = (t - t0) * 0.001;
       if (direction === 'pingpong') {
         const pingpongDuration = 10;

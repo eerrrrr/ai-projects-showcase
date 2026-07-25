@@ -4,6 +4,7 @@ import projectsData from './data/projects.json'
 import type { PageContent, Project } from './data/types'
 import { Nav } from './components/Nav'
 import { Hero } from './components/Hero'
+import { AmbientBackground } from './components/AmbientBackground'
 import { ProofSummary } from './components/ProofSummary'
 import { ProjectCard } from './components/ProjectCard'
 import { SupportingSystems } from './components/SupportingSystems'
@@ -67,37 +68,39 @@ export default function App() {
 
   return (
     <>
-      <Nav nav={content.nav} />
-      <Hero content={content} />
+      <AmbientBackground />
 
-      <ProofSummary
-        projects={projects}
-        sectionNo={content.systemsSectionNo}
-        heading={content.systemsHeading}
-        activeId={activeId}
-      />
+      <div className="page-content">
+        <Nav nav={content.nav} />
+        <Hero content={content} />
 
-      <div className="wrap">
-        <section id="flagship-featured">
-          {featuredProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </section>
+        <ProofSummary
+          projects={projects}
+          sectionNo={content.systemsSectionNo}
+          heading={content.systemsHeading}
+          activeId={activeId}
+        />
 
-        <section id="flagship">
-          <div className="sec-head">
-            <span className="no">{content.flagshipSectionNo}</span>
-            <h2 dangerouslySetInnerHTML={{ __html: content.flagshipHeading }} />
-            <span className="sub mono">{content.flagshipSub}</span>
-          </div>
-          {otherProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-          <SupportingSystems supporting={content.supporting} />
-        </section>
+        <div className="wrap">
+          <section id="flagship-featured">
+            {featuredProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </section>
+
+          {/* No visible heading here — 01-07 are one continuous systems
+              catalogue, not two sections. #flagship stays as an anchor id
+              only (nothing currently links to it, kept for structure). */}
+          <section id="flagship">
+            {otherProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+            <SupportingSystems supporting={content.supporting} />
+          </section>
+        </div>
+
+        <Footer footer={content.footer} />
       </div>
-
-      <Footer footer={content.footer} />
     </>
   )
 }
