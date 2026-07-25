@@ -7,7 +7,12 @@ export const ENABLE_SOFT_PAGE_HANDOFF = true
 
 const WHEEL_THRESHOLD = 6 // px — filters near-zero trackpad jitter, not intentional gestures
 const LOCK_MS = 900 // matches the smooth-scroll transition duration
-const EDGE_TOLERANCE = 4 // px — "essentially at this section's top edge"
+const EDGE_TOLERANCE = 4 // px — "essentially at this section's resting position"
+// Matches .project's own `scrollMarginTop: 88px` (nav is 56px + sticky) so a
+// handoff lands with the same breathing room under the nav that a normal
+// anchor-link jump already gets — window.scrollTo ignores CSS
+// scroll-margin, so this has to be applied manually here.
+const NAV_OFFSET = 88
 
 const IGNORED_ANCESTOR_SELECTOR =
   'button, a, input, textarea, select, [role="button"], .project, .walkthrough, .expand-panel, .p-controls'
@@ -52,15 +57,16 @@ export function useSoftPageHandoff() {
       if (target instanceof Element && target.closest(IGNORED_ANCESTOR_SELECTOR)) return
 
       const systemsTop = systemsEl.getBoundingClientRect().top
-      const pastHero = systemsTop <= EDGE_TOLERANCE
-      const atSystemsTop = Math.abs(systemsTop) <= EDGE_TOLERANCE
+      const pastHero = systemsTop <= NAV_OFFSET + EDGE_TOLERANCE
+      const atSystemsTop = Math.abs(systemsTop - NAV_OFFSET) <= EDGE_TOLERANCE
 
       if (!pastHero && e.deltaY > 0) {
         // Still substantially within Hero, scrolling down -> land cleanly
-        // on Selected systems instead of stopping halfway.
+        // on Selected systems (with nav breathing room) instead of
+        // stopping halfway.
         e.preventDefault()
         isLockedRef.current = true
-        window.scrollTo({ top: window.scrollY + systemsTop, behavior: 'smooth' })
+        window.scrollTo({ top: window.scrollY + systemsTop - NAV_OFFSET, behavior: 'smooth' })
         setTimeout(() => {
           isLockedRef.current = false
         }, LOCK_MS)

@@ -9,6 +9,8 @@ import { ProjectCard } from './components/ProjectCard'
 import { SupportingSystems } from './components/SupportingSystems'
 import { Footer } from './components/Footer'
 import { useSoftPageHandoff } from './hooks/useSoftPageHandoff'
+import { useSectionSettle } from './hooks/useSectionSettle'
+import { useAccentSection } from './hooks/useAccentSection'
 import './styles/global.css'
 
 const content = pageContent as PageContent
@@ -20,6 +22,8 @@ export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null)
 
   useSoftPageHandoff()
+  useSectionSettle()
+  useAccentSection()
 
   // Scroll-spy: highlight whichever featured project's full section is
   // currently in view, on the systems-overview quick cards above it.

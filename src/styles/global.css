@@ -6,10 +6,28 @@
   --ink-2:#54524c;
   --ink-3:#8f8c83;
   --accent:#1e6b4e;
+  --accent-rgb:30,107,78;
   --accent-soft:#e9f1ec;
   --line:rgba(17,17,16,.14);
   --line-soft:rgba(17,17,16,.08);
 }
+/* Subtle section-based accent shift — same Erin green family throughout,
+   just a whisper of hue/lightness drift per section so a long scroll feels
+   alive rather than static. Driven only by useAccentSection.ts setting
+   data-accent-section on <html>; that hook is a passive, read-only
+   IntersectionObserver — it never reads or writes workflow/expand state,
+   so this is purely decorative and cannot affect behavior. Kept
+   deliberately close in hue/lightness (never a different color family) —
+   see UPDATE_REPORT_2026-07-25_HIGH_CLASS_MOTION_GREEN_SCALE.md. */
+:root[data-accent-section="hero"]{--accent:#1f6f55;--accent-rgb:31,111,85;--accent-soft:#e9f2ee}
+:root[data-accent-section="systems"]{--accent:#1e6b4e;--accent-rgb:30,107,78;--accent-soft:#e9f1ec}
+:root[data-accent-section="system01"]{--accent:#176b50;--accent-rgb:23,107,80;--accent-soft:#e8f1ec}
+:root[data-accent-section="system02"]{--accent:#155d45;--accent-rgb:21,93,69;--accent-soft:#e7efe9}
+:root[data-accent-section="system03"]{--accent:#14766f;--accent-rgb:20,118,111;--accent-soft:#e7f2f1}
+:root[data-accent-section="system04"]{--accent:#5f7352;--accent-rgb:95,115,82;--accent-soft:#eef1e9}
+:root[data-accent-section="system05"]{--accent:#557044;--accent-rgb:85,112,68;--accent-soft:#ecf1e7}
+:root[data-accent-section="system06"]{--accent:#6f7042;--accent-rgb:111,112,66;--accent-soft:#f0f1e7}
+:root[data-accent-section="system07"]{--accent:#217a68;--accent-rgb:33,122,104;--accent-soft:#e8f3f0}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
@@ -28,7 +46,7 @@ body{
   font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
   letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
 }
-.mono--accent{color:var(--accent)}
+.mono--accent{color:var(--accent);transition:color .7s ease}
 
 /* ---------- nav ---------- */
 .nav{
@@ -274,7 +292,8 @@ section{padding:168px 0 0}
   font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;
   letter-spacing:.1em;text-transform:uppercase;color:#fff;
   background:var(--accent);border:1px solid var(--accent);border-radius:100px;
-  padding:9px 16px;cursor:pointer;transition:opacity .15s ease;
+  padding:9px 16px;cursor:pointer;
+  transition:opacity .15s ease,background-color .7s ease,border-color .7s ease;
 }
 .how-it-works-btn:hover{opacity:.85}
 
@@ -326,12 +345,11 @@ ol.stages{list-style:none}
   background:var(--accent-soft);border-radius:4px;
 }
 .stage-media img{display:block;max-width:100%;border-radius:2px}
-.stage-media-placeholder{
-  display:flex;align-items:center;justify-content:center;
-  height:120px;color:var(--ink-3);font-size:13px;
-  border:1px dashed var(--ink-3);border-radius:4px;background:#fff;
-}
 .stage-media-caption{margin-top:10px;color:var(--ink-2);text-transform:none;letter-spacing:normal;font-size:12px}
+.stage-evidence-note{
+  grid-column:1 / -1;margin-top:14px;
+  color:var(--ink-3);font-size:12px;letter-spacing:.02em;text-transform:none;
+}
 .s-num{
   font-family:'Inter Tight',sans-serif;font-weight:700;font-size:19px;
   letter-spacing:-0.02em;color:var(--ink-3);
@@ -404,6 +422,7 @@ ol.stages{list-style:none}
    hollow circle (script), filled circle (AI), dashed circle (human),
    filled square (output) — before any text is even read. */
 .w-step-marker{position:relative;height:100%}
+.w-step-marker::after{transition:background-color .7s ease,border-color .7s ease}
 .w-step-marker::before{
   content:"";position:absolute;left:50%;top:26px;bottom:-22px;
   width:1px;background:var(--line);transform:translateX(-50%);
@@ -440,9 +459,10 @@ ol.stages{list-style:none}
    marker with no row background, so the eye still reads left-to-right
    progress along the spine rather than a wall of highlighted rows. */
 .w-step--active{
-  background:rgba(30,107,78,.03);
+  background:rgba(var(--accent-rgb),.03);
   margin:0 -12px;padding-left:12px;padding-right:12px;
   box-shadow:inset 3px 0 0 var(--accent);
+  transition:background-color .7s ease,box-shadow .7s ease;
 }
 .w-step--active .w-step-title{color:var(--ink)}
 .w-step--active .w-step-marker::after,
@@ -488,9 +508,10 @@ ol.stages{list-style:none}
 .w-recap{
   margin:4px 0 24px;padding:24px;
   border:1px solid var(--accent);border-radius:4px;
+  transition:border-color .7s ease;
 }
 .w-recap-flow{margin-top:10px;font-size:14.5px;color:var(--ink);line-height:1.7}
-.w-recap-takeaway{margin-top:10px;font-family:'Inter Tight',sans-serif;font-weight:600;font-size:15px;color:var(--accent)}
+.w-recap-takeaway{margin-top:10px;font-family:'Inter Tight',sans-serif;font-weight:600;font-size:15px;color:var(--accent);transition:color .7s ease}
 
 /* ---------- supporting (archive infra cards) ---------- */
 .mini-grid{
