@@ -86,6 +86,7 @@ export interface PageContent {
   thinkingList: string[]
   systemsSectionNo: string
   systemsHeading: string
+  systemsStatement: string
   supporting: {
     sectionNo: string
     heading: string

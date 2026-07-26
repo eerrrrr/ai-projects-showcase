@@ -250,6 +250,21 @@ section{padding:168px 0 0}
 }
 .system-card:hover h3,.system-card.is-active h3{color:var(--accent)}
 .system-card:hover .system-card-arrow,.system-card.is-active .system-card-arrow,.system-card:focus-visible .system-card-arrow{opacity:1}
+
+/* A quiet manifesto between the systems index and the first detailed case.
+   Its generous vertical space is intentional: it gives the catalogue a
+   breath before the denser project walkthroughs begin. */
+.systems-statement{
+  padding-top:clamp(152px,15vw,224px);
+  padding-bottom:clamp(24px,4vw,64px);
+}
+.systems-statement p{
+  max-width:1050px;
+  font-family:var(--font-ui);font-weight:500;
+  font-size:clamp(38px,5vw,66px);
+  line-height:1.06;letter-spacing:-0.045em;
+}
+
 /* ---------- project ---------- */
 .project{
   border-top:1px solid var(--ink);
@@ -605,6 +620,8 @@ footer{
   .hero-content{padding:0 22px}
   .hero-text{padding:56px 0 40px;max-width:none}
   .systems-overview{padding:96px 22px 0;min-height:auto;display:block}
+  .systems-statement{padding-top:112px;padding-bottom:16px}
+  .systems-statement p{font-size:clamp(34px,9vw,52px);letter-spacing:-0.04em}
   .systems-grid{grid-template-columns:repeat(2,1fr)}
   .system-card:nth-child(2n){border-right:none}
   .system-card:nth-child(n+3){border-top:1px solid var(--line-soft)}

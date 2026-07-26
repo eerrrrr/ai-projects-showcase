@@ -81,6 +81,10 @@ export default function App() {
           activeId={activeId}
         />
 
+        <div id="systems-statement" className="systems-statement wrap">
+          <p>{content.systemsStatement}</p>
+        </div>
+
         <div className="wrap">
           <section id="flagship-featured">
             {featuredProjects.map((project) => (
