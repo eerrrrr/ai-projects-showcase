@@ -19,7 +19,7 @@ export function Hero({ content }: { content: PageContent }) {
       <div className="hero-content">
         <div className="hero-text">
           <h1>{content.heroName}</h1>
-          <div className="hero-tagline">{content.heroTagline}</div>
+          <p className="hero-tagline">{content.heroTagline}</p>
           <Html as="p" className="focus-line mono" html={content.focusLineHtml} />
 
           <KeywordRhythm words={content.thinkingList} />

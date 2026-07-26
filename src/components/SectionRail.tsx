@@ -24,6 +24,18 @@ export function SectionRail({
         : activeProject
           ? `${String(activeProject.index).padStart(2, '0')} / ${String(projects.length).padStart(2, '0')}`
           : ''
+  const chapters = [
+    { id: 'cover', href: '#cover', label: 'Cover' },
+    { id: 'systems', href: '#systems', label: 'Selected systems' },
+    ...projects.map((project) => ({
+      id: project.id,
+      href: `#${project.id}`,
+      label: `System ${String(project.index).padStart(2, '0')}`,
+    })),
+  ]
+  const activeChapterIndex = Math.max(0, chapters.findIndex((chapter) => chapter.id === activeId))
+  const previousChapter = chapters[activeChapterIndex - 1]
+  const nextChapter = chapters[activeChapterIndex + 1]
 
   return (
     <nav
@@ -83,9 +95,23 @@ export function SectionRail({
       </ol>
 
       {mobileLabel && (
-        <span className="section-rail-mobile mono" aria-hidden="true">
-          {mobileLabel}
-        </span>
+        <div className="section-rail-mobile">
+          {previousChapter ? (
+            <a href={previousChapter.href} aria-label={`Previous chapter: ${previousChapter.label}`}>
+              ↑
+            </a>
+          ) : (
+            <span aria-hidden="true">↑</span>
+          )}
+          <span className="mono" aria-live="polite">{mobileLabel}</span>
+          {nextChapter ? (
+            <a href={nextChapter.href} aria-label={`Next chapter: ${nextChapter.label}`}>
+              ↓
+            </a>
+          ) : (
+            <span aria-hidden="true">↓</span>
+          )}
+        </div>
       )}
     </nav>
   )

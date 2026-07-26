@@ -32,7 +32,7 @@ export function ProjectLogicCard({
         {project.tierLabel}
       </span>
       <div className="p-num">{String(project.index).padStart(2, '0')}</div>
-      <Html as="h3" html={project.title} />
+      <Html as="h2" html={project.title} />
       {project.valueLine && <p className="p-tagline">{project.valueLine}</p>}
 
       {project.miniRoadmap && (
@@ -60,7 +60,13 @@ export function ProjectLogicCard({
         <button type="button" className="how-it-works-btn" onClick={onStartWalkthrough}>
           How it works ▶
         </button>
-        <button type="button" className="view-details" onClick={onToggleDetails}>
+        <button
+          type="button"
+          className="view-details"
+          aria-expanded={expanded}
+          aria-controls={`${project.id}-details`}
+          onClick={onToggleDetails}
+        >
           {expanded ? 'Hide details −' : 'View details ↓'}
         </button>
       </div>

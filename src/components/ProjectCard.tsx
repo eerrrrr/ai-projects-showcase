@@ -31,6 +31,8 @@ function WorkflowStages({
             key={stage.num}
             role="button"
             tabIndex={0}
+            aria-expanded={selectedStageNum === stage.num}
+            aria-controls={`${project.id}-stage-${stage.num}`}
             onClick={() => setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -46,7 +48,11 @@ function WorkflowStages({
               <span>{stage.body}</span>
             </div>
             <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
-            {selectedStageNum === stage.num && <StageMedia stage={stage} />}
+            {selectedStageNum === stage.num && (
+              <div id={`${project.id}-stage-${stage.num}`}>
+                <StageMedia stage={stage} />
+              </div>
+            )}
           </li>
         ))}
       </ol>
@@ -145,7 +151,7 @@ export function ProjectCard({ project }: { project: Project }) {
                   {project.tierLabel}
                 </span>
                 <div className="p-num">{String(project.index).padStart(2, '0')}</div>
-                <Html as="h3" html={project.title} />
+                <Html as="h2" html={project.title} />
                 <div className="tags">
                   {(compact ? project.tags.slice(0, 3) : project.tags).map((tag) => (
                     <span className="tag" key={tag}>
@@ -178,7 +184,13 @@ export function ProjectCard({ project }: { project: Project }) {
                     <div className="kl mono">{project.keyLabel}</div>
                   </div>
                 )}
-                <button type="button" className="view-details" onClick={() => setExpanded((v) => !v)}>
+                <button
+                  type="button"
+                  className="view-details"
+                  aria-expanded={expanded}
+                  aria-controls={`${project.id}-details`}
+                  onClick={() => setExpanded((v) => !v)}
+                >
                   {expanded ? 'Hide details −' : 'View details ↓'}
                 </button>
               </>
@@ -195,7 +207,11 @@ export function ProjectCard({ project }: { project: Project }) {
             <WorkflowStages project={project} selectedStageNum={selectedStageNum} setSelectedStageNum={setSelectedStageNum} />
           )}
 
-          <div className={`expand-panel${expanded ? ' expand-panel--open' : ''}`}>
+          <div
+            id={`${project.id}-details`}
+            className={`expand-panel${expanded ? ' expand-panel--open' : ''}`}
+            aria-hidden={!expanded}
+          >
             {compact ? (
               <dl className="gmr">
                 <dt className="mono">Problem</dt>

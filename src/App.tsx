@@ -81,8 +81,12 @@ export default function App() {
       <AmbientBackground />
 
       <div className="page-content">
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
         <Nav nav={content.nav} />
         <SectionRail projects={projects} activeId={activeId} />
+        <main id="main-content">
         <Hero content={content} />
 
         <ProofSummary
@@ -92,12 +96,12 @@ export default function App() {
           activeId={activeId}
         />
 
-        <div id="systems-statement" className="systems-statement wrap">
+        <section id="systems-statement" className="systems-statement wrap" aria-label="Design approach">
           <p>{content.systemsStatement}</p>
-        </div>
+        </section>
 
         <div className="wrap">
-          <section id="flagship-featured">
+          <section id="flagship-featured" aria-label="Featured systems">
             {featuredProjects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
@@ -106,13 +110,14 @@ export default function App() {
           {/* No visible heading here — 01-07 are one continuous systems
               catalogue, not two sections. #flagship stays as an anchor id
               only (nothing currently links to it, kept for structure). */}
-          <section id="flagship">
+          <section id="flagship" aria-label="More systems">
             {otherProjects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
             <SupportingSystems supporting={content.supporting} />
           </section>
         </div>
+        </main>
 
         <Footer footer={content.footer} />
       </div>

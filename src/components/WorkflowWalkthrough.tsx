@@ -1,7 +1,10 @@
 import { Fragment } from 'react'
 import type { Project } from '../data/types'
 import { StageMedia } from './StageMedia'
-import type { WorkflowWalkthroughState } from '../hooks/useWorkflowWalkthrough'
+import {
+  STEP_DWELL_MS,
+  type WorkflowWalkthroughState,
+} from '../hooks/useWorkflowWalkthrough'
 
 // Coded, data-driven workflow walkthrough display — no PNG diagrams, no fake
 // canvas, no animation library, no manual step player. State comes from
@@ -27,7 +30,11 @@ export function WorkflowWalkthrough({
   walkthrough: WorkflowWalkthroughState
 }) {
   const stages = project.stages
-  const { activeStep, completed, isDone, jumpTo } = walkthrough
+  const { activeStep, completed, isDone, isPlaying, jumpTo, runId } = walkthrough
+  const pausedProgress =
+    activeStep === null || stages.length < 2
+      ? 0
+      : (activeStep / (stages.length - 1)) * 100
 
   return (
     <div className="walkthrough">
@@ -36,16 +43,28 @@ export function WorkflowWalkthrough({
         <span className="mono">{project.stageCountLabel}</span>
       </div>
 
-      <ol className="w-spine">
-        {stages.map((stage, i) => {
+      <div
+        className={`w-spine-shell${isPlaying ? ' w-spine-shell--playing' : ''}`}
+        style={{
+          '--walkthrough-total': `${STEP_DWELL_MS * stages.length}ms`,
+          '--walkthrough-paused-progress': `${pausedProgress}%`,
+        } as React.CSSProperties}
+      >
+        <span className="w-spine-track" aria-hidden="true">
+          <span key={runId} className="w-spine-progress" />
+        </span>
+        <ol className="w-spine">
+          {stages.map((stage, i) => {
           const isOpen = i === activeStep
           const isCompleted = completed.has(i)
           return (
             <Fragment key={stage.num}>
               <li
-                className={`w-step${stage.actor === 'sys' ? '' : ` w-step--${stage.actor}`}${isOpen ? ' w-step--active' : ''}${isCompleted ? ' w-step--done' : ''}`}
+                className={`w-step${stage.actor === 'sys' ? '' : ` w-step--${stage.actor}`}${isOpen ? ' w-step--active' : ''}${isOpen && isPlaying ? ' w-step--playing' : ''}${isCompleted ? ' w-step--done' : ''}`}
                 role="button"
                 tabIndex={0}
+                aria-expanded={isOpen}
+                aria-controls={`${project.id}-walkthrough-${stage.num}`}
                 onClick={() => jumpTo(i)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -63,7 +82,10 @@ export function WorkflowWalkthrough({
                 <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
               </li>
               {isOpen && (stage.miniNodes?.length || stage.image) && (
-                <li className="w-active-panel">
+                <li
+                  id={`${project.id}-walkthrough-${stage.num}`}
+                  className="w-active-panel"
+                >
                   {stage.miniNodes && (
                     <div className="w-mini-nodes">
                       {stage.miniNodes.map((node) => (
@@ -78,8 +100,9 @@ export function WorkflowWalkthrough({
               )}
             </Fragment>
           )
-        })}
-      </ol>
+          })}
+        </ol>
+      </div>
 
       {isDone && project.finalRoadmap && (
         <div className="w-recap">

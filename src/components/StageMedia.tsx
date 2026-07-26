@@ -20,7 +20,13 @@ export function StageMedia({ stage }: { stage: Stage }) {
   if (hasImage) {
     return (
       <div className="stage-media">
-        <img src={src} alt={stage.caption ?? stage.title} onError={() => setErrored(true)} />
+        <img
+          src={src}
+          alt={stage.caption ?? stage.title}
+          loading="lazy"
+          decoding="async"
+          onError={() => setErrored(true)}
+        />
         {stage.caption && <p className="stage-media-caption mono">{stage.caption}</p>}
       </div>
     )

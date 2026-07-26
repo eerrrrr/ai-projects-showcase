@@ -4,7 +4,7 @@
   --paper:#fbfbf9;
   --ink:#111110;
   --ink-2:#54524c;
-  --ink-3:#8f8c83;
+  --ink-3:#68665f;
   --accent:#1e6b4e;
   --accent-rgb:30,107,78;
   --accent-soft:#e9f1ec;
@@ -48,6 +48,22 @@ body{
   font-size:15px;line-height:1.6;
   -webkit-font-smoothing:antialiased;
 }
+button,a{touch-action:manipulation}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:3px;
+}
+.skip-link{
+  position:fixed;z-index:100;top:12px;left:12px;
+  transform:translateY(-160%);
+  padding:10px 14px;
+  background:var(--ink);color:#fff;text-decoration:none;
+  font-size:14px;font-weight:600;
+  transition:transform .15s ease;
+}
+.skip-link:focus{transform:none}
 /* Wraps everything except .ambient-bg (see App.tsx) — its own stacking
    context at z-index:1, so the ambient layer's z-index:0 reliably paints
    behind all real content without either side needing a negative z-index. */
@@ -264,29 +280,38 @@ body{
   padding:0 48px;
 }
 .hero-text{
-  max-width:640px;
-  padding:80px 0;
+  max-width:680px;
+  padding:72px 0;
 }
 .hero-cover h1{
   font-family:var(--font-ui);font-weight:700;
-  font-size:clamp(48px,7.2vw,88px);
-  line-height:.98;letter-spacing:-0.045em;
-  margin-bottom:4px;
+  font-size:clamp(52px,6vw,72px);
+  line-height:1.02;letter-spacing:-0.035em;text-transform:none;
+  margin-bottom:10px;
+  text-wrap:balance;
 }
 .hero-tagline{
-  font-family:var(--font-ui);font-weight:700;
-  font-size:clamp(22px,2.6vw,32px);letter-spacing:-0.02em;color:var(--accent);
-  margin-bottom:22px;
+  font-family:var(--font-ui);font-weight:600;
+  font-size:clamp(24px,2.5vw,30px);line-height:1.12;
+  letter-spacing:-0.015em;text-transform:none;color:var(--accent);
+  margin-bottom:28px;
+  text-wrap:balance;
 }
-.focus-line{color:var(--ink-2);margin-bottom:40px;text-transform:none;letter-spacing:normal;font-size:13px}
+.focus-line{
+  max-width:560px;
+  color:var(--ink-2);margin-bottom:44px;
+  font-family:var(--font-ui);font-size:16px;font-weight:400;line-height:1.45;
+  text-transform:none;letter-spacing:normal;
+  text-wrap:pretty;
+}
 .keyword-rhythm{
   display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
-  padding-top:32px;border-top:1px solid var(--line);margin-bottom:36px;
+  padding-top:28px;border-top:1px solid var(--line);margin-bottom:36px;
 }
 .keyword{color:var(--ink);font-weight:600;letter-spacing:.14em}
 .keyword-sep{color:var(--ink-3);font-weight:400}
 .scroll-cue{
-  position:absolute;z-index:2;left:50%;bottom:10px;
+  position:absolute;z-index:2;left:50%;bottom:clamp(28px,5vh,56px);
   display:inline-flex;flex-direction:column;align-items:center;gap:1px;
   transform:translateX(-50%);
   text-decoration:none;color:var(--ink-3);
@@ -296,7 +321,7 @@ body{
 .scroll-cue-arrow{font-size:16px;line-height:1}
 
 /* ---------- section heads ---------- */
-section{padding:168px 0 0}
+section{padding:128px 0 0}
 .sec-head{
   border-top:1px solid var(--ink);
   padding-top:28px;margin-bottom:80px;
@@ -317,7 +342,7 @@ section{padding:168px 0 0}
 /* ---------- systems overview (below the cover hero) ---------- */
 .systems-overview{
   max-width:1200px;margin:0 auto;
-  padding:168px 48px;
+  padding:128px 48px;
   min-height:calc(100vh - 56px);
   display:flex;flex-direction:column;justify-content:center;
 }
@@ -367,9 +392,9 @@ section{padding:168px 0 0}
    Its generous vertical space is intentional: it gives the catalogue a
    breath before the denser project walkthroughs begin. */
 .systems-statement{
-  min-height:112vh;
-  padding-top:clamp(144px,18vh,208px);
-  padding-bottom:clamp(128px,18vh,208px);
+  min-height:80vh;
+  padding-top:clamp(112px,14vh,144px);
+  padding-bottom:clamp(96px,14vh,144px);
 }
 .systems-statement p{
   position:sticky;
@@ -399,10 +424,11 @@ section{padding:168px 0 0}
   color:var(--accent);
   margin:4px 0 20px;
 }
-.p-meta h3{
+.p-meta h2{
   font-family:var(--font-ui);font-weight:700;
-  font-size:clamp(22px,2.2vw,27px);letter-spacing:-0.025em;line-height:1.15;
+  font-size:clamp(24px,2.2vw,28px);letter-spacing:-0.025em;line-height:1.15;
   margin-bottom:18px;
+  text-wrap:balance;
 }
 .tags{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:36px}
 .tag{
@@ -448,7 +474,7 @@ section{padding:168px 0 0}
   font-family:var(--font-ui);font-size:10.5px;font-weight:500;
   letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
   background:none;border:1px solid var(--accent);border-radius:100px;
-  padding:9px 16px;cursor:pointer;transition:background .15s ease,color .15s ease;
+  min-height:40px;padding:9px 16px;cursor:pointer;transition:background .15s ease,color .15s ease;
 }
 .view-details:hover{background:var(--accent);color:#fff}
 
@@ -462,7 +488,7 @@ section{padding:168px 0 0}
    today) — plain text-link style here so "How it works" reads as the one
    primary action. */
 .p-controls .view-details{
-  margin-top:0;border:none;background:none;padding:0;
+  margin-top:0;border:none;background:none;padding:8px 4px;min-height:36px;
   color:var(--ink-3);text-decoration:underline;text-decoration-color:transparent;
   transition:color .15s ease,text-decoration-color .15s ease;
 }
@@ -472,7 +498,7 @@ section{padding:168px 0 0}
   font-family:var(--font-ui);font-size:10.5px;font-weight:500;
   letter-spacing:.1em;text-transform:uppercase;color:#fff;
   background:var(--accent);border:1px solid var(--accent);border-radius:100px;
-  padding:9px 16px;cursor:pointer;
+  min-height:40px;padding:9px 16px;cursor:pointer;
   transition:opacity .15s ease,background-color .7s ease,border-color .7s ease;
 }
 .how-it-works-btn:hover{opacity:.85}
@@ -514,6 +540,8 @@ ol.stages{list-style:none}
   position:relative;
   cursor:pointer;
 }
+.stage:focus-visible,
+.w-step:focus-visible{border-radius:4px}
 .stage:hover .s-body b{color:var(--accent)}
 .stage--selected{background:var(--accent-soft);margin:0 -16px;padding-left:16px;padding-right:16px;border-radius:4px}
 .stage--selected .s-body b{color:var(--accent)}
@@ -580,7 +608,29 @@ ol.stages{list-style:none}
    fully separate so nothing here can ever affect the archive's static
    list. */
 .walkthrough{margin-bottom:8px}
+.w-spine-shell{position:relative}
 .w-spine{list-style:none}
+.w-spine-track{
+  position:absolute;z-index:3;
+  left:74px;top:34px;bottom:34px;
+  width:2px;border-radius:100px;
+  background:var(--line);
+  pointer-events:none;
+  overflow:hidden;
+}
+.w-spine-progress{
+  display:block;width:100%;
+  height:var(--walkthrough-paused-progress);
+  background:var(--accent);
+  transition:height .2s ease,background-color .7s ease;
+}
+@keyframes workflow-spine-progress{
+  from{height:0}
+  to{height:100%}
+}
+.w-spine-shell--playing .w-spine-progress{
+  animation:workflow-spine-progress var(--walkthrough-total) linear forwards;
+}
 .w-step{
   display:grid;grid-template-columns:44px 30px 1fr 84px;
   gap:0 16px;align-items:start;
@@ -603,13 +653,8 @@ ol.stages{list-style:none}
    filled square (output) — before any text is even read. */
 .w-step-marker{position:relative;height:100%}
 .w-step-marker::after{transition:background-color .7s ease,border-color .7s ease}
-.w-step-marker::before{
-  content:"";position:absolute;left:50%;top:26px;bottom:-22px;
-  width:1px;background:var(--line);transform:translateX(-50%);
-}
-.w-step:last-child .w-step-marker::before{display:none}
 .w-step-marker::after{
-  content:"";position:absolute;left:50%;top:6px;transform:translateX(-50%);
+  content:"";position:absolute;z-index:4;left:50%;top:6px;transform:translateX(-50%);
   width:13px;height:13px;border-radius:50%;
   background:var(--paper);border:1.5px solid var(--ink-3);
   transition:background .18s ease,border-color .18s ease;
@@ -641,8 +686,7 @@ ol.stages{list-style:none}
 .w-step--active{
   background:rgba(var(--accent-rgb),.03);
   margin:0 -12px;padding-left:12px;padding-right:12px;
-  box-shadow:inset 3px 0 0 var(--accent);
-  transition:background-color .7s ease,box-shadow .7s ease;
+  transition:background-color .7s ease;
 }
 .w-step--active .w-step-title{color:var(--ink)}
 .w-step--active .w-step-marker::after,
@@ -682,6 +726,10 @@ ol.stages{list-style:none}
 .w-mini-node:nth-child(4){transition-delay:.24s}
 .w-mini-node--in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){
+  .w-spine-shell--playing .w-spine-progress{
+    animation:none;
+    height:100%;
+  }
   .w-mini-node{transition:none;transition-delay:0s !important;opacity:1;transform:none}
 }
 
@@ -799,7 +847,7 @@ footer{
 }
 
 /* ---------- responsive ---------- */
-@media (max-width:1350px){
+@media (max-width:1100px){
   .section-rail{
     top:auto;
     right:16px;
@@ -809,18 +857,40 @@ footer{
   .section-rail-label,
   .section-rail-list{display:none}
   .section-rail-mobile{
-    display:block;
-    padding:7px 10px;
+    display:grid;
+    grid-template-columns:32px auto 32px;
+    align-items:center;
+    gap:6px;
+    padding:5px;
     border:1px solid var(--line);
     background:rgba(251,251,249,.88);
     backdrop-filter:blur(10px);
-    color:var(--accent);
+    color:var(--accent);border-radius:4px;
   }
+  .section-rail-mobile a,
+  .section-rail-mobile > span[aria-hidden]{
+    display:grid;place-items:center;
+    width:32px;height:32px;
+    color:var(--accent);text-decoration:none;
+    font-size:15px;font-weight:700;
+  }
+  .section-rail-mobile > span[aria-hidden]{opacity:.3}
+  .section-rail-mobile .mono{padding-inline:4px;color:var(--accent);white-space:nowrap}
 }
 @media (max-width:900px){
   .wrap{padding:0 22px}
   .nav-inner{padding:0 22px}
+  .nav-inner{gap:12px}
   .nav a{display:none}
+  .nav .who,
+  .nav .nav-external--primary{display:inline-flex}
+  .nav .who{font-size:13px}
+  .nav .who span{display:none}
+  .nav .nav-external--primary{
+    min-height:40px;
+    padding-inline:11px;
+    font-size:10px;
+  }
   section{padding-top:96px}
   .sec-head{margin-bottom:48px}
   .hero-cover{min-height:auto}
@@ -834,6 +904,9 @@ footer{
     margin:0 auto 28px;
     transform:none;
   }
+  .view-details,
+  .p-controls .view-details,
+  .how-it-works-btn{min-height:44px}
   .systems-overview{padding:96px 22px 0;min-height:auto;display:block}
   .systems-statement{min-height:auto;padding-top:112px;padding-bottom:80px}
   .systems-statement p{position:static;transform:none;font-size:clamp(34px,9vw,52px);letter-spacing:-0.04em}
