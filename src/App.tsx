@@ -8,7 +8,6 @@ import { AmbientBackground } from './components/AmbientBackground'
 import { ProofSummary } from './components/ProofSummary'
 import { ProjectCard } from './components/ProjectCard'
 import { SupportingSystems } from './components/SupportingSystems'
-import { MoreSystems } from './components/MoreSystems'
 import { Footer } from './components/Footer'
 import { SectionRail } from './components/SectionRail'
 import { useSoftPageHandoff } from './hooks/useSoftPageHandoff'
@@ -18,9 +17,6 @@ import './styles/global.css'
 
 const content = pageContent as PageContent
 const projects = projectsData as Project[]
-const featuredProjects = projects.slice(0, 3)
-const moreProjects = projects.slice(3)
-
 export default function App() {
   const [activeId, setActiveId] = useState<string | null>('cover')
 
@@ -97,12 +93,10 @@ export default function App() {
 
         <div className="wrap">
           <section id="flagship-featured" aria-label="Featured systems">
-            {featuredProjects.map((project) => (
+            {projects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </section>
-
-          <MoreSystems projects={moreProjects} />
           <SupportingSystems supporting={content.supporting} />
         </div>
         </main>
