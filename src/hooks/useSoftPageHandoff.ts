@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 // Feature flag — flip to false to disable this entire hook with one line;
 // it early-returns before attaching any listener, so disabling it is a
 // zero-risk no-op, not a partial rollback.
-export const ENABLE_SOFT_PAGE_HANDOFF = true
+export const ENABLE_SOFT_PAGE_HANDOFF = false
 
 const WHEEL_THRESHOLD = 6 // px — filters near-zero trackpad jitter, not intentional gestures
 const LOCK_MS = 900 // matches the smooth-scroll transition duration

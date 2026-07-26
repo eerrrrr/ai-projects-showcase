@@ -1,7 +1,10 @@
 # Scroll-end momentum correction
 
 **Date:** 2026-07-26  
-**Status:** Implemented and locally verified; pending user physical-device review.
+**Status:** Superseded by
+`UPDATE_REPORT_2026-07-26_NATIVE_SCROLL_ROLLBACK.md`. A later physical-device
+recording showed that even correctly detected gesture boundaries could not make
+programmatic page settling feel continuous with native input.
 
 ## Input reviewed
 

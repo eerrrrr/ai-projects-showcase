@@ -9,6 +9,7 @@ import { ProofSummary } from './components/ProofSummary'
 import { ProjectCard } from './components/ProjectCard'
 import { SupportingSystems } from './components/SupportingSystems'
 import { Footer } from './components/Footer'
+import { SectionRail } from './components/SectionRail'
 import { useSoftPageHandoff } from './hooks/useSoftPageHandoff'
 import { useSectionSettle } from './hooks/useSectionSettle'
 import { useAccentSection } from './hooks/useAccentSection'
@@ -20,14 +21,15 @@ const featuredProjects = projects.filter((p) => p.tier === 1)
 const otherProjects = projects.filter((p) => p.tier !== 1)
 
 export default function App() {
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeId, setActiveId] = useState<string | null>('cover')
 
   useSoftPageHandoff()
   useSectionSettle()
   useAccentSection()
 
-  // Scroll-spy: highlight whichever featured project's full section is
-  // currently in view, on the systems-overview quick cards above it.
+  // Scroll-spy: report the project currently crossing the reading band.
+  // This state only updates navigation highlights; it never writes the page's
+  // scroll position or changes project/workflow state.
   // Guarded so it can never activate while the quick-cards grid (#systems)
   // is itself still on screen — without this, a very tall first project
   // section can drift into the detection band on a large monitor while
@@ -40,20 +42,26 @@ export default function App() {
   // permanently highlighted after its section was first visited, since
   // nothing ever reset activeId once set.
   useEffect(() => {
+    const coverEl = document.getElementById('cover')
     const systemsEl = document.getElementById('systems')
-    const projectEls = featuredProjects
+    const statementEl = document.getElementById('systems-statement')
+    const projectEls = projects
       .map((p) => document.getElementById(p.id))
       .filter((el): el is HTMLElement => el !== null)
-    if (projectEls.length === 0 || !systemsEl) return
+    if (projectEls.length === 0 || !coverEl || !systemsEl || !statementEl) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.target === systemsEl) {
-            if (entry.isIntersecting) setActiveId(null)
+          if (!entry.isIntersecting) return
+          if (entry.target === coverEl) {
+            setActiveId('cover')
             return
           }
-          if (!entry.isIntersecting) return
+          if (entry.target === systemsEl || entry.target === statementEl) {
+            setActiveId('systems')
+            return
+          }
           const stillShowingQuickCards = systemsEl.getBoundingClientRect().bottom > 0
           if (stillShowingQuickCards) return
           setActiveId(entry.target.id)
@@ -61,7 +69,9 @@ export default function App() {
       },
       { rootMargin: '-40% 0px -50% 0px', threshold: 0 },
     )
+    observer.observe(coverEl)
     observer.observe(systemsEl)
+    observer.observe(statementEl)
     projectEls.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [])
@@ -72,6 +82,7 @@ export default function App() {
 
       <div className="page-content">
         <Nav nav={content.nav} />
+        <SectionRail projects={projects} activeId={activeId} />
         <Hero content={content} />
 
         <ProofSummary

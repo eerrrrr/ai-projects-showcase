@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 
 // Feature flag — flip to false to disable with one line; the effect
 // returns before attaching any listener, so disabling is a zero-risk no-op.
-export const ENABLE_SECTION_SETTLE = true
+export const ENABLE_SECTION_SETTLE = false
 
 const SCROLL_END_FALLBACK_MS = 200 // used only on older browsers without `scrollend`
 const SETTLE_ZONE_RATIO = 0.28 // a broader, still-local magnetic zone around each boundary

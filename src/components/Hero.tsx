@@ -15,7 +15,7 @@ import { KeywordRhythm } from './KeywordRhythm'
 // judgment, just where the canvas itself lives.
 export function Hero({ content }: { content: PageContent }) {
   return (
-    <header className="hero hero-cover" data-page-section="hero">
+    <header id="cover" className="hero hero-cover" data-page-section="hero">
       <div className="hero-content">
         <div className="hero-text">
           <h1>{content.heroName}</h1>
