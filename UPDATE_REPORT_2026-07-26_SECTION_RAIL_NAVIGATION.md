@@ -22,6 +22,25 @@ progress indicator:
 - Follow-up visual pass enlarged the wide-screen rail by roughly 35%:
   `11px` labels/numbers, `28px` link targets, `34px` resting rules, and an
   `80px` current rule. The compact breakpoint remains unchanged.
+- Final external-link placement: Visual Portfolio and GitHub remain in the
+  sticky top navigation at every viewport width. Both use accent green and
+  an `11px` Extra Bold (`800`) treatment for stronger first-visit visibility.
+  The temporary rail-above
+  placement was removed so the chapter rail has one job: in-page navigation.
+- Final CTA hierarchy: Visual Portfolio is the single filled accent action in
+  the header; LinkedIn and GitHub use matching Extra Bold outline actions.
+  All three links remain available, but only the visual portfolio receives
+  filled primary emphasis. This replaces repeated font-weight escalation with
+  shape, contrast, and whitespace while preserving anchor-link semantics.
+- Final header order is `Systems → LinkedIn → GitHub → Visual Portfolio`, so
+  the single filled primary action sits at the right edge as the visual
+  endpoint of the navigation group.
+- Navigation cue decision: there is one labelled `View systems` cue at the
+  bottom centre of the cover. It is not repeated on every section because the
+  chapter rail already provides direct section navigation, and repeated
+  down-arrows would incorrectly imply slide-controlled scrolling.
+- The desktop cover cue sits `10px` above the viewport edge; the mobile cue
+  remains in normal flow.
 
 ## Scroll contract
 

@@ -87,6 +87,42 @@ body{
   transition:color .15s ease;
 }
 .nav a:hover{color:var(--ink)}
+.nav .nav-external{
+  display:inline-flex;
+  align-items:center;
+  min-height:32px;
+  padding:0 11px;
+  border:1px solid var(--accent);
+  border-radius:2px;
+  color:var(--accent);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.1em;
+  transition:background-color .18s ease,border-color .18s ease,color .18s ease;
+}
+.nav .nav-external:hover{
+  border-color:var(--accent);
+  background:var(--accent-soft);
+  color:var(--accent);
+}
+.nav .nav-external:focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+}
+.nav .nav-external--primary{
+  padding-inline:13px;
+  background:var(--accent);
+  color:#fff;
+}
+.nav .nav-external--primary:hover{
+  border-color:var(--ink);
+  background:var(--ink);
+  color:#fff;
+}
+.nav .nav-external--primary:focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+}
 
 /* ---------- project chapter rail ---------- */
 .section-rail{
@@ -170,16 +206,6 @@ body{
   outline-offset:4px;
 }
 .section-rail-mobile{display:none}
-/* External portfolio link is the one action item in the nav — make it the
-   most visually obvious thing in the bar (bold, accent color, underline on
-   hover), since the identical link used to also live in the hero and no
-   longer does. */
-.nav a.mono--accent{
-  font-weight:700;font-size:11px;color:var(--accent);
-  padding-bottom:2px;border-bottom:1px solid transparent;
-}
-.nav a.mono--accent:hover{color:var(--accent);border-bottom-color:var(--accent)}
-
 /* ---------- hero (cover page) ---------- */
 .hero-cover{
   position:relative;overflow:hidden;
@@ -260,11 +286,14 @@ body{
 .keyword{color:var(--ink);font-weight:600;letter-spacing:.14em}
 .keyword-sep{color:var(--ink-3);font-weight:400}
 .scroll-cue{
-  display:inline-flex;align-items:center;gap:6px;
+  position:absolute;z-index:2;left:50%;bottom:10px;
+  display:inline-flex;flex-direction:column;align-items:center;gap:1px;
+  transform:translateX(-50%);
   text-decoration:none;color:var(--ink-3);
   transition:color .15s ease;
 }
 .scroll-cue:hover{color:var(--accent)}
+.scroll-cue-arrow{font-size:16px;line-height:1}
 
 /* ---------- section heads ---------- */
 section{padding:168px 0 0}
@@ -799,6 +828,12 @@ footer{
   .ambient-bg{display:none}
   .hero-content{padding:0 22px}
   .hero-text{padding:56px 0 40px;max-width:none}
+  .scroll-cue{
+    position:static;
+    align-self:center;
+    margin:0 auto 28px;
+    transform:none;
+  }
   .systems-overview{padding:96px 22px 0;min-height:auto;display:block}
   .systems-statement{min-height:auto;padding-top:112px;padding-bottom:80px}
   .systems-statement p{position:static;transform:none;font-size:clamp(34px,9vw,52px);letter-spacing:-0.04em}

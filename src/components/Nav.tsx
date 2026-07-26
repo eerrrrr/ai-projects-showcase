@@ -9,7 +9,15 @@ export function Nav({ nav }: { nav: PageContent['nav'] }) {
         </a>
         {nav.links.map((link) =>
           link.external ? (
-            <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="mono--accent">
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              className={`nav-external${
+                link.label === 'Visual Portfolio' ? ' nav-external--primary' : ''
+              }`}
+            >
               {link.label} ↗
             </a>
           ) : (

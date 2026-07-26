@@ -23,12 +23,12 @@ export function Hero({ content }: { content: PageContent }) {
           <Html as="p" className="focus-line mono" html={content.focusLineHtml} />
 
           <KeywordRhythm words={content.thinkingList} />
-
-          <a className="scroll-cue mono" href="#systems">
-            View systems ↓
-          </a>
         </div>
       </div>
+      <a className="scroll-cue mono" href="#systems">
+        <span>View systems</span>
+        <span className="scroll-cue-arrow" aria-hidden="true">↓</span>
+      </a>
     </header>
   )
 }

@@ -8,13 +8,18 @@
         "label": "Systems"
       },
       {
-        "href": "https://erin-wong-portfolio.vercel.app/",
-        "label": "Visual Portfolio",
+        "href": "https://www.linkedin.com/in/erin-wai-in-wong-89668b2aa/",
+        "label": "LinkedIn",
         "external": true
       },
       {
         "href": "https://github.com/eerrrrr",
         "label": "GitHub",
+        "external": true
+      },
+      {
+        "href": "https://erin-wong-portfolio.vercel.app/",
+        "label": "Visual Portfolio",
         "external": true
       }
     ]
