@@ -8,6 +8,7 @@ import { AmbientBackground } from './components/AmbientBackground'
 import { ProofSummary } from './components/ProofSummary'
 import { ProjectCard } from './components/ProjectCard'
 import { SupportingSystems } from './components/SupportingSystems'
+import { MoreSystems } from './components/MoreSystems'
 import { Footer } from './components/Footer'
 import { SectionRail } from './components/SectionRail'
 import { useSoftPageHandoff } from './hooks/useSoftPageHandoff'
@@ -17,8 +18,8 @@ import './styles/global.css'
 
 const content = pageContent as PageContent
 const projects = projectsData as Project[]
-const featuredProjects = projects.filter((p) => p.tier === 1)
-const otherProjects = projects.filter((p) => p.tier !== 1)
+const featuredProjects = projects.slice(0, 3)
+const moreProjects = projects.slice(3)
 
 export default function App() {
   const [activeId, setActiveId] = useState<string | null>('cover')
@@ -44,11 +45,10 @@ export default function App() {
   useEffect(() => {
     const coverEl = document.getElementById('cover')
     const systemsEl = document.getElementById('systems')
-    const statementEl = document.getElementById('systems-statement')
     const projectEls = projects
       .map((p) => document.getElementById(p.id))
       .filter((el): el is HTMLElement => el !== null)
-    if (projectEls.length === 0 || !coverEl || !systemsEl || !statementEl) return
+    if (projectEls.length === 0 || !coverEl || !systemsEl) return
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -58,7 +58,7 @@ export default function App() {
             setActiveId('cover')
             return
           }
-          if (entry.target === systemsEl || entry.target === statementEl) {
+          if (entry.target === systemsEl) {
             setActiveId('systems')
             return
           }
@@ -67,11 +67,10 @@ export default function App() {
           setActiveId(entry.target.id)
         })
       },
-      { rootMargin: '-40% 0px -50% 0px', threshold: 0 },
+      { rootMargin: '-18% 0px -76% 0px', threshold: 0 },
     )
     observer.observe(coverEl)
     observer.observe(systemsEl)
-    observer.observe(statementEl)
     projectEls.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [])
@@ -91,14 +90,10 @@ export default function App() {
 
         <ProofSummary
           projects={projects}
-          sectionNo={content.systemsSectionNo}
           heading={content.systemsHeading}
+          statement={content.systemsStatement}
           activeId={activeId}
         />
-
-        <section id="systems-statement" className="systems-statement wrap" aria-label="Design approach">
-          <p>{content.systemsStatement}</p>
-        </section>
 
         <div className="wrap">
           <section id="flagship-featured" aria-label="Featured systems">
@@ -107,15 +102,8 @@ export default function App() {
             ))}
           </section>
 
-          {/* No visible heading here — 01-07 are one continuous systems
-              catalogue, not two sections. #flagship stays as an anchor id
-              only (nothing currently links to it, kept for structure). */}
-          <section id="flagship" aria-label="More systems">
-            {otherProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-            <SupportingSystems supporting={content.supporting} />
-          </section>
+          <MoreSystems projects={moreProjects} />
+          <SupportingSystems supporting={content.supporting} />
         </div>
         </main>
 

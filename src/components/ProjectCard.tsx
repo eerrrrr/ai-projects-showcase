@@ -24,30 +24,24 @@ function WorkflowStages({
       </div>
       <ol className="stages">
         {project.stages.map((stage) => (
-          <li
-            className={`${stage.actor === 'sys' ? 'stage' : `stage stage--${stage.actor}`}${
-              selectedStageNum === stage.num ? ' stage--selected' : ''
-            }`}
-            key={stage.num}
-            role="button"
-            tabIndex={0}
-            aria-expanded={selectedStageNum === stage.num}
-            aria-controls={`${project.id}-stage-${stage.num}`}
-            onClick={() => setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))
-              }
-            }}
-          >
-            <span className="s-num">{stage.num}</span>
-            <span className="s-marker" />
-            <div className="s-body">
-              <b>{stage.title}</b>
-              <span>{stage.body}</span>
-            </div>
-            <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
+          <li className="stage-item" key={stage.num}>
+            <button
+              type="button"
+              className={`${stage.actor === 'sys' ? 'stage' : `stage stage--${stage.actor}`}${
+                selectedStageNum === stage.num ? ' stage--selected' : ''
+              }`}
+              aria-expanded={selectedStageNum === stage.num}
+              aria-controls={`${project.id}-stage-${stage.num}`}
+              onClick={() => setSelectedStageNum((prev) => (prev === stage.num ? null : stage.num))}
+            >
+              <span className="s-num">{stage.num}</span>
+              <span className="s-marker" />
+              <span className="s-body">
+                <b>{stage.title}</b>
+                <span>{stage.body}</span>
+              </span>
+              <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
+            </button>
             {selectedStageNum === stage.num && (
               <div id={`${project.id}-stage-${stage.num}`}>
                 <StageMedia stage={stage} />

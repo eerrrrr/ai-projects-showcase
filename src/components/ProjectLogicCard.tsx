@@ -58,7 +58,7 @@ export function ProjectLogicCard({
 
       <div className="p-controls">
         <button type="button" className="how-it-works-btn" onClick={onStartWalkthrough}>
-          How it works ▶
+          Play workflow ▶
         </button>
         <button
           type="button"
@@ -67,7 +67,7 @@ export function ProjectLogicCard({
           aria-controls={`${project.id}-details`}
           onClick={onToggleDetails}
         >
-          {expanded ? 'Hide details −' : 'View details ↓'}
+          {expanded ? 'Hide case notes −' : 'Read case notes ↓'}
         </button>
       </div>
     </>

@@ -20,25 +20,25 @@ function shortName(title: string) {
 // in the same catalogue, not a demoted afterthought.
 export function ProofSummary({
   projects,
-  sectionNo,
   heading,
+  statement,
   activeId,
 }: {
   projects: Project[]
-  sectionNo: string
   heading: string
+  statement: string
   activeId: string | null
 }) {
   return (
     <section id="systems" className="systems-overview" data-page-section="systems">
       <div className="sec-head">
-        <span className="no">{sectionNo}</span>
         <h2>{heading}</h2>
       </div>
+      <p className="systems-intro">{statement}</p>
       <div className="systems-grid">
-        {projects.map((project) => (
+        {projects.map((project, index) => (
           <a
-            className={`system-card${activeId === project.id ? ' is-active' : ''}`}
+            className={`system-card${index < 3 ? ' system-card--featured' : ' system-card--more'}${activeId === project.id ? ' is-active' : ''}`}
             href={`#${project.id}`}
             key={project.id}
           >
@@ -53,7 +53,6 @@ export function ProofSummary({
                 ))}
               </span>
             )}
-            <span className="system-card-arrow mono">Open case →</span>
           </a>
         ))}
       </div>

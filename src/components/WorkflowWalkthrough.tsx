@@ -59,43 +59,41 @@ export function WorkflowWalkthrough({
           const isCompleted = completed.has(i)
           return (
             <Fragment key={stage.num}>
-              <li
-                className={`w-step${stage.actor === 'sys' ? '' : ` w-step--${stage.actor}`}${isOpen ? ' w-step--active' : ''}${isOpen && isPlaying ? ' w-step--playing' : ''}${isCompleted ? ' w-step--done' : ''}`}
-                role="button"
-                tabIndex={0}
-                aria-expanded={isOpen}
-                aria-controls={`${project.id}-walkthrough-${stage.num}`}
-                onClick={() => jumpTo(i)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    jumpTo(i)
-                  }
-                }}
-              >
-                <span className="w-step-num">{stage.num}</span>
-                <span className="w-step-marker" />
-                <div className="w-step-body">
-                  <span className="w-step-title">{stage.title}</span>
-                  <span className="w-step-desc">{stage.body}</span>
-                </div>
-                <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
+              <li className="w-step-item">
+                <button
+                  type="button"
+                  className={`w-step${stage.actor === 'sys' ? '' : ` w-step--${stage.actor}`}${isOpen ? ' w-step--active' : ''}${isOpen && isPlaying ? ' w-step--playing' : ''}${isCompleted ? ' w-step--done' : ''}`}
+                  aria-expanded={isOpen}
+                  aria-controls={`${project.id}-walkthrough-${stage.num}`}
+                  onClick={() => jumpTo(i)}
+                >
+                  <span className="w-step-num">{stage.num}</span>
+                  <span className="w-step-marker" />
+                  <span className="w-step-body">
+                    <span className="w-step-title">{stage.title}</span>
+                    <span className="w-step-desc">{stage.body}</span>
+                  </span>
+                  <span className={`s-actor s-actor--${stage.actor}`}>{stage.actorLabel}</span>
+                </button>
               </li>
-              {isOpen && (stage.miniNodes?.length || stage.image) && (
+              {(stage.miniNodes?.length || stage.image) && (
                 <li
                   id={`${project.id}-walkthrough-${stage.num}`}
-                  className="w-active-panel"
+                  className={`w-active-panel${isOpen ? ' w-active-panel--open' : ''}`}
+                  aria-hidden={!isOpen}
                 >
-                  {stage.miniNodes && (
-                    <div className="w-mini-nodes">
-                      {stage.miniNodes.map((node) => (
-                        <span key={node} className="w-mini-node w-mini-node--in">
-                          {node}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <StageMedia stage={stage} />
+                  <div className="w-active-panel-inner">
+                    {stage.miniNodes && (
+                      <div className="w-mini-nodes">
+                        {stage.miniNodes.map((node) => (
+                          <span key={node} className="w-mini-node w-mini-node--in">
+                            {node}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <StageMedia stage={stage} />
+                  </div>
                 </li>
               )}
             </Fragment>

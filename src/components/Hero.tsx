@@ -26,7 +26,7 @@ export function Hero({ content }: { content: PageContent }) {
         </div>
       </div>
       <a className="scroll-cue mono" href="#systems">
-        <span>View systems</span>
+        <span>Scroll</span>
         <span className="scroll-cue-arrow" aria-hidden="true">↓</span>
       </a>
     </header>
