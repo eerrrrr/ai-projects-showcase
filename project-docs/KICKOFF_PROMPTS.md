@@ -187,10 +187,10 @@ Read:
 - src/data/page-content.json
 - src/data/projects.json
 - src/data/types.ts
-- docs/REDESIGN_CONTRACT.md
-- docs/DESIGN.md
-- docs/MOTION_SPEC.md
-- docs/FIGMA_HANDOFF.md
+- project-docs/REDESIGN_CONTRACT.md
+- project-docs/DESIGN.md
+- project-docs/MOTION_SPEC.md
+- project-docs/FIGMA_HANDOFF.md
 - the approved Figma frames through Figma MCP
 
 Use Plan Mode first.
@@ -239,6 +239,6 @@ First return only:
 Do not write code until the plan is approved.
 ```
 
-Before this: fill in `docs/DESIGN.md`, `docs/MOTION_SPEC.md`, and
-`docs/FIGMA_HANDOFF.md` with the real approved values (they're templates
+Before this: fill in `project-docs/DESIGN.md`, `project-docs/MOTION_SPEC.md`, and
+`project-docs/FIGMA_HANDOFF.md` with the real approved values (they're templates
 right now — see each file's own TEMPLATE note at the top).
