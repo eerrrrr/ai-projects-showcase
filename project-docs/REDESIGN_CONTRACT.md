@@ -1,20 +1,54 @@
 ---
 title: Portfolio V2 — redesign contract
 created: 2026-08-03
+updated: 2026-08-04 — scope expanded, see "Scope decision log"
 status: active — read before any V2 work
 ---
 
 # What this contract is
 
 This branch (`redesign/ui-v2`, worktree at
-`D:\ai-test\ai-projects-showcase-v2`) exists to replace the **visual
-storytelling layer only**. This file is the hard boundary for that work —
-read it before touching code, and re-check it before merging anything
-back to `main`.
+`D:\ai-test\ai-projects-showcase-v2`) is the safe redesign worktree for
+the AI portfolio. This file is the hard boundary for that work — read it
+before touching code, and re-check it before merging anything back to
+`main`.
 
 V1 lives untouched at `D:\ai-test\ai-projects-showcase` (branch `main`,
 backed up separately at `backup/ui-v1-2026-08-03`). Nothing in V2 work
 should ever require editing that folder.
+
+## Scope decision log
+
+**2026-08-03 (original scope):** replace only the AI portfolio's visual
+storytelling layer — same content, same routes, new interface.
+
+**2026-08-04 (Option A chosen — scope expanded):** this worktree becomes
+a **3D total-portfolio gateway**, not just a reskinned AI portfolio.
+Planned route structure:
+
+```
+/            3D desktop gateway (new — not built yet)
+/ai          existing 7 AI projects, redesigned interface (this was the
+             original V2 scope, unchanged in substance)
+/architecture  brief intro + link out to the existing, separately
+               maintained architecture site (not migrated in, not rebuilt)
+/furniture   future
+/game        future
+```
+
+Reasoning for Option A over a brand-new `erin-portfolio-platform` repo:
+this worktree already has the safety branches, the verified AI content/
+JSON, and a working GitHub Pages deploy path — starting a second repo
+would duplicate all of that for no structural benefit, at real token
+cost. The old standalone AI site (`main`) is not meant to be preserved
+long-term; V2 replacing it as the new total entry point is the intended
+end state, not a scope violation.
+
+**What did NOT change:** everything in "What must NOT change" below
+still applies in full to the `/ai` section specifically — the AI
+content/JSON/tier/actor rules were never about the AI portfolio being
+the *only* thing this worktree becomes, they're about not letting a
+visual redesign (of any scope) corrupt that specific content.
 
 ## What must NOT change
 
@@ -53,6 +87,13 @@ should ever require editing that folder.
 - Real media-led storytelling where the old design had no images at all
   (`StageMedia.tsx` currently renders caption-only text for every single
   workflow stage across all 7 projects — no screenshot files exist yet).
+- (Per the 2026-08-04 scope decision above) A new 3D desktop gateway at
+  site root, with `/ai` becoming the redesigned AI portfolio and
+  `/architecture` linking out to the existing separate site. **Not
+  started yet** — no greybox, no route structure, no build prompt written
+  for this piece as of this update. Do not begin implementing it without
+  an explicit build instruction; this contract only records that it's
+  the agreed direction, not a go-ahead to start building.
 
 ## Source of truth for content
 
