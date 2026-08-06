@@ -74,7 +74,11 @@
   align-items: flex-start;
   gap: 3px;
   padding: 10px 12px 11px;
-  background: var(--v2-paper-2);
+  /* White, not the warm tan --v2-paper-2 fill — reads lighter against
+     the page's own warm background instead of blending into a uniform
+     dull tone. Active state keeps its own accent-soft highlight below,
+     unchanged, so the active/inactive distinction stays clear. */
+  background: #ffffff;
   border: 1px solid var(--v2-rule);
   border-radius: 3px;
   text-align: left;

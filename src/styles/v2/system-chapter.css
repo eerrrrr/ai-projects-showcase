@@ -110,18 +110,24 @@
 .v2-evidenceInspector-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  background: var(--v2-rule);
+  gap: 0;
+  background: transparent;
   border: 1px solid var(--v2-rule);
 }
+/* Transparent, not the tan --v2-paper-2 fill the whole grid used to
+   sit on — grid lines now come from real borders on each tab (below)
+   instead of the page background peeking through 1px gaps, since a
+   transparent grid background would otherwise erase those lines too. */
 .v2-evidenceInspector-tab {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 10px 12px;
-  background: var(--v2-paper-2);
+  background: transparent;
   border: none;
+  border-right: 1px solid var(--v2-rule);
+  border-bottom: 1px solid var(--v2-rule);
   cursor: pointer;
   font-family: var(--v2-font-mono);
   font-size: 10.5px;
@@ -131,6 +137,12 @@
   color: var(--v2-ink-3);
   text-align: left;
   transition: color 160ms var(--v2-ease-soft), background-color 160ms var(--v2-ease-soft);
+}
+.v2-evidenceInspector-tab:nth-child(3n) {
+  border-right: none;
+}
+.v2-evidenceInspector-tab:nth-child(n + 4) {
+  border-bottom: none;
 }
 .v2-evidenceInspector-tab:hover,
 .v2-evidenceInspector-tab:focus-visible {
@@ -199,5 +211,19 @@
   }
   .v2-evidenceInspector-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Re-derive the grid-line borders for 2 columns (3 rows of 6 items) —
+     the desktop 3n/n+4 rules above assume 3 columns. */
+  .v2-evidenceInspector-tab:nth-child(3n) {
+    border-right: 1px solid var(--v2-rule);
+  }
+  .v2-evidenceInspector-tab:nth-child(n + 4) {
+    border-bottom: 1px solid var(--v2-rule);
+  }
+  .v2-evidenceInspector-tab:nth-child(2n) {
+    border-right: none;
+  }
+  .v2-evidenceInspector-tab:nth-child(n + 5) {
+    border-bottom: none;
   }
 }
