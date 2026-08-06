@@ -11,7 +11,7 @@ export function ClosingPage({ footer, nav }: { footer: PageContent['footer']; na
 
   return (
     <div className="v2-closing-inner">
-      <Reveal as="p" className="v2-closing-eyebrow">
+      <Reveal as="p" className="v2-closing-eyebrow" size="small">
         11 / CLOSING
       </Reveal>
       <Reveal as="p" className="v2-closing-line">

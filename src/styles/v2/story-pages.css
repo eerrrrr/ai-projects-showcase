@@ -12,16 +12,17 @@
   scroll-snap-stop: normal;
   scroll-margin-top: 0;
 }
-/* Final motion-polish batch — discrete before/active/after states,
-   driven by useStoryRollEngine.ts toggling data-story-state; CSS owns
-   the actual animation via a real `transition`, not per-frame inline
-   values. "before" no longer sinks toward ghost-pale opacity (0.62, not
-   0.35) and "after" stays clearly present (0.90) rather than fading the
-   whole outgoing page toward invisible — directly answers the "pale/
-   ghost page" and "outgoing page vanishes too early" complaints.
-   `will-change` is intentionally NOT applied permanently here (PASS
-   §10) — transform/opacity-only transitions on a handful of sections
-   don't need a standing composited-layer promotion for the whole site. */
+/* Correction batch — the outer page stage no longer touches opacity at
+   all. The previous 0.62/0.90 opacity states were the actual root cause
+   of the "long grey interval" complaint: the page was still visibly
+   fading while its workflow had already started autoplaying underneath
+   it. Now the page itself stays fully dark and readable through the
+   whole roll (opacity: 1 in every state) — only a small translateY
+   communicates before/active/after, and only one chapter is ever
+   `active` at a time (single-owner engine in useChapterRollState.ts, not
+   each section deciding independently). `will-change` intentionally
+   omitted (PASS §10) — a handful of transform-only transitions don't
+   need a standing composited layer for the whole site. */
 .v2-storyPage-stage {
   position: sticky;
   top: 0;
@@ -32,21 +33,16 @@
   transform: translateY(0);
   opacity: 1;
   transform-origin: center top;
-  transition:
-    transform var(--motion-page-enter) var(--motion-ease-out),
-    opacity var(--motion-page-exit) var(--motion-ease-out);
+  transition: transform 440ms var(--motion-ease-out);
 }
 .v2-storyPage-stage[data-story-state='before'] {
-  transform: translateY(20px);
-  opacity: 0.62;
+  transform: translateY(10px);
 }
 .v2-storyPage-stage[data-story-state='active'] {
   transform: translateY(0);
-  opacity: 1;
 }
 .v2-storyPage-stage[data-story-state='after'] {
-  transform: translateY(-14px);
-  opacity: 0.9;
+  transform: translateY(-8px);
 }
 .v2-storyPage-inner {
   width: 100%;
@@ -67,7 +63,6 @@
     min-height: 0;
     overflow: visible;
     transform: none !important;
-    opacity: 1 !important;
     transition: none !important;
   }
 }

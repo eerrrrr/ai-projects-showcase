@@ -2,27 +2,31 @@ import { Link } from 'react-router-dom'
 import type { Project } from '../../data/types'
 import { buildWorkflowFromProject } from '../../data/workflowDiagram'
 import { buildEvidenceEntries, buildSequenceLine } from '../../data/systemChapterContent'
+import { useChapterRollState } from '../../hooks/useChapterRollState'
 import { Html } from '../Html'
+import { EvidenceInspector } from './EvidenceInspector'
 import { Reveal } from './Reveal'
 import { WorkflowDiagram } from './WorkflowDiagram'
 
-// PASS A §4/§5 — the ONE reusable chapter template all seven Systems
-// render through (previously only System 01 had this depth via
-// FeaturedCaseSection; Systems 02-07 were a compact SwissOverview list).
+// The one reusable chapter template all seven Systems render through.
 // Generic on purpose: every string here comes from the real Project
 // object or the systemChapterContent.ts mapping helper — no
 // project-specific literals, no invented content. Wrapped in <StoryPage>
-// by AiPortfolioV2Page.tsx; this component renders only the chapter's
-// inner content.
-export function SystemChapter({ project }: { project: Project }) {
+// by AiPortfolioV2Page.tsx, which also supplies the matching
+// `chapterId` — this component subscribes to the shared single-owner
+// active/scrolling engine (useChapterRollState) so its own workflow
+// autoplay and evidence panel behave correctly relative to whichever
+// chapter is actually the current one (correction batch §A/§E/§F).
+export function SystemChapter({ project, chapterId }: { project: Project; chapterId: string }) {
   const sequence = buildSequenceLine(project)
   const evidenceEntries = buildEvidenceEntries(project)
   const valueText = project.valueLine ?? project.valueHtml
+  const { isActive, isScrolling } = useChapterRollState(chapterId)
 
   return (
     <div className="v2-chapter-grid">
       <header className="v2-chapter-rail">
-        <Reveal as="span" className="v2-eyebrow">
+        <Reveal as="span" className="v2-eyebrow" size="small">
           SYSTEM {String(project.index).padStart(2, '0')} · {project.tierLabel.toUpperCase()}
         </Reveal>
         <Reveal as="p" className="v2-chapter-number" delayMs={55}>
@@ -56,19 +60,9 @@ export function SystemChapter({ project }: { project: Project }) {
       </header>
 
       <div className="v2-chapter-workflowField">
-        <WorkflowDiagram workflow={buildWorkflowFromProject(project)} />
+        <WorkflowDiagram workflow={buildWorkflowFromProject(project)} isActive={isActive} isScrolling={isScrolling} />
+        <EvidenceInspector entries={evidenceEntries} isActive={isActive} />
       </div>
-
-      {evidenceEntries.length > 0 && (
-        <div className="v2-chapter-evidence">
-          {evidenceEntries.map((entry) => (
-            <details className="v2-caseNotes" key={entry.label}>
-              <summary>{entry.label}</summary>
-              <Html as="div" className="v2-caseNotes-content" html={entry.html} />
-            </details>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

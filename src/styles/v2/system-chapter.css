@@ -40,6 +40,7 @@
 .v2-chapter-value {
   margin: 4px 0 0;
   font-size: 15px;
+  font-weight: 500;
   line-height: 1.4;
   color: var(--v2-ink-2);
   max-width: 32ch;
@@ -94,71 +95,87 @@
   min-width: 0;
 }
 
-/* Zipped evidence (PASS A §6) — semantic <details>/<summary>, spans the
-   full width below the primary rail+workflow composition. Every entry
-   starts collapsed; the left rail's own value/key-figure line is the
-   "concise summary that stays visible at rest" the spec calls for, so
-   nothing essential is hover-only or hidden-only. */
-.v2-chapter-evidence {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap: clamp(12px, 1.5vw, 20px);
+/* Correction batch §F/G — evidence moved INTO the right workflow field,
+   below the workflow + its detail rail, as a compact label selector +
+   one shared panel (EvidenceInspector.tsx) instead of six independently
+   expanding blocks spanning the full chapter width. Only one panel can
+   ever be open (enforced in the component, not just visually here), so
+   opening evidence never distorts the sticky stage's height enough to
+   confuse the roll engine's chapter-boundary math. */
+.v2-evidenceInspector {
+  margin-top: var(--v2-space-md);
   border-top: 1px solid var(--v2-rule);
-  padding-top: clamp(20px, 3vh, 32px);
+  padding-top: clamp(16px, 2vh, 24px);
 }
-.v2-caseNotes {
-  border-bottom: 1px solid var(--v2-rule);
-  padding-bottom: 12px;
+.v2-evidenceInspector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--v2-rule);
+  border: 1px solid var(--v2-rule);
 }
-.v2-caseNotes summary {
-  cursor: pointer;
-  list-style: none;
-  font-family: var(--v2-font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--v2-ink-3);
-  padding-block: 8px;
+.v2-evidenceInspector-tab {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: color 160ms var(--v2-ease-soft);
-}
-.v2-caseNotes summary::-webkit-details-marker {
-  display: none;
-}
-.v2-caseNotes summary::after {
-  content: '+';
-  font-size: 14px;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--v2-paper-2);
+  border: none;
+  cursor: pointer;
+  font-family: var(--v2-font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   color: var(--v2-ink-3);
-  transition: transform 200ms var(--v2-ease-soft);
+  text-align: left;
+  transition: color 160ms var(--v2-ease-soft), background-color 160ms var(--v2-ease-soft);
 }
-.v2-caseNotes[open] summary::after {
-  transform: rotate(45deg);
-}
-.v2-caseNotes summary:hover,
-.v2-caseNotes summary:focus-visible {
-  color: var(--v2-accent);
-}
-.v2-caseNotes-content {
-  padding-top: 4px;
-  padding-bottom: 8px;
-  font-size: 14px;
-  line-height: 1.58;
+.v2-evidenceInspector-tab:hover,
+.v2-evidenceInspector-tab:focus-visible {
   color: var(--v2-ink);
-  max-width: 60ch;
 }
-.v2-caseNotes-content ul {
+.v2-evidenceInspector-tab--active {
+  color: var(--v2-ink);
+  background: var(--v2-accent-soft);
+  border-bottom: 1.5px solid var(--v2-accent);
+}
+.v2-evidenceInspector-panel {
+  margin-top: clamp(14px, 2vh, 20px);
+  animation: v2-evidenceInspector-in 200ms var(--motion-ease-out, ease-out);
+}
+@keyframes v2-evidenceInspector-in {
+  from {
+    opacity: 0.6;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.v2-evidenceInspector-content {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--v2-ink);
+  max-width: 62ch;
+}
+.v2-evidenceInspector-content ul {
   margin: 0;
   padding-left: 18px;
 }
-.v2-caseNotes-content li {
+.v2-evidenceInspector-content li {
   margin-bottom: 6px;
 }
-.v2-caseNotes-content p {
+.v2-evidenceInspector-content p {
   margin: 0 0 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-evidenceInspector-panel {
+    animation: none;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -166,8 +183,7 @@
     grid-template-columns: 1fr;
   }
   .v2-chapter-rail,
-  .v2-chapter-workflowField,
-  .v2-chapter-evidence {
+  .v2-chapter-workflowField {
     grid-column: 1;
   }
   .v2-chapter-rail {
@@ -181,7 +197,7 @@
   .v2-chapter-grid {
     padding-inline: 20px;
   }
-  .v2-chapter-evidence {
-    grid-template-columns: 1fr;
+  .v2-evidenceInspector-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

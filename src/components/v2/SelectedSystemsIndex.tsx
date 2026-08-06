@@ -20,7 +20,7 @@ export function SelectedSystemsIndex({ projects }: { projects: Project[] }) {
   return (
     <div className="v2-systemIndex-inner">
       <header className="v2-systemIndex-header">
-        <Reveal as="p">02 / INDEX</Reveal>
+        <Reveal as="p" size="small">02 / INDEX</Reveal>
         <Reveal as="h2" id="selected-systems-title">
           Selected systems
         </Reveal>

@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { useStoryRollEngine } from '../hooks/useStoryRollEngine'
 import pageContent from '../data/page-content.json'
 import projectsData from '../data/projects.json'
 import type { PageContent, Project } from '../data/types'
@@ -28,9 +27,10 @@ const projects = projectsData as Project[]
 export function AiPortfolioV2Page() {
   const sortedProjects = [...projects].sort((a, b) => a.index - b.index)
 
-  // Real sticky-stage rise/recede motion for every StoryPage on the
-  // route — one shared engine, not one per section.
-  useStoryRollEngine()
+  // The single-owner active-chapter/isScrolling engine (see
+  // useChapterRollState.ts) starts itself lazily the first time any
+  // SystemChapter below calls the hook — no separate top-level call
+  // needed, and all 7 mount immediately on this route.
 
   // Soft, non-mandatory scroll-snap (PASS A §1: "proximity", not
   // "mandatory") — set on the document element only while this route is
@@ -64,15 +64,14 @@ export function AiPortfolioV2Page() {
           <SelectedSystemsIndex projects={sortedProjects} />
         </StoryPage>
 
-        {sortedProjects.map((project) => (
-          <StoryPage
-            key={project.id}
-            id={`system-${String(project.index).padStart(2, '0')}`}
-            ariaLabel={`System ${project.index}: ${project.shortTitle ?? project.title}`}
-          >
-            <SystemChapter project={project} />
-          </StoryPage>
-        ))}
+        {sortedProjects.map((project) => {
+          const chapterId = `system-${String(project.index).padStart(2, '0')}`
+          return (
+            <StoryPage key={project.id} id={chapterId} ariaLabel={`System ${project.index}: ${project.shortTitle ?? project.title}`}>
+              <SystemChapter project={project} chapterId={chapterId} />
+            </StoryPage>
+          )
+        })}
 
         <StoryPage id="supporting-infrastructure" ariaLabel="Supporting infrastructure">
           <SupportingInfrastructurePage supporting={content.supporting} />

@@ -2,36 +2,54 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { WorkflowDefinition, WorkflowNode } from '../../data/workflowDiagram'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 
-// Reusable, data-driven workflow diagram — Pass W (Hero+Workflow
-// correction pass v3.2, see
-// PORTFOLIO_V2_INTERACTION_AND_WORKFLOW_BUILD_PROMPT.md). Retires the
-// six-full-paragraph-cards presentation: each node now shows only its
-// number/short title/tool/actor — an n8n-style compact node, not a
-// documentation card — and the full stage description (`node.action`,
-// the existing verified `stage.body` text, unchanged) lives in ONE
-// shared "active detail" area below, showing exactly one stage at a
-// time. Contains no project-specific literals, so a second project can
-// reuse it later via buildWorkflowFromProject.
+// Correction batch §A/§E — workflow autoplay is now driven entirely by
+// the chapter's own single-owner active/scrolling state (from
+// useChapterRollState.ts), not an independent IntersectionObserver.
+// Previously this component decided for itself when to start (first time
+// 30% visible) and never stopped or reset — so it could keep animating
+// while the page was still scrolling past it, and never replayed on a
+// return visit. Now:
 //
-// First entrance auto-advances through the nodes once (node reveals,
-// connector draws, next node reveals...), settling back on node 01.
-// Hovering or focusing a node at any point — during or after the
-// sequence — takes manual control and stops the automatic advance
-// immediately, per the "no click required, hover/focus feels like a
-// workflow" spec.
-// Final motion-polish batch: 640ms read as slower than the surrounding
-// page motion in the real recording, forcing the user to wait on the
-// workflow rather than the animation supporting reading speed. Matches
-// --motion-workflow-step (420ms).
-const SEQUENCE_STEP_MS = 420
+// - autoplay only ever starts once this chapter is the single ACTIVE
+//   one AND the page is not currently scrolling, and only after a short
+//   settle delay past that point;
+// - if scrolling resumes mid-sequence, all pending timers are cancelled
+//   immediately — it does not keep changing nodes behind a page
+//   transition;
+// - when this chapter stops being active, everything resets to node 01
+//   and every timer is cleared, so a return visit replays cleanly
+//   instead of resuming a stale sequence;
+// - manual hover/focus on a node still takes control immediately and
+//   stays that way until Replay Workflow is clicked or the chapter is
+//   re-entered (leaving and coming back resets `userControlRef`).
+const WORKFLOW_SETTLE_DELAY = 220
+const WORKFLOW_STEP_MS = 600
+const DETAIL_UPDATE_DELAY_MS = 130
 
-export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) {
+export function WorkflowDiagram({
+  workflow,
+  // Optional, defaulting to "always active, never scrolling" — the
+  // standalone case-study route (CaseStudyLayout.tsx) and the
+  // superseded FeaturedCaseSection.tsx render a WorkflowDiagram outside
+  // any StoryPage/useChapterRollState context, so they keep their
+  // original "autoplay once visible" behavior unchanged. Only
+  // SystemChapter.tsx (the main /ai route) passes real values from the
+  // shared engine.
+  isActive = true,
+  isScrolling = false,
+}: {
+  workflow: WorkflowDefinition
+  isActive?: boolean
+  isScrolling?: boolean
+}) {
   const [hasEntered, setHasEntered] = useState(false)
-  const [activeNodeId, setActiveNodeId] = useState<string | null>(null)
+  const [activeNodeId, setActiveNodeId] = useState<string | null>(workflow.nodes[0]?.id ?? null)
+  const [displayedNodeId, setDisplayedNodeId] = useState<string | null>(workflow.nodes[0]?.id ?? null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const reducedMotion = useReducedMotion()
   const userControlRef = useRef(false)
   const timersRef = useRef<number[]>([])
+  const wasActiveRef = useRef(false)
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((id) => window.clearTimeout(id))
@@ -45,7 +63,7 @@ export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) 
       const id = window.setTimeout(() => {
         if (userControlRef.current) return
         setActiveNodeId(node.id)
-      }, i * SEQUENCE_STEP_MS)
+      }, i * WORKFLOW_STEP_MS)
       timersRef.current.push(id)
     })
     const endId = window.setTimeout(
@@ -53,40 +71,69 @@ export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) 
         if (userControlRef.current) return
         setActiveNodeId(workflow.nodes[0]?.id ?? null)
       },
-      workflow.nodes.length * SEQUENCE_STEP_MS,
+      workflow.nodes.length * WORKFLOW_STEP_MS,
     )
     timersRef.current.push(endId)
   }, [clearTimers, workflow.nodes])
 
+  // Single-owner autoplay gating — see the file-level comment above.
   useEffect(() => {
     if (reducedMotion) {
       setHasEntered(true)
       setActiveNodeId(workflow.nodes[0]?.id ?? null)
       return
     }
-    const el = containerRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasEntered(true)
-          runSequence()
-          observer.disconnect() // fires once — no replay on scroll-by
-        }
-      },
-      { threshold: 0.3 },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [reducedMotion, runSequence, workflow.nodes])
+
+    if (!isActive) {
+      clearTimers()
+      userControlRef.current = false
+      wasActiveRef.current = false
+      setActiveNodeId(workflow.nodes[0]?.id ?? null)
+      return
+    }
+
+    const justBecameActive = !wasActiveRef.current
+    wasActiveRef.current = true
+
+    if (isScrolling) {
+      clearTimers()
+      return
+    }
+
+    // Already settled and playing/played this visit — nothing to do.
+    if (!justBecameActive && hasEntered) return
+
+    const settleTimer = window.setTimeout(() => {
+      setHasEntered(true)
+      runSequence()
+    }, WORKFLOW_SETTLE_DELAY)
+    timersRef.current.push(settleTimer)
+    return () => window.clearTimeout(settleTimer)
+  }, [isActive, isScrolling, reducedMotion, hasEntered, clearTimers, runSequence, workflow.nodes])
 
   useEffect(() => clearTimers, [clearTimers])
 
-  const selectStage = useCallback((id: string) => {
-    userControlRef.current = true
-    clearTimers()
-    setActiveNodeId(id)
-  }, [clearTimers])
+  // §E — detail rail updates a short beat after the node itself
+  // activates, rather than in the exact same tick, so the eye reads
+  // "node activated, then its explanation appeared" instead of both
+  // happening simultaneously.
+  useEffect(() => {
+    if (reducedMotion) {
+      setDisplayedNodeId(activeNodeId)
+      return
+    }
+    const id = window.setTimeout(() => setDisplayedNodeId(activeNodeId), DETAIL_UPDATE_DELAY_MS)
+    return () => window.clearTimeout(id)
+  }, [activeNodeId, reducedMotion])
+
+  const selectStage = useCallback(
+    (id: string) => {
+      userControlRef.current = true
+      clearTimers()
+      setActiveNodeId(id)
+    },
+    [clearTimers],
+  )
 
   const handleReplay = useCallback(() => {
     if (reducedMotion) {
@@ -97,7 +144,7 @@ export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) 
   }, [reducedMotion, runSequence, workflow.nodes])
 
   const activeStage: WorkflowNode | undefined =
-    workflow.nodes.find((node) => node.id === activeNodeId) ?? workflow.nodes[0]
+    workflow.nodes.find((node) => node.id === displayedNodeId) ?? workflow.nodes[0]
 
   return (
     <div>
@@ -110,7 +157,7 @@ export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) 
         aria-label={`${workflow.title} workflow, ${workflow.nodes.length} steps`}
       >
         {workflow.nodes.map((node, i) => {
-          const isActive = activeNodeId === node.id
+          const isNodeActive = activeNodeId === node.id
           const prevNode = i > 0 ? workflow.nodes[i - 1] : null
           const connectorTouchesActive =
             activeNodeId !== null && (activeNodeId === node.id || activeNodeId === prevNode?.id)
@@ -120,31 +167,16 @@ export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) 
               {i > 0 && (
                 <div
                   className={`v2-workflow-connector${connectorDimmed ? ' v2-workflow-connector--dim' : ''}`}
-                  // Was `i * 100ms` — far faster than the SEQUENCE_STEP_MS
-                  // (640ms) the JS active-highlight sequence actually
-                  // advances at, so all 6 nodes visually finished
-                  // appearing (well under 1s) long before the highlight
-                  // had cycled through even half of them — reading as
-                  // "everything appears together," not "one by one." Now
-                  // synced to the same cadence: the connector draws
-                  // shortly BEFORE its node becomes active, matching the
-                  // spec's "connector draws, then next node appears."
-                  style={{ transitionDelay: hasEntered ? `${Math.max(0, i * SEQUENCE_STEP_MS - 120)}ms` : '0ms' }}
+                  style={{ transitionDelay: hasEntered ? `${Math.max(0, i * 90)}ms` : '0ms' }}
                   aria-hidden="true"
                 />
               )}
-              {/* Compact node — number/short title/tool/actor only. The
-                  full description (node.action, the same verified
-                  stage.body text as before) is NOT rendered here — it
-                  moved to the single shared detail area below, per the
-                  "one stable detail area, not a paragraph in every node"
-                  correction. */}
               <button
                 type="button"
                 className={`v2-flowNode v2-flowNode--${node.actor.toLowerCase()}${
-                  isActive ? ' v2-flowNode--active' : ''
+                  isNodeActive ? ' v2-flowNode--active' : ''
                 }`}
-                style={{ transitionDelay: hasEntered ? `${i * SEQUENCE_STEP_MS}ms` : '0ms' }}
+                style={{ transitionDelay: hasEntered ? `${Math.max(0, i * 90)}ms` : '0ms' }}
                 onPointerEnter={() => selectStage(node.id)}
                 onFocus={() => selectStage(node.id)}
                 aria-describedby={`${workflow.id}-detail`}
@@ -161,11 +193,6 @@ export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) 
         })}
       </div>
 
-      {/* One shared active-detail area — the full stage description for
-          whichever node is currently active, crossfading on switch via
-          the `key`-remount CSS animation. Manual hover/focus (via
-          selectStage) stops the automatic entrance sequence immediately
-          and gives control to the user, per spec 7.8. */}
       <div className="v2-workflow-detail" id={`${workflow.id}-detail`} aria-live="polite">
         {activeStage && (
           <div className="v2-workflow-detail-content" key={activeStage.id}>

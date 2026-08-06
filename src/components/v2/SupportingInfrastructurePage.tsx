@@ -10,7 +10,7 @@ export function SupportingInfrastructurePage({ supporting }: { supporting: PageC
   return (
     <div className="v2-supporting-inner">
       <header className="v2-supporting-header">
-        <Reveal as="p">{supporting.sectionNo} / SUPPORTING</Reveal>
+        <Reveal as="p" size="small">{supporting.sectionNo} / SUPPORTING</Reveal>
         <Reveal as="h2">{supporting.heading}</Reveal>
       </header>
 

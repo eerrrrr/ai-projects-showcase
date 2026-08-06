@@ -17,7 +17,7 @@ const LINES = [
 export function ManifestoPage() {
   return (
     <div className="v2-manifesto-grid">
-      <Reveal as="p" className="v2-manifesto-index">
+      <Reveal as="p" className="v2-manifesto-index" size="small">
         01 / APPROACH
       </Reveal>
       <h2 id="v2-manifesto-title" className="v2-manifesto-statement">

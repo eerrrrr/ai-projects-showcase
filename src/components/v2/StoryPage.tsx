@@ -1,13 +1,12 @@
 import type { ReactNode } from 'react'
 
-// PASS-consolidated §B — real sticky-stage rolling engine, not just a
-// scroll-snap stop. Outer <section> is taller than the viewport
-// (min-height 125svh) so there's scroll distance to animate across;
-// the inner .v2-storyPage-stage is position:sticky and reads
-// --story-y/--story-scale/--story-opacity, written every frame by
-// useStoryRollEngine() (one shared engine for every StoryPage on the
-// route, called once in AiPortfolioV2Page — not per-instance). Mobile
-// and reduced-motion fall back to plain flow (story-pages.css).
+// Shared page-level wrapper for every major section after the Hero.
+// `data-chapter-id` (== `id`) is what useChapterRollState.ts's shared
+// engine queries to find every candidate chapter and determine which one
+// is currently nearest the viewport centre — the single active chapter.
+// The engine writes `data-story-state` onto the inner `.v2-storyPage-stage`
+// child; CSS (story-pages.css) owns the actual before/active/after
+// animation from there.
 export function StoryPage({
   id,
   ariaLabel,
@@ -20,7 +19,7 @@ export function StoryPage({
   children: ReactNode
 }) {
   return (
-    <section id={id} aria-label={ariaLabel} className={`v2-storyPage${className ? ` ${className}` : ''}`}>
+    <section id={id} data-chapter-id={id} aria-label={ariaLabel} className={`v2-storyPage${className ? ` ${className}` : ''}`}>
       <div className="v2-storyPage-stage">
         <div className="v2-storyPage-inner">{children}</div>
       </div>
