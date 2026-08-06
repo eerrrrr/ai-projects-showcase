@@ -25,14 +25,14 @@ export function SystemChapter({ project }: { project: Project }) {
         <Reveal as="span" className="v2-eyebrow">
           SYSTEM {String(project.index).padStart(2, '0')} · {project.tierLabel.toUpperCase()}
         </Reveal>
-        <Reveal as="p" className="v2-chapter-number">
+        <Reveal as="p" className="v2-chapter-number" delayMs={55}>
           {String(project.index).padStart(2, '0')}
         </Reveal>
-        <Reveal as="h2" className="v2-chapter-title">
+        <Reveal as="h2" className="v2-chapter-title" delayMs={55}>
           <Html html={project.title} />
         </Reveal>
         {valueText && (
-          <Reveal as="p" className="v2-chapter-value">
+          <Reveal as="p" className="v2-chapter-value" delayMs={90}>
             {valueText}
           </Reveal>
         )}

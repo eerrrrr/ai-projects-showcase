@@ -1,15 +1,16 @@
 import { useEffect } from 'react'
 import { useReducedMotion } from './useReducedMotion'
 
-// PASS-consolidated §B — the actual sticky-stage rise/recede engine, on
-// top of the scroll-snap-align already in place. Previously each
-// StoryPage just sat in normal flow with a soft snap point; this adds
-// the real page-like handoff (incoming page rises + settles, outgoing
-// page recedes) the spec's §9.3 formula describes, using one shared
-// passive scroll listener + one shared RAF loop for every story page
-// (not one listener per section) — matches the project's existing
-// single-RAF-loop discipline (SwissHero's own proximity engine, the
-// existing StoryPage-adjacent components).
+// Final motion-polish batch — replaces the previous continuous
+// scroll-scrubbed lerp (which let opacity sink as low as 0.35, read as a
+// pale "ghost" page in the real recording) with a discrete
+// before/active/after state machine. JS only classifies which state each
+// section is in and toggles one data attribute; all actual animation
+// (duration, easing, the opacity/translateY values themselves) lives in
+// CSS as real `transition`s — smoother and more predictable than writing
+// interpolated values on every scroll event, and it directly addresses
+// the "workflow lags behind scrolling" complaint since the browser's own
+// transition engine, not a per-frame JS write, now owns the motion.
 export function useStoryRollEngine() {
   const reducedMotion = useReducedMotion()
 
@@ -24,12 +25,6 @@ export function useStoryRollEngine() {
       dirty = true
     }
 
-    const smoothstep = (edge0: number, edge1: number, x: number) => {
-      const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
-      return t * t * (3 - 2 * t)
-    }
-    const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-
     const tick = () => {
       if (dirty) {
         dirty = false
@@ -38,18 +33,9 @@ export function useStoryRollEngine() {
           const parent = stage.parentElement
           if (!parent) continue
           const rect = parent.getBoundingClientRect()
-          // progress: 0 when the section's top just enters the bottom of
-          // the viewport, 1 when its bottom has fully passed the top —
-          // matches the canonical §9.3 formula exactly.
           const progress = Math.min(1, Math.max(0, -rect.top / Math.max(1, rect.height - viewportH)))
-          const enter = smoothstep(0, 0.22, progress)
-          const exit = smoothstep(0.72, 1, progress)
-          const yVh = lerp(7, 0, enter) + lerp(0, -4, exit)
-          const scale = lerp(0.992, 1, enter) * lerp(1, 0.987, exit)
-          const opacity = lerp(0.35, 1, enter) * lerp(1, 0.72, exit)
-          stage.style.setProperty('--story-y', `${yVh}vh`)
-          stage.style.setProperty('--story-scale', scale.toFixed(4))
-          stage.style.setProperty('--story-opacity', opacity.toFixed(4))
+          const state = progress < 0.22 ? 'before' : progress > 0.78 ? 'after' : 'active'
+          if (stage.dataset.storyState !== state) stage.dataset.storyState = state
         }
       }
       rafId = requestAnimationFrame(tick)

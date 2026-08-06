@@ -19,7 +19,11 @@ import { useReducedMotion } from '../../hooks/useReducedMotion'
 // sequence — takes manual control and stops the automatic advance
 // immediately, per the "no click required, hover/focus feels like a
 // workflow" spec.
-const SEQUENCE_STEP_MS = 640
+// Final motion-polish batch: 640ms read as slower than the surrounding
+// page motion in the real recording, forcing the user to wait on the
+// workflow rather than the animation supporting reading speed. Matches
+// --motion-workflow-step (420ms).
+const SEQUENCE_STEP_MS = 420
 
 export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) {
   const [hasEntered, setHasEntered] = useState(false)
@@ -125,7 +129,7 @@ export function WorkflowDiagram({ workflow }: { workflow: WorkflowDefinition }) 
                   // synced to the same cadence: the connector draws
                   // shortly BEFORE its node becomes active, matching the
                   // spec's "connector draws, then next node appears."
-                  style={{ transitionDelay: hasEntered ? `${Math.max(0, i * SEQUENCE_STEP_MS - 150)}ms` : '0ms' }}
+                  style={{ transitionDelay: hasEntered ? `${Math.max(0, i * SEQUENCE_STEP_MS - 120)}ms` : '0ms' }}
                   aria-hidden="true"
                 />
               )}

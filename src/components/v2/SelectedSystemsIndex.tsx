@@ -28,7 +28,7 @@ export function SelectedSystemsIndex({ projects }: { projects: Project[] }) {
 
       <ol className="v2-systemIndex-list">
         {rows.map((project, i) => (
-          <Reveal as="li" key={project.id} delayMs={Math.min(i, 6) * 50}>
+          <Reveal as="li" key={project.id} delayMs={100 + Math.min(i, 8) * 35}>
             <a className="v2-systemIndex-row" href={`#system-${String(project.index).padStart(2, '0')}`}>
               <span className="v2-systemIndex-number">{String(project.index).padStart(2, '0')}</span>
               <Html as="span" className="v2-systemIndex-title" html={project.title} />

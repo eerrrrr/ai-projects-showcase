@@ -60,6 +60,23 @@
   --v2-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --v2-ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 
+  /* Final motion-polish batch — one consolidated token set every page
+     handoff / heading / row / workflow animation now reads from, instead
+     of each area inventing its own duration. Kept alongside the existing
+     --v2-ease-* tokens (same two curves, just under the names this pass
+     specified) rather than a site-wide rename sweep — that's outside a
+     motion-only correction's scope. */
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-page-enter: 520ms;
+  --motion-page-exit: 340ms;
+  --motion-heading: 460ms;
+  --motion-copy: 380ms;
+  --motion-row: 320ms;
+  --motion-heading-stagger: 55ms;
+  --motion-row-stagger: 35ms;
+  --motion-workflow-step: 420ms;
+
   /* 12-column grid — margin brought close to the Hero identity block's
      own `left: clamp(24px, 4vw, 64px)` inset (Phase 3: "align Project 01
      approximately with the left edge of ERIN WONG"), and max-width

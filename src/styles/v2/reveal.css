@@ -1,17 +1,18 @@
-/* PASS A §8 — one shared restrained reveal used everywhere text needs an
-   entrance: Manifesto lines, Selected Systems heading/rows, every
-   chapter's eyebrow/number/title/value, Supporting Infrastructure,
-   Closing. transform + opacity only, no bounce, no blur, no
-   letter-by-letter gimmick. Reveal.tsx toggles the --visible modifier
-   once per element via IntersectionObserver; reduced motion renders
-   already-visible with no transition at all (handled in Reveal.tsx
-   itself, not just CSS, so there's never a flash of hidden content). */
+/* Final motion-polish batch — the shared reveal used by every heading,
+   eyebrow, statement and row site-wide. Previously started at opacity 0
+   with a 700ms transition, which the real recording showed reading as a
+   slow fade from "invisible" to "black" — like a loading delay, not an
+   entrance. Starting at 0.45 means the text is already partially
+   legible the instant it begins animating, and the shorter 460ms
+   duration settles well before the user has scrolled past it. transform
+   + opacity only, no blur, no scale — still a single restrained
+   entrance, just faster and never fully invisible. */
 .v2-reveal {
-  opacity: 0;
-  transform: translateY(22px);
+  opacity: 0.45;
+  transform: translateY(18px);
   transition:
-    opacity 700ms var(--v2-ease-soft),
-    transform 700ms var(--v2-ease-soft);
+    opacity var(--motion-heading, 460ms) var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform var(--motion-heading, 460ms) var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
 }
 .v2-reveal--visible {
   opacity: 1;

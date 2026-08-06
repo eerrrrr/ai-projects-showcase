@@ -22,7 +22,7 @@ export function ManifestoPage() {
       </Reveal>
       <h2 id="v2-manifesto-title" className="v2-manifesto-statement">
         {LINES.map((line, index) => (
-          <Reveal key={line} as="span" className="v2-manifesto-line" delayMs={index * 80}>
+          <Reveal key={line} as="span" className="v2-manifesto-line" delayMs={55 + index * 50}>
             {line}
           </Reveal>
         ))}

@@ -12,6 +12,16 @@
   scroll-snap-stop: normal;
   scroll-margin-top: 0;
 }
+/* Final motion-polish batch — discrete before/active/after states,
+   driven by useStoryRollEngine.ts toggling data-story-state; CSS owns
+   the actual animation via a real `transition`, not per-frame inline
+   values. "before" no longer sinks toward ghost-pale opacity (0.62, not
+   0.35) and "after" stays clearly present (0.90) rather than fading the
+   whole outgoing page toward invisible — directly answers the "pale/
+   ghost page" and "outgoing page vanishes too early" complaints.
+   `will-change` is intentionally NOT applied permanently here (PASS
+   §10) — transform/opacity-only transitions on a handful of sections
+   don't need a standing composited-layer promotion for the whole site. */
 .v2-storyPage-stage {
   position: sticky;
   top: 0;
@@ -19,10 +29,24 @@
   display: flex;
   align-items: center;
   overflow: clip;
-  transform: translateY(var(--story-y, 0)) scale(var(--story-scale, 1));
-  opacity: var(--story-opacity, 1);
+  transform: translateY(0);
+  opacity: 1;
   transform-origin: center top;
-  will-change: transform, opacity;
+  transition:
+    transform var(--motion-page-enter) var(--motion-ease-out),
+    opacity var(--motion-page-exit) var(--motion-ease-out);
+}
+.v2-storyPage-stage[data-story-state='before'] {
+  transform: translateY(20px);
+  opacity: 0.62;
+}
+.v2-storyPage-stage[data-story-state='active'] {
+  transform: translateY(0);
+  opacity: 1;
+}
+.v2-storyPage-stage[data-story-state='after'] {
+  transform: translateY(-14px);
+  opacity: 0.9;
 }
 .v2-storyPage-inner {
   width: 100%;
@@ -44,6 +68,7 @@
     overflow: visible;
     transform: none !important;
     opacity: 1 !important;
+    transition: none !important;
   }
 }
 
