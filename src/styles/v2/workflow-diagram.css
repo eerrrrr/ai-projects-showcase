@@ -1,0 +1,243 @@
+/* WorkflowDiagram — Pass W (v3.2), reworked for PASS A §7 (regression
+   repair follow-up): the previous flex-row + `overflow-x:hidden` +
+   binary column-switch-at-900px approach concealed rather than solved
+   clipping risk (hidden overflow silently crops instead of erroring),
+   and never reflowed at intermediate container widths. Switched to CSS
+   Grid `auto-fit` — each node becomes its own grid cell that wraps into
+   as many rows as the ACTUAL rendered width of the workflow field needs,
+   with no fixed pixel node width to overflow against. This responds to
+   the workflow field's real width (which varies a lot: it's 8/12 columns
+   of up to a 1600px grid) without needing a hand-maintained breakpoint
+   table or a CSS container-query wrapper — auto-fit already IS
+   container-aware by construction. Mobile's vertical single-column look
+   falls out of the same rule (a narrow field simply can't fit a second
+   148px-minimum column), not a separate override. */
+
+.v2-workflow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: clamp(16px, 2vw, 26px) clamp(18px, 2.2vw, 32px);
+  width: 100%;
+  /* Safe inset so a node's own focus ring/border never sits flush against
+     the field's edge — the actual "final node not clipped" requirement,
+     satisfied structurally (nothing here can overflow its own cell)
+     rather than by trusting a height/overflow value alone. */
+  padding: 6px;
+  padding-block: var(--v2-space-sm) calc(var(--v2-space-sm) + 6px);
+}
+
+.v2-workflow-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.v2-workflow-connector {
+  position: relative;
+  flex: 0 0 18px;
+  height: 1.25px;
+  background: var(--v2-rule);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 240ms ease, background-color 200ms ease, opacity 200ms ease;
+}
+.v2-workflow--entered .v2-workflow-connector {
+  transform: scaleX(1);
+}
+.v2-workflow-connector::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-top: 1.25px solid var(--v2-rule);
+  border-right: 1.25px solid var(--v2-rule);
+  transform: translateY(-50%) rotate(45deg);
+}
+.v2-workflow-connector--dim {
+  opacity: 0.35;
+}
+
+/* Compact n8n-like node — precise rectangle, small radius, visible
+   input/output ports, no paragraph inside. No fixed width any more (was
+   148px) — flexes to fill its own grid cell, so it can only ever shrink
+   to fit, never overflow it. */
+.v2-flowNode {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 12px 11px;
+  background: var(--v2-paper-2);
+  border: 1px solid var(--v2-rule);
+  border-radius: 3px;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 220ms ease, transform 220ms ease, border-color 200ms ease, background-color 200ms ease;
+}
+.v2-workflow--entered .v2-flowNode {
+  opacity: 1;
+  transform: translateY(0);
+}
+.v2-workflow--instant .v2-flowNode,
+.v2-workflow--instant .v2-workflow-connector {
+  transition: none !important;
+  opacity: 1;
+  transform: none;
+}
+
+.v2-flowNode__port {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--v2-rule);
+  transform: translateY(-50%);
+  transition: background-color 200ms ease;
+}
+.v2-flowNode__port--in {
+  left: -3px;
+}
+.v2-flowNode__port--out {
+  right: -3px;
+}
+.v2-flowNode--active .v2-flowNode__port {
+  background: var(--v2-accent);
+}
+
+.v2-flowNode:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--v2-accent);
+}
+.v2-flowNode--active {
+  border-color: var(--v2-accent);
+  background: var(--v2-accent-soft);
+}
+.v2-flowNode--human {
+  border-color: rgba(193, 97, 58, 0.45);
+}
+.v2-flowNode--output {
+  border-width: 1.5px;
+}
+
+.v2-flowNode__number {
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  color: var(--v2-ink-3);
+}
+.v2-flowNode__title {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--v2-ink);
+}
+.v2-flowNode__tool {
+  font-family: var(--v2-font-mono);
+  font-size: 9.5px;
+  color: var(--v2-ink-2);
+}
+.v2-flowNode__actor {
+  font-family: var(--v2-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  color: var(--v2-ink-3);
+}
+.v2-flowNode--human .v2-flowNode__actor {
+  color: var(--v2-accent);
+}
+
+/* Replay control — small text control, not a large play button. */
+.v2-workflow-replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--v2-space-sm);
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--v2-ink-3);
+  cursor: pointer;
+}
+.v2-workflow-replay:hover,
+.v2-workflow-replay:focus-visible {
+  color: var(--v2-accent);
+}
+
+/* Shared active-detail area — ONE stage description visible at a time,
+   crossfading on switch. Height doesn't jump dramatically since it's a
+   single short paragraph regardless of which stage is active. */
+.v2-workflow-detail {
+  margin-top: var(--v2-space-sm);
+  padding-top: var(--v2-space-sm);
+  border-top: 1px solid var(--v2-rule);
+  min-height: 84px;
+}
+.v2-workflow-detail-content {
+  animation: v2-workflow-detail-in 180ms ease-out;
+}
+@keyframes v2-workflow-detail-in {
+  from {
+    opacity: 0.3;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.v2-workflow-detail-number {
+  display: block;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--v2-ink-3);
+  margin-bottom: 6px;
+}
+.v2-workflow-detail-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--v2-ink);
+  max-width: 62ch;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-workflow-detail-content {
+    animation: none;
+  }
+}
+
+/* Below ~340px per node there's no meaningful "connector between two
+   items in a row" reading left (auto-fit has already dropped to one
+   column) — hide the now-purely-vertical connector nub rather than let
+   it render as a stray horizontal tick between stacked nodes. */
+@media (max-width: 480px) {
+  .v2-workflow-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .v2-workflow-connector {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-flowNode,
+  .v2-workflow-connector {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,141 @@
+/* V2 Swiss design tokens — scoped under .v2-page so V1 (global.css,
+   AiLandingPage and the gateway) is completely unaffected. Reuses the
+   existing --font-ui stack from global.css rather than introducing a new
+   font (per REDESIGN_CONTRACT.md / the build brief's typography rule).
+
+   Colour values sampled directly from the approved hero image
+   (public/media/v2/ai-workflow-hero.png) rather than picked abstractly —
+   warm cream background, cardboard-brown midtones, one restrained
+   terracotta accent close to the Figma Make card's orange. */
+
+.v2-page {
+  --v2-font-ui: var(--font-ui, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  --v2-font-mono: var(--font-mono, "SFMono-Regular", Consolas, "Liberation Mono", monospace);
+
+  /* Continuous tabletop/editorial surface: the Hero is a full-viewport
+     photo with no margin, so whatever colour the rest of the page sits
+     on must read as one uninterrupted surface immediately below it, not
+     a separate "page background" starting after a gap or a colour seam.
+     --v2-paper is NOT a separately-chosen decorative colour — it is the
+     exact same value as hero.css's `--v2-hero-edge-bottom`, both
+     measured directly (Python median sample of the real PNG's own
+     bottom-edge pixel ring, Gate 1.1 framing-correction pass), so the
+     Hero's own bottom edge and the very first pixel of Project 01 are
+     provably identical, not just visually close. The `table-surface`
+     tokens are held in reserve for any section that wants to lean
+     warmer/darker toward the photo's own cardboard tones without
+     introducing a second, disconnected palette. */
+  /* PASS A §11 — continuous lighter warm background across every story
+     page below the Hero. Kept as a gradient anchored to the EXACT value
+     Hero's own bottom dissolve already ends on (#dcd3cc — see hero.css's
+     --v2-hero-bottom) rather than the spec's literal top-stop (#f2ece7):
+     Hero is explicitly frozen this pass, so introducing a lighter tone
+     immediately below it would reopen the exact hard-seam regression
+     that was just fixed. Instead the page gets genuinely, continuously
+     lighter as it goes DOWN (reaching the spec's lightest tone by
+     Supporting/Closing), with zero seam change at the one pixel row that
+     actually touches the frozen Hero. --v2-paper itself is unchanged so
+     every other rule that already depends on it matching Hero's own
+     token (documented in hero.css) keeps doing so exactly.
+     --v2-paper-2 (node/panel fill) unchanged.*/
+  --v2-paper: #dcd3cc;
+  --v2-paper-mid: #e6dfd8;
+  --v2-paper-light: #f2ece7;
+  --v2-paper-2: #efe2cd;
+  --v2-table-surface: #dbd3cc;
+  --v2-table-surface-soft: #e6dbd1;
+  --v2-cardboard: #b98a5e;
+  --v2-cardboard-dark: #8b6239;
+  --v2-ink: #17140f;
+  --v2-ink-2: #55503f;
+  --v2-ink-3: #8a8270;
+  --v2-rule: #ddd0b8;
+  --v2-rule-strong: #c9b998;
+  --v2-accent: #c1613a;
+  --v2-accent-soft: #f1e0d3;
+
+  /* Shared easing family — one restrained ease-out, no bounce/elastic,
+     used by the Manifesto/Selected-Systems entrance and reused wherever
+     else a consistent motion character matters. */
+  --v2-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --v2-ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* 12-column grid — margin brought close to the Hero identity block's
+     own `left: clamp(24px, 4vw, 64px)` inset (Phase 3: "align Project 01
+     approximately with the left edge of ERIN WONG"), and max-width
+     widened so Featured Proof content reads as substantial rather than a
+     narrow centred column. */
+  --v2-grid-columns: 12;
+  --v2-grid-gap: 24px;
+  --v2-grid-margin: clamp(24px, 4.5vw, 72px);
+  --v2-max-width: 1600px;
+
+  /* Spacing scale */
+  --v2-space-xs: 8px;
+  --v2-space-sm: 16px;
+  --v2-space-md: 32px;
+  --v2-space-lg: 64px;
+  --v2-space-xl: 112px;
+  --v2-space-section: 160px;
+
+  background: linear-gradient(180deg, var(--v2-paper) 0%, var(--v2-paper-mid) 45%, var(--v2-paper-light) 100%);
+  color: var(--v2-ink);
+  font-family: var(--v2-font-ui);
+}
+
+.v2-page * {
+  box-sizing: border-box;
+}
+
+.v2-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--v2-grid-columns), 1fr);
+  gap: var(--v2-grid-gap);
+  max-width: var(--v2-max-width);
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+}
+
+.v2-rule {
+  border: none;
+  border-top: 1px solid var(--v2-rule);
+  margin: 0;
+}
+
+.v2-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.v2-eyebrow {
+  font-family: var(--v2-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--v2-ink-3);
+  text-transform: none;
+}
+
+.v2-section-number {
+  font-family: var(--v2-font-mono);
+  font-size: 13px;
+  color: var(--v2-ink-3);
+}
+
+@media (max-width: 720px) {
+  .v2-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--v2-space-sm);
+    padding-inline: 20px;
+  }
+  .v2-page {
+    --v2-space-section: 96px;
+    --v2-space-xl: 64px;
+  }
+}

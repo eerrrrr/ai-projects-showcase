@@ -1,0 +1,187 @@
+/* PASS A §4 — the one reusable System chapter template, used by all 7
+   Systems (previously only System 01 had this depth). 12-column grid:
+   left rail ~4 columns (concise identity + CTA), right field ~8 columns
+   (workflow), zipped evidence spanning full width below. */
+.v2-chapter-grid {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(20px, 2.4vw, 40px);
+  row-gap: clamp(32px, 4vh, 56px);
+  align-items: start;
+}
+.v2-chapter-rail {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: clamp(24px, 4vh, 56px);
+}
+.v2-chapter-number {
+  margin: 4px 0 0;
+  font-size: clamp(56px, 6vw, 100px);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: var(--v2-ink);
+}
+.v2-chapter-title {
+  margin: 10px 0 0;
+  font-size: clamp(24px, 2.6vw, 38px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--v2-ink);
+  max-width: 14ch;
+}
+.v2-chapter-value {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--v2-ink-2);
+  max-width: 32ch;
+}
+.v2-chapter-sequence {
+  margin: 6px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--v2-ink-3);
+  max-width: 34ch;
+}
+.v2-chapter-key {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--v2-ink-2);
+}
+.v2-chapter-key-number {
+  font-family: var(--v2-font-mono);
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+.v2-chapter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  color: var(--v2-ink-3);
+}
+.v2-chapter-cta {
+  margin-top: var(--v2-space-sm);
+}
+.v2-chapter-cta a {
+  color: var(--v2-accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+.v2-chapter-cta a:hover,
+.v2-chapter-cta a:focus-visible {
+  text-decoration: underline;
+}
+
+.v2-chapter-workflowField {
+  grid-column: 5 / span 8;
+  min-width: 0;
+}
+
+/* Zipped evidence (PASS A §6) — semantic <details>/<summary>, spans the
+   full width below the primary rail+workflow composition. Every entry
+   starts collapsed; the left rail's own value/key-figure line is the
+   "concise summary that stays visible at rest" the spec calls for, so
+   nothing essential is hover-only or hidden-only. */
+.v2-chapter-evidence {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: clamp(12px, 1.5vw, 20px);
+  border-top: 1px solid var(--v2-rule);
+  padding-top: clamp(20px, 3vh, 32px);
+}
+.v2-caseNotes {
+  border-bottom: 1px solid var(--v2-rule);
+  padding-bottom: 12px;
+}
+.v2-caseNotes summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--v2-ink-3);
+  padding-block: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: color 160ms var(--v2-ease-soft);
+}
+.v2-caseNotes summary::-webkit-details-marker {
+  display: none;
+}
+.v2-caseNotes summary::after {
+  content: '+';
+  font-size: 14px;
+  color: var(--v2-ink-3);
+  transition: transform 200ms var(--v2-ease-soft);
+}
+.v2-caseNotes[open] summary::after {
+  transform: rotate(45deg);
+}
+.v2-caseNotes summary:hover,
+.v2-caseNotes summary:focus-visible {
+  color: var(--v2-accent);
+}
+.v2-caseNotes-content {
+  padding-top: 4px;
+  padding-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.58;
+  color: var(--v2-ink);
+  max-width: 60ch;
+}
+.v2-caseNotes-content ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.v2-caseNotes-content li {
+  margin-bottom: 6px;
+}
+.v2-caseNotes-content p {
+  margin: 0 0 8px;
+}
+
+@media (max-width: 1023px) {
+  .v2-chapter-grid {
+    grid-template-columns: 1fr;
+  }
+  .v2-chapter-rail,
+  .v2-chapter-workflowField,
+  .v2-chapter-evidence {
+    grid-column: 1;
+  }
+  .v2-chapter-rail {
+    position: static;
+  }
+  .v2-chapter-title {
+    max-width: none;
+  }
+}
+@media (max-width: 720px) {
+  .v2-chapter-grid {
+    padding-inline: 20px;
+  }
+  .v2-chapter-evidence {
+    grid-template-columns: 1fr;
+  }
+}

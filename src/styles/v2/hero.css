@@ -1,0 +1,546 @@
+/* V2 Swiss Hero — Hero+Workflow correction pass v3.2, Pass H.
+   Supersedes Gate 1.1's `min(...)` contain-canvas geometry: contain kept
+   every pixel but exposed obvious flat colour bars on wide viewports,
+   which read as a poster dropped onto a webpage rather than one
+   continuous studio world. This pass switches to HEIGHT-LED geometry
+   (image height always fills the Hero, width follows the real aspect
+   ratio) with a broad photographic mask-blend into a two-layer studio
+   gradient at the left/right edges — full top/bottom extent is kept
+   (no crop), only far-left/far-right peripheral pixels blend away on
+   narrower-than-source viewports, and ultra-wide viewports extend
+   seamlessly rather than showing a hard edge. */
+
+.v2-hero {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 680px;
+  margin: 0;
+  overflow: hidden;
+  isolation: isolate;
+  /* Two-layer studio background: a soft radial "room" glow (matches the
+     photo's own upper-centre light falloff) plus a top-to-bottom
+     gradient using the same real-PNG-measured edge colours as before
+     (top ring ~#eae0d7, bottom ring ~#dcd3cc — Python median sample of
+     the actual source image, not guessed). This is the base fallback
+     colour (shows instantly, before the image loads, and at any
+     sub-pixel gap); the actual "fill remaining viewport space" layer is
+     now the blurred image duplicate in .v2-hero-bgLayer below, which
+     sits on top of this. */
+  --v2-hero-top: #ebe1d9;
+  --v2-hero-mid: #e5dbd4;
+  --v2-hero-bottom: #dcd3cc;
+  background:
+    radial-gradient(ellipse 92% 88% at 50% 13%, rgba(249, 244, 239, 0.96) 0%, rgba(238, 229, 222, 0.96) 50%, rgba(220, 211, 204, 1) 100%),
+    linear-gradient(to bottom, var(--v2-hero-top), var(--v2-hero-mid) 58%, var(--v2-hero-bottom));
+}
+
+/* Two-layer full-viewport Hero (Gate 1, point 1/3): the sharp primary
+   image only ever fills its own real aspect ratio (.v2-hero-scenePositioner,
+   height-led, unchanged below). Whatever viewport space that doesn't
+   reach — wide ultra-wide viewports especially — used to be plain flat
+   gradient. This layer fills it with the SAME photo instead, heavily
+   blurred and scaled up slightly (so its own blurred edge never shows a
+   hard border), with the existing warm studio wash layered on top at
+   reduced opacity for tonal continuity. Reads as "more of the same
+   physical room, out of focus," not a poster on a colour field. Purely
+   decorative/static — no motion, so it needs no reduced-motion carve-out.
+   Sits behind the sharp scenePositioner and the identity/nav text (both
+   have explicit z-index; this has none, so DOM order — first child —
+   keeps it lowest). Hidden on mobile (see the narrow/portrait media
+   query far below) where the Hero switches to plain static image flow. */
+.v2-hero-bgLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.v2-hero-bgLayer-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 40%;
+  /* Gate 1 retune: canonical spec's starting values (blur 20px / opacity
+     0.44 / scale 1.04) — the previous pass (blur 42px / opacity 0.85 /
+     scale 1.18) was confirmed too strong: readable duplicate cards risk
+     and a fill layer competing with the sharp primary image instead of
+     sitting behind it as pure atmosphere. */
+  transform: scale(1.04);
+  filter: blur(20px) saturate(0.86) contrast(0.94);
+  opacity: 0.44;
+}
+.v2-hero-bgLayer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 92% 88% at 50% 13%, rgba(249, 244, 239, 0.55) 0%, rgba(238, 229, 222, 0.55) 50%, rgba(220, 211, 204, 0.65) 100%),
+    linear-gradient(to bottom, rgba(235, 225, 217, 0.32), rgba(229, 219, 212, 0.32) 58%, rgba(220, 211, 204, 0.55));
+}
+
+/* Gate 1 retune: the 64px/large-fog version is retired — canonical
+   ceiling is 28-40px desktop, 20-28px mobile. This is a short dissolve
+   into the warm paper tone below, not a fog band; the tool piles
+   themselves are untouched (this only affects the literal bottom edge
+   pixels). */
+.v2-hero::after {
+  content: '';
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(28px, 3.5vh, 40px);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(220, 211, 204, 0) 0%,
+    rgba(220, 211, 204, 0.12) 32%,
+    rgba(220, 211, 204, 0.52) 72%,
+    rgba(220, 211, 204, 1) 100%
+  );
+}
+@media (max-width: 1023px), (max-aspect-ratio: 4/3) {
+  .v2-hero::after {
+    height: clamp(20px, 3vh, 28px);
+  }
+}
+
+/* Navigation — top-right, transparent, no navbar box. */
+.v2-hero-nav {
+  position: absolute;
+  top: clamp(20px, 3vh, 32px);
+  right: clamp(24px, 4vw, 64px);
+  z-index: 3;
+  display: flex;
+  gap: clamp(16px, 2vw, 28px);
+  animation: v2-hero-fade-in 500ms ease-out 420ms both;
+}
+.v2-hero-nav a {
+  color: var(--v2-ink-2);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.v2-hero-nav a:hover,
+.v2-hero-nav a:focus-visible {
+  color: var(--v2-accent);
+}
+
+/* Identity block — upper-left negative space. Dominant but capped so it
+   never occupies the whole upper half. Independent of the image canvas —
+   its own stacking context, unaffected by the scene's focus-layer scale. */
+.v2-hero-identity {
+  position: absolute;
+  left: clamp(24px, 4vw, 64px);
+  top: clamp(56px, 7vh, 82px);
+  z-index: 3;
+  max-width: 640px;
+  animation: v2-hero-identity-in 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* ERIN WONG "breathes" a tiny amount with the scene's own proximity
+     strength (--hero-focus-strength, written every frame by the RAF
+     engine in SwissHero.tsx) — max +0.25% scale at full strength. It
+     must never move TOWARD a tool, only a barely-perceptible overall
+     lift, so transform-origin stays at the block's own corner, not the
+     focus point. The actual live scale expression lives in the
+     v2-hero-identity-in keyframe's own `to` state below, not here — a
+     CSS animation's `fill-mode: both` permanently overrides any
+     transform declared directly on the element for as long as it's
+     filling, so a second `transform` rule here would just be silently
+     ignored after the entrance animation completes. This declaration is
+     a harmless static fallback for the brief pre-hydration instant only. */
+  transform-origin: left top;
+  transform: scale(1);
+}
+/* Gate 1, point 5: the whole identity block's entrance is deliberately
+   more visible now — bigger rise distance (16px → 28px), slightly longer
+   settle (650ms → 760ms) — while staying a single restrained lift, not a
+   bounce or overshoot (still a plain cubic-bezier ease, no spring). */
+@media (prefers-reduced-motion: reduce) {
+  .v2-hero-identity {
+    transform: scale(1) !important;
+    transition: none !important;
+  }
+}
+.v2-hero-name {
+  margin: 0;
+  font-family: Arial, Helvetica, "Nimbus Sans L", system-ui, sans-serif;
+  font-size: clamp(60px, 7.1vw, 102px);
+  font-weight: 700;
+  line-height: 0.84;
+  letter-spacing: -0.055em;
+  color: var(--v2-ink);
+}
+.v2-hero-tagline {
+  margin: 22px 0 8px;
+  font-size: clamp(14px, 1.25vw, 18px);
+  letter-spacing: 0.03em;
+  color: var(--v2-ink);
+  font-weight: 700;
+  animation: v2-hero-fade-in 620ms ease-out 90ms both;
+}
+.v2-hero-focus {
+  margin: 0;
+  font-size: clamp(12.5px, 1.05vw, 15.5px);
+  line-height: 1.45;
+  letter-spacing: 0.015em;
+  color: var(--v2-ink-2);
+  max-width: 560px;
+  animation: v2-hero-fade-in 620ms ease-out 200ms both;
+}
+
+/* Gate 1, point 5: now carries a real translateY rise (10px), not opacity
+   alone — shared by nav/tagline/focus, so all three top-left text pieces
+   read as arriving with a small, restrained motion instead of just
+   materialising in place. */
+@keyframes v2-hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* The keyframe's own `to` state must include the breathing scale
+   expression too — a CSS animation's `fill-mode: both` permanently pins
+   the animated property to its `to` value for as long as the animation
+   is filling, which silently overrides ANY separately-declared
+   `transform` on the same element/property, even one driven by a
+   changing custom property. Folding the scale into the keyframe itself
+   (rather than a second, competing `transform` rule) is what lets it
+   keep tracking --hero-focus-strength after the entrance settles.
+   Gate 1 retune: 1.02 (2%) is explicitly retired by the canonical spec's
+   own conflict table — it's a regression, not a fix, against the final
+   binding range. Restored to the canonical ceiling (1.004, i.e. 0.4%)
+   with the default target at 1.0025 (mid of the 1.0015-1.0035 range).
+   Also folds in a very small directional micro-shift
+   (--hero-identity-shift-x/-y, written each frame by SwissHero.tsx,
+   capped at 1.5px/1px) — the canonical spec calls for both a scale AND a
+   tiny translation response, not scale alone. */
+@keyframes v2-hero-identity-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform:
+      translate(
+        calc(var(--hero-identity-shift-x, 0) * 1px),
+        calc(var(--hero-identity-shift-y, 0) * 1px)
+      )
+      scale(calc(1 + var(--hero-focus-strength, 0) * 0.0025));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-hero-nav,
+  .v2-hero-identity,
+  .v2-hero-tagline,
+  .v2-hero-focus {
+    animation: none;
+  }
+}
+
+/* Scene POSITIONER — HEIGHT-LED, not width-led: height always equals the
+   full Hero height (so the source image's top and bottom edges are
+   always both visible — the actual Gate 1.1 requirement that `min()`
+   over-corrected), width follows the real aspect ratio and is only ever
+   cropped/blended at its own far left/right edges. This is the
+   coordinate space hotspots/annotations measure against — it is NOT
+   masked itself (only .v2-hero-sceneFocus, its purely-visual child, is
+   — see below), so hotspots and the annotation layer are never faded by
+   the edge blend. */
+.v2-hero-scenePositioner {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 2782 / 1536;
+  transform: translateX(-50%);
+  --focus-x: 50%;
+  --focus-y: 50%;
+  --focus-radius-x: 14%;
+  --focus-radius-y: 16%;
+}
+
+/* Scene FOCUS layer — the only element that ever moves (restrained
+   camera-focus scale + a small translate toward the active target), and
+   the ONLY element that gets the left/right photographic mask-blend —
+   applied here, not on the positioner, so the interactive hotspot/
+   annotation layer is never affected by it. */
+.v2-hero-sceneFocus {
+  position: absolute;
+  inset: 0;
+  transform-origin: var(--focus-x) var(--focus-y);
+  transform: translate3d(0, 0, 0) scale(1);
+  will-change: transform;
+}
+/* Regression repair: the mask was gated to `min-aspect-ratio: 19/9`
+   (2.111) per the canonical spec's literal number, but that number was
+   never checked against the actual geometry that determines when the
+   fill layer becomes visible at all. The primary frame is height-led at
+   the real source ratio 2782/1536 ≈ 1.8112 — the fill layer is only ever
+   exposed at the sides once the HERO's own aspect ratio exceeds THAT
+   number, not 19/9. Any viewport between ~1.81 and 2.111 (e.g. the
+   2498×1190 = 2.099 recording that surfaced this) has a visible,
+   unmasked fill layer and an unmasked sharp-frame edge sitting directly
+   next to each other — a real hard seam, confirmed by this exact math,
+   not a perception issue. Fixed by moving the threshold to 16/9 (1.778),
+   safely BELOW the image's own 1.8112 ratio, so the mask is always
+   already engaged by the time the fill layer could possibly be visible,
+   for any wide viewport, not just one specific recorded resolution. */
+@media (min-aspect-ratio: 16 / 9) {
+  .v2-hero-sceneFocus {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      #000 2.2%,
+      #000 97.8%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      #000 2.2%,
+      #000 97.8%,
+      transparent 100%
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-hero-sceneFocus {
+    transform: scale(1) !important;
+  }
+}
+
+.v2-hero-scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Focus veil — a LOCAL radial dimming ellipse sized to the active
+   target's own reach radius (via --focus-radius-x/-y, set from the
+   target's registry radius each frame), not a full-scene wash. Reads as
+   "this area gently receded," not a vignette over the whole photo. */
+.v2-hero-focusVeil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse calc(var(--focus-radius-x) * 1%) calc(var(--focus-radius-y) * 1%) at var(--focus-x) var(--focus-y),
+    rgba(0, 0, 0, 0) 0%,
+    rgba(63, 45, 33, 0.006) 42%,
+    rgba(63, 45, 33, 0.03) 100%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-hero-focusVeil {
+    opacity: 0 !important;
+  }
+}
+
+/* Invisible, individually-focusable hit regions — one per named card, for
+   keyboard/AT reachability only (see SwissHero.tsx: no onClick, mouse
+   users interact via the continuous proximity field instead). No visible
+   marker at rest; a focus-visible outline is the only ever-visible cue,
+   and only for keyboard users. */
+.v2-tool-hotspots {
+  position: absolute;
+  inset: 0;
+}
+.v2-tool-hotspot {
+  position: absolute;
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 4px;
+  cursor: default;
+}
+.v2-tool-hotspot:focus-visible {
+  outline: 2px solid var(--v2-accent);
+  outline-offset: 2px;
+}
+
+/* Local Tool Annotation — anchored beside/above/below the active card's
+   own on-screen position (computed in SwissHero.tsx from the source
+   canvas's real bounding rect + the target's xPercent/yPercent, then
+   clamped to stay inside the visible Hero). Replaces the fixed lower-
+   left Inspector, which read as disconnected from the physical object it
+   described. Compact, semi-transparent, physical — not a tooltip bubble. */
+/* Genuinely transparent — no background, no border, no backdrop-filter.
+   A previous version of this rule used rgba(240,233,227,0.82) +
+   backdrop-filter: blur(5px), which is an 82%-opaque light panel — that
+   reads as a pale rectangular tooltip box sitting on top of the photo
+   (confirmed by direct comparison against the approved reference:
+   "transparent background, does not cover the object, no white panel").
+   Legibility over the busy photographic background comes from a soft
+   white text-shadow halo on each line instead of a filled box behind
+   them — the standard caption-over-photo technique, not a container. */
+.v2-toolAnnotation {
+  position: fixed;
+  z-index: 30;
+  width: max-content;
+  max-width: min(210px, 20vw);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #211c18;
+  pointer-events: none;
+}
+.v2-toolAnnotation-content {
+  display: flex;
+  flex-direction: column;
+  animation: v2-annotation-refresh 150ms ease-out;
+}
+@keyframes v2-annotation-refresh {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-toolAnnotation-content {
+    animation: none;
+  }
+}
+/* Soft white halo (not a box) so text stays legible over any part of the
+   photo — a tight-radius shadow reads as "text with a little breathing
+   room," not a panel edge. No .v2-toolAnnotation__name rule any more —
+   the tool-name heading was removed from the JSX entirely (usage-only,
+   see SwissHero.tsx); the physical card already prints the name. Font
+   size raised from 10px to 12px per direct feedback that it read as too
+   small to comfortably parse at a glance. */
+.v2-toolAnnotation__usage {
+  display: block;
+  max-width: 27ch;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: rgba(33, 28, 24, 0.92);
+  text-shadow:
+    0 0 5px rgba(250, 246, 240, 0.9),
+    0 0 5px rgba(250, 246, 240, 0.9),
+    0 1px 2px rgba(250, 246, 240, 0.7);
+}
+.v2-toolAnnotation__usage:first-child {
+  margin-top: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-toolAnnotation {
+    transition: none !important;
+  }
+}
+
+/* Mobile numbered links — hidden on desktop; shown below the image on
+   small screens, in normal document flow, not absolutely positioned. */
+.v2-hero-mobile-links {
+  display: none;
+}
+.v2-hero-mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  color: var(--v2-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--v2-rule);
+  border-radius: 0;
+}
+.v2-hero-mobile-link:focus-visible {
+  outline: 2px solid var(--v2-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .v2-hero-name {
+    font-size: clamp(48px, 12vw, 76px);
+  }
+}
+
+/* Was `max-width: 720px` only — real bug confirmed live: at 921x1400
+   (a plausible tablet-portrait size, width above 720px but well short of
+   desktop-landscape), the height-led geometry was still active, forcing
+   the image to match a TALL viewport height, which drags its WIDTH out
+   far past what the narrow viewport can show — cropping both side card
+   piles down to a sliver and leaving only the central box, at extreme
+   zoom. The real condition that matters is not "is the width small" but
+   "is this actually a landscape desktop viewport" — a narrow-but-tall
+   window is never that, regardless of its raw width number. Two OR'd
+   conditions (comma = OR in a media query): width below 1024px, OR an
+   aspect ratio no wider than 4:3 (catches portrait/near-square windows
+   at ANY width, including ones ≥1024px tall-and-narrow). */
+@media (max-width: 1023px), (max-aspect-ratio: 4/3) {
+  .v2-hero {
+    height: auto;
+    min-height: 0;
+    padding-top: var(--v2-space-lg);
+    padding-bottom: var(--v2-space-md);
+    overflow: visible;
+  }
+  .v2-hero-nav {
+    position: static;
+    padding: 0 20px var(--v2-space-sm);
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .v2-hero-identity {
+    position: static;
+    padding: 0 20px;
+    max-width: none;
+    margin-bottom: var(--v2-space-md);
+  }
+  .v2-hero-scenePositioner {
+    /* Static full-bleed image, no height-led geometry or mask-blend on
+       mobile — the real image ratio in normal flow, full width, in the
+       document flow (not absolutely positioned). */
+    position: relative;
+    left: auto;
+    top: auto;
+    height: auto;
+    width: 100%;
+    transform: none;
+  }
+  .v2-hero-sceneFocus {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  /* No pointer-proximity interaction on mobile, per Phase 13 — the
+     numbered project links below the image are the real, touch-friendly
+     path instead. */
+  .v2-tool-hotspots,
+  .v2-hero-focusVeil,
+  .v2-toolAnnotation,
+  .v2-hero-bgLayer {
+    display: none;
+  }
+  .v2-hero-mobile-links {
+    display: block;
+    padding: 0 20px;
+    margin-top: var(--v2-space-lg);
+  }
+}
+
+/* Coarse-pointer devices (touch) disable the image interaction even at
+   desktop viewport widths, per Phase 13 — independent of the max-width
+   rule above, which only covers narrow viewports. The JS engine itself
+   is also not started on these devices (see useCoarsePointer in
+   SwissHero.tsx) — this just covers the visual layer. */
+@media (pointer: coarse) {
+  .v2-tool-hotspots,
+  .v2-hero-focusVeil,
+  .v2-toolAnnotation {
+    display: none;
+  }
+}
