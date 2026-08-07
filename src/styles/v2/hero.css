@@ -512,6 +512,24 @@
     width: 100%;
     transform: none;
   }
+  /* Narrow/stacked-layout-only top dissolve: the identity block above the
+     image ends on a flat colour, and the image's own top edge began right
+     underneath it with no transition — a real hard seam, confirmed live.
+     Short, page-tone-to-transparent gradient over the image's own top
+     pixels; does not touch geometry, hotspots (already hidden in this
+     breakpoint) or the wide desktop layout, which never gets this rule at
+     all since it's nested inside this same narrow media query. */
+  .v2-hero-scenePositioner::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: clamp(22px, 3vw, 36px);
+    background: linear-gradient(to bottom, var(--v2-hero-top) 0%, rgba(235, 225, 217, 0) 100%);
+    pointer-events: none;
+  }
   .v2-hero-sceneFocus {
     -webkit-mask-image: none;
     mask-image: none;

@@ -9,26 +9,24 @@ import '../styles/v2/workflow-diagram.css'
 
 const projects = projectsData as Project[]
 
-// Only this project has a built-out full case-study page so far — every
-// other id falls through to the "not yet available" state below rather
-// than a broken/blank page.
-const BUILT_CASE_STUDY_IDS = new Set(['job-application-filter'])
-
 export function CaseStudyPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const project = projects.find((item) => item.id === projectId)
 
-  if (!project || !BUILT_CASE_STUDY_IDS.has(project.id)) {
+  // CaseStudyLayout is fully generic (no project-specific literals — it
+  // renders whichever of problemHtml/workflowHtml/resultShortHtml/
+  // failureHandledHtml/decisionHtml/limitationHtml/human-actor stages
+  // genuinely exist on the project, matching systemChapterContent.ts's
+  // same source-of-truth logic used on the overview page). All 7 real
+  // projects work through it directly — the only remaining fallback case
+  // is a URL that doesn't match any real project id at all.
+  if (!project) {
     return (
       <div className="v2-page">
         <div className="v2-grid v2-case-not-available">
           <div>
-            <span className="v2-eyebrow">Not yet available</span>
-            <p>
-              {project
-                ? 'This project doesn’t have a full case-study page yet.'
-                : 'No project matches this link.'}
-            </p>
+            <span className="v2-eyebrow">Not found</span>
+            <p>No project matches this link.</p>
             <Link to="/ai">← Back to overview</Link>
           </div>
         </div>

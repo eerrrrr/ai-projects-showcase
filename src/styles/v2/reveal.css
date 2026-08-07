@@ -27,3 +27,26 @@
     transition: none !important;
   }
 }
+
+/* Word-by-word mechanical reveal (WordTypeReveal.tsx) — each word sits in
+   its own final layout position from the start (inline-block), only
+   opacity/transform animate, so wrapping and line breaks behave exactly
+   like normal text and nothing reflows as words become visible. */
+.v2-wordReveal-line {
+  display: block;
+}
+.v2-wordReveal-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.14em) scale(0.985);
+  transition: opacity 150ms cubic-bezier(0.22, 1, 0.36, 1), transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.v2-wordReveal-word--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-wordReveal-word {
+    transition: none !important;
+  }
+}

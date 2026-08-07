@@ -149,7 +149,7 @@
   font-weight: 600;
 }
 .v2-case-key-label {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--v2-ink-2);
 }
 .v2-case-rule {
@@ -159,25 +159,31 @@
   margin-right: var(--v2-grid-margin);
 }
 .v2-case-body {
-  row-gap: var(--v2-space-md);
+  row-gap: var(--v2-space-lg);
 }
 .v2-case-block {
   grid-column: 1 / span 8;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .v2-case-workflow-row {
-  margin-block: var(--v2-space-md);
+  margin-block: var(--v2-space-lg);
 }
 .v2-case-block--full {
   grid-column: 1 / -1;
 }
+/* Readability targets (direct feedback: "body text is dense", "hard to
+   read"): a real measure cap so paragraphs don't stretch the full 8-column
+   width at desktop, and font-size/line-height explicitly in range rather
+   than left to the browser default. */
 .v2-case-block p,
 .v2-case-block ul,
 .v2-case-block li {
   margin: 0;
-  line-height: 1.55;
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--v2-ink);
 }
 .v2-case-block--human {
@@ -275,6 +281,12 @@
 }
 .v2-case-page-masthead {
   margin-bottom: var(--v2-space-sm);
+}
+/* The number and tier label render as adjacent inline spans with no
+   built-in gap ("02Featured proof") — scoped fix here rather than a
+   blanket margin on the shared .v2-eyebrow class used elsewhere. */
+.v2-case-page-masthead .v2-section-number {
+  margin-right: 10px;
 }
 .v2-back-link {
   display: block;
