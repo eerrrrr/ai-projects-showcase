@@ -4,12 +4,18 @@
     "whoAccent": "— AI workflow systems",
     "links": [
       {
-        "href": "#flagship-featured",
+        "href": "#systems",
         "label": "Systems"
       },
       {
-        "href": "#flagship",
-        "label": "Archive"
+        "href": "https://www.linkedin.com/in/erin-wai-in-wong-89668b2aa/",
+        "label": "LinkedIn",
+        "external": true
+      },
+      {
+        "href": "https://github.com/eerrrrr",
+        "label": "GitHub",
+        "external": true
       },
       {
         "href": "https://erin-wong-portfolio.vercel.app/",
@@ -31,11 +37,9 @@
   ],
   "systemsSectionNo": "01",
   "systemsHeading": "Selected systems",
-  "flagshipSectionNo": "02",
-  "flagshipHeading": "Archive",
-  "flagshipSub": "Additional systems, kept compact.",
+  "systemsStatement": "Exploring how human judgment and AI capabilities can shape better ways of researching, deciding, creating, and learning.",
   "supporting": {
-    "sectionNo": "03",
+    "sectionNo": "02",
     "heading": "Supporting infrastructure",
     "sub": "The systems the<br>projects above stand on",
     "cards": [

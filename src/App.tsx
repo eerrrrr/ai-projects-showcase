@@ -1,76 +1,43 @@
-import { useEffect, useState } from 'react'
-import pageContent from './data/page-content.json'
-import projectsData from './data/projects.json'
-import type { PageContent, Project } from './data/types'
-import { Nav } from './components/Nav'
-import { Hero } from './components/Hero'
-import { ProofSummary } from './components/ProofSummary'
-import { ProjectCard } from './components/ProjectCard'
-import { SupportingSystems } from './components/SupportingSystems'
-import { Footer } from './components/Footer'
-import './styles/global.css'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { AiPortfolioV2Page } from './pages/AiPortfolioV2Page'
+import { CaseStudyPage } from './pages/CaseStudyPage'
+import { HomeGatewayPage } from './pages/HomeGatewayPage'
+import { ArchitecturePage } from './pages/ArchitecturePage'
+import { AboutPage } from './pages/AboutPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 
-const content = pageContent as PageContent
-const projects = projectsData as Project[]
-const featuredProjects = projects.filter((p) => p.tier === 1)
-const otherProjects = projects.filter((p) => p.tier !== 1)
+// AiLandingPage (V1 content on the /ai route) is intentionally left
+// unimported here, not deleted — src/pages/AiLandingPage.tsx still exists
+// on disk. Rollback for the V2 Swiss redesign below is reverting this
+// route's element back to <AiLandingPage />.
+
+function RedirectBridge() {
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const redirectPath = params.get('redirect')
+
+  if (redirectPath) {
+    return <Navigate to={redirectPath} replace />
+  }
+
+  return null
+}
 
 export default function App() {
-  const [activeId, setActiveId] = useState<string | null>(null)
-
-  // Scroll-spy: highlight whichever featured project's full section is
-  // currently in view, on the systems-overview quick cards above it.
-  useEffect(() => {
-    const els = featuredProjects
-      .map((p) => document.getElementById(p.id))
-      .filter((el): el is HTMLElement => el !== null)
-    if (els.length === 0) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveId(entry.target.id)
-        })
-      },
-      { rootMargin: '-40% 0px -50% 0px', threshold: 0 },
-    )
-    els.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <>
-      <Nav nav={content.nav} />
-      <Hero content={content} />
-
-      <ProofSummary
-        projects={featuredProjects}
-        sectionNo={content.systemsSectionNo}
-        heading={content.systemsHeading}
-        activeId={activeId}
-      />
-
-      <div className="wrap">
-        <section id="flagship-featured">
-          {featuredProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </section>
-
-        <section id="flagship">
-          <div className="sec-head">
-            <span className="no">{content.flagshipSectionNo}</span>
-            <h2 dangerouslySetInnerHTML={{ __html: content.flagshipHeading }} />
-            <span className="sub mono">{content.flagshipSub}</span>
-          </div>
-          {otherProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-          <SupportingSystems supporting={content.supporting} />
-        </section>
-      </div>
-
-      <Footer footer={content.footer} />
-    </>
+    <BrowserRouter
+      basename={import.meta.env.BASE_URL}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <RedirectBridge />
+      <Routes>
+        <Route path="/" element={<HomeGatewayPage />} />
+        <Route path="/ai" element={<AiPortfolioV2Page />} />
+        <Route path="/ai/:projectId" element={<CaseStudyPage />} />
+        <Route path="/architecture" element={<ArchitecturePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }

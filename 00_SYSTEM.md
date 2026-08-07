@@ -919,6 +919,444 @@ fighting for a screenshot; this is a test-tooling instability in this
 sandboxed headless Chrome, not a symptom of anything wrong with Plasma or
 the page itself.
 
+## v17 — deployed to GitHub Pages via `docs/`; compact featured-card layout (2026-07-21)
+
+Two things this pass: getting the site actually live, and a scoped card-layout
+simplification that stayed within guardrails the user set explicitly.
+
+**Deployment, resolved after a wrong turn.** The repo (`eerrrrr/ai-projects-showcase`)
+turned out to already exist on GitHub with unrelated prior history (a CNAME
+add/delete pair). Initialized git locally, renamed `master`→`main` to match
+`deploy.yml`'s trigger, excluded a stray nested repo (`ERIN_AI_PROJECT/`, its
+own separate `github.com/eerrrrr/ERIN_AI_PROJECT` clone that had landed inside
+this folder by accident — left untouched, just gitignored). First deploy
+attempt via the Actions-based `deploy.yml` hit a wall: GitHub Actions was
+disabled for the repo (account/repo-level toggle, confirmed via the Pages
+settings warning banner), so the workflow never ran even after pushing.
+Diagnosed via the resulting error (`No such file or directory @ dir_chdir0 -
+/github/workspace/docs` — GitHub's legacy Jekyll branch-deploy failing to find
+a `/docs` folder) that Pages had reverted to (or already was) "Deploy from a
+branch" mode, which bypasses Actions entirely. Pragmatic fix: switched to that
+mode deliberately — build locally, copy `dist/` into a committed `docs/`
+folder with a `.nojekyll` marker, point Pages at `main`/`docs`. This sidesteps
+the disabled-Actions blocker completely, at the cost of no longer
+auto-deploying on push — every future content change now needs an explicit
+rebuild-and-copy-to-docs step (documented so this isn't forgotten next time).
+Site is confirmed live at `https://eerrrrr.github.io/ai-projects-showcase/`,
+serving the compiled `assets/index-*.js`, not raw source.
+
+Also hit, along the way: this terminal cannot authenticate to `github.com` for
+`git push` (no cached credential helper, can't prompt interactively) — every
+push in this pass was done by the user via GitHub Desktop after I prepared the
+local commit. And a genuine system-level `npm run build` failure ("cannot
+allocate memory" from esbuild's Go runtime) turned out to be a transient
+pagefile/memory-pressure hiccup on this machine (same family of issue as the
+Bash "paging file too small" crash from earlier in the session) — resolved by
+simply retrying, not a code problem.
+
+**Card layout simplification — scoped correctly this time.** User's initial
+ask bundled a full retarget (new cover-page CTAs, a 5-step "How I work"
+section, and swapping in 2 brand-new "flagship cases" I had never verified —
+"Notion + Claude Design Review Workflow" and "Career Evidence & Application
+Workflow"). Held the line on the unverified part exactly like the
+Plasma/MCP precedent: asked which projects should actually be flagship before
+writing any copy implying they're built, verified systems. User confirmed:
+**keep the same 4 existing verified projects, no lineup change** — the ask
+was purely about display density and interaction, not subject matter.
+
+Implemented: collapsed cards for the 4 featured projects now show only
+title, 3 tags, and a one-line `valueHtml` — the interactive workflow-stage
+list (with its clickable screenshots) moved from always-visible to gated
+behind "View workflow," alongside a new, shorter Problem/Workflow/Result
+reveal (new `problemHtml`/`workflowHtml`/`resultShortHtml` fields).
+Deliberately did **not** delete the existing detailed `goalHtml`/
+`methodHtml`/`resultHtml`/`failureHandledHtml`/`decisionHtml`/
+`limitationHtml` fields — they're just not rendered by default anymore for
+these 4 projects, a reversible display choice, not a content loss. The 3
+Archive projects (05–07), which never got the new short-form fields, keep
+their original always-visible-stages, Goal/Logic/Build-evidence layout
+untouched — `ProjectCard.tsx` branches on `Boolean(problemHtml ||
+workflowHtml || resultShortHtml)` to decide which layout to render, so this
+was a zero-touch outcome for Archive, not an explicit exclusion rule.
+Transfer changed from a `<details>` accordion to a plain list (redundant
+double-disclosure once the whole block is already gated behind "View
+workflow"). Added a CSS-only expand transition (`max-height`/`opacity`, no
+animation library) and a subtle hover-lift + soft shadow on collapsed
+compact cards, both correctly inert under `prefers-reduced-motion`.
+
+**Verified:** `npm run build` — zero TypeScript errors. Live-DOM checks (not
+just grep) via Puppeteer confirmed: Project 01 renders `project--compact`
+with exactly 3 tags, "View workflow ↓" button text, and the stage list
+absent while collapsed; expanding it shows `dt` labels exactly
+`["Problem","Workflow","Result"]` with the stage list correctly nested
+inside the Workflow `dd`, and the Transfer block rendering its 2 existing
+items as a plain list; Project 05 (Archive) is confirmed completely
+unaffected — still `project--compact === false`, stages still visible while
+collapsed, still "View details ↓". The hover-lift CSS rule was confirmed
+present and correct in the built bundle; a live computed-style check showed
+`transition: none` on this specific test browser, which is expected — the
+same `prefers-reduced-motion: reduce` quirk already documented for Plasma in
+this browser, not a bug.
+
+## v18 — stage-media inline positioning fix; Plasma always renders (2026-07-21)
+
+Two small, concrete fixes from a screenshot the user annotated.
+
+**Stage-media positioning bug, real.** `StageMedia` was rendered once, after
+the whole `<ol className="stages">` list, regardless of which stage was
+selected — so clicking stage 1 showed the proof-capture box down past stage
+4, visually disconnected from what was actually clicked. Fixed by moving
+`<StageMedia>` inside the `.map()`, rendered conditionally per-`<li>` when
+that specific stage is selected. Since `.stage` is a 4-column CSS grid
+(`44px 30px 1fr 84px`), added `grid-column:1/-1` to `.stage-media` so it
+spans the full row width as its own row, rather than trying to fit into one
+of the four narrow columns. Verified via live DOM checks: clicking stage 2
+puts the media box inside stage 2's own `<li>` (not stage 1's or the end of
+the list); clicking stage 1 afterward correctly moves it there instead.
+
+**Plasma always renders now — a deliberate accessibility-guard removal,
+not a bug fix.** The user asked for Plasma to reappear a second time
+without ever confirming whether Windows' "Animation effects" setting (the
+likely cause, per the `prefers-reduced-motion` diagnosis from v13/v15) was
+the issue. Rather than ask a third time, removed the `prefers-reduced-motion`
+JS gate in `Hero.tsx` entirely — Plasma now always mounts. This is a real
+trade-off (accessibility guard removed per explicit, repeated user request,
+not a default I'd choose unprompted) and is written into the component
+comment so it isn't silently reintroduced later. Also added a very subtle
+static CSS gradient fallback on `.hero-plasma` itself (`radial-gradient`,
+~8% opacity) in case the *actual* cause is unrelated to reduced-motion —
+e.g. WebGL2 genuinely unavailable in the user's browser/GPU setup — so
+something faintly visible shows even if the canvas itself never renders,
+rather than stark blank white either way.
+
+**Verified:** `npm run build` — zero TypeScript errors. Live-DOM Puppeteer
+check confirmed `.hero-plasma canvas` now mounts in this test browser even
+though it still reports `prefers-reduced-motion:reduce` (previously it did
+not mount under that condition) — confirming the gate is genuinely gone,
+not just visually similar.
+
+## v19 — coded workflow walkthrough, Project 01 prototype only (2026-07-22)
+
+The user relayed a detailed external spec (Swiss-style, node/edge visual
+language, 5-phase plan) for replacing the always-visible workflow-stage list
+with an interactive "How it works" walkthrough: play/pause/next/previous/
+restart controls, mini-nodes revealing progressively per step, ending on a
+static roadmap recap. The spec itself recommended the safe path — build
+Project 01 only first, apply site-wide after it's proven — and that's what
+was built. **Projects 02–07 are completely untouched**, both in code and in
+rendered output.
+
+**Guardrails honored, same as every prior pass:** no redesign of hero/
+archive/footer/deployment/routing; existing JSON-driven architecture reused,
+not replaced; no hardcoded per-project copy in components; no animation
+library (`ogl`/Plasma stays the only exception, from v13) — this feature is
+React state + `setTimeout` + CSS transitions only; no PNG diagrams, no fake
+n8n canvas, no new modal or route; `prefers-reduced-motion` respected; "View
+details" stays a fully separate toggle from the walkthrough's own play state.
+
+**What changed:**
+- `types.ts`: `Stage` gained optional `miniNodes?: string[]` (2–4 short
+  phrases revealed progressively while a stage is active — `body` doubles as
+  the walkthrough's explanation text, no separate field). `Project` gained
+  five optional fields — `valueLine`, `miniRoadmap`, `proofChips`,
+  `finalRoadmap`, `finalTakeaway` — populated only on Project 01 in
+  `projects.json`. `ProjectCard.tsx` derives
+  `hasWalkthrough = Boolean(valueLine && miniRoadmap && proofChips)`; every
+  other project renders through the exact same compact/full paths as before,
+  completely unchanged.
+- New `ProjectLogicCard.tsx` — the simplified left column for
+  walkthrough-enabled projects: number, title, one `valueLine`, a
+  mini-roadmap breadcrumb (`Input → Criteria → Review state → Human
+  decision`), 2–3 proof chips, "View details" button. Replaces the old
+  tags/valueHtml block only when `hasWalkthrough` is true.
+- New `WorkflowWalkthrough.tsx` — the core new component. A small
+  timer-driven state machine (`activeStep`, `revealedCount`, `completed`
+  set, `playState: idle|playing|paused|done`): autoplay reveals one
+  mini-node every 300ms, dwells 1400ms on the completed step, then advances;
+  manual `Previous`/`Next`/spine-row-click all route through a single
+  `jumpTo` function; `Restart` resets to a clean first step. Ends on a
+  `.w-recap` block showing `project.finalRoadmap`/`finalTakeaway`.
+- `ProjectCard.tsx`: `hasWalkthrough` branches both the left meta column
+  (`ProjectLogicCard` vs. the original block) and the right content column
+  (`WorkflowWalkthrough` vs. the original `WorkflowStages`). Everything below
+  — the `expand-panel` with Problem/Workflow/Result and the Transfer block —
+  is untouched and shared by all projects, so "View details" keeps working
+  identically for Project 01 as for every other card.
+- `global.css`: new `.mini-roadmap`/`.proof-chips` styles for the left
+  column, and a full `.walkthrough`/`.w-spine`/`.w-step`/`.w-active-panel`/
+  `.w-mini-node`/`.w-recap`/`.w-controls`/`.w-btn` block for the right
+  column, plus a `@media (prefers-reduced-motion: reduce)` override that
+  disables the mini-node CSS transition (the JS-level reduced-motion
+  short-circuit, below, is the real gate — this is the belt-and-braces CSS
+  half of it) and a mobile tweak (`.w-step` grid narrows, actor pill hides).
+
+**Two real bugs found and fixed during live-DOM verification, not just
+"looked right in the code":**
+1. **Stale-closure bug in `Next`/`Previous`.** `jumpTo(activeStep + 1)` /
+   `jumpTo(activeStep - 1)` closed over the `activeStep` value from the
+   render each button was created in. Caught it directly: three rapid,
+   same-tick `Next` clicks in a Puppeteer test only advanced the step by
+   one, not three. Fixed by changing `jumpTo` to accept either a plain index
+   or an updater function, and routing it through `setActiveStep`'s own
+   functional form (`setActiveStep((prevStep) => ...)`) so every click reads
+   the latest state regardless of batching timing — the correct general fix,
+   not a workaround for how the test happened to fire clicks.
+2. **Recap unreachable under reduced motion via manual navigation.** `Next`
+   disables once `activeStep` is the last index, and `resume()` is a no-op
+   when `reduceMotion` is true (it sets `playState` to `'paused'`, which it
+   already was) — so a reduced-motion user stepping through by hand could
+   reach the last step but `playState` would never become `'done'`, and the
+   recap would never render. There was no way to "finish" without autoplay.
+   Fixed by adding a `finish()` action and having the last-step button read
+   "Finish" instead of "Next" (`isLastStep` check) — clicking it explicitly
+   marks the last step complete and sets `playState` to `'done'`. Verified:
+   `Finish` appears only on the true last step, clicking it shows `.w-recap`
+   with the correct `finalRoadmap`/`finalTakeaway` text, `Previous` from
+   `done` correctly un-marks the last step and hides the recap again, and
+   `Restart` cleanly resets to step 0 with nothing marked done.
+
+**Verified, all via live-DOM Puppeteer checks (not screenshots — this
+sandbox's Plasma+scroll+screenshot crash from v16 is still standing
+guidance):**
+- Isolation across all 7 project cards: only `job-application-filter` has
+  `.walkthrough`/`.mini-roadmap`/lacks `.stages-wrap`; all 6 others have the
+  reverse — zero cross-contamination.
+- Reduced-motion short-circuit: `start()` under `reduceMotion: true`
+  instantly reveals all of the first step's mini-nodes and sets `playState`
+  to `'paused'` (button reads "Play", not "Pause") rather than the
+  timer-driven staggered reveal a non-reduced-motion browser gets.
+- Full manual walkthrough of all 4 steps via single, separately-dispatched
+  `Next` clicks (one per Puppeteer call, matching real click timing rather
+  than same-tick batching) correctly advanced one step per click, marked
+  each prior step done, reached `Finish` only at step 4, and produced the
+  correct recap text. Direct spine-row click (`jumpTo(i)` for a
+  non-adjacent step) correctly jumps and marks all preceding steps done,
+  without triggering the recap (jumping to view a step is not the same as
+  finishing).
+- `npm run build` — zero TypeScript errors, both before and after the two
+  bug fixes; 111 modules; CSS bundle 14.88 kB.
+
+**Not yet done, explicitly deferred pending user go-ahead:** applying
+`ProjectLogicCard`/`WorkflowWalkthrough` to Projects 02–04 (Phase 4 of the
+user's own 5-phase plan) — this is a JSON-data-only extension once approved,
+no component changes needed, same pattern as every other JSON-driven
+addition in this project's history. `docs/` rebuilt and committed locally
+this pass; still needs a GitHub Desktop push to go live (this terminal
+cannot authenticate `git push`, same standing limitation since v17).
+
+## v21 — stable ProjectCard workflow walkthrough baseline (2026-07-25)
+
+A very long single-session arc following v19's Project 01 prototype: several
+interaction models were tried for "How it works" and reverted before landing
+on the current stable one. Documenting the full arc here because the
+reverted attempts are exactly what must **not** be reintroduced later.
+
+**What was tried and reverted, in order, each for a concrete reason:**
+1. Timer-driven autoplay with Play/Pause/Next/Previous/Restart buttons (the
+   original v19 design) — buttons removed per explicit request ("not a step
+   player").
+2. Click-based single-panel accordion, no buttons — worked, but then a
+   scroll-driven redesign was requested.
+3. `IntersectionObserver`-driven step reveal (scroll position selects the
+   active step) — built, but repeatedly conflicted with a separately-added
+   whole-page wheel-jump controller (`useSectionScroll`, "one wheel gesture
+   = one section") and with CSS `scroll-snap-type`. Symptoms across several
+   rounds: rolls "eaten" with no visible movement, the walkthrough jumping
+   straight to a later step instead of step 1, and one version that could
+   trap the user inside a project entirely.
+4. A user-requested full debug dump
+   (`DEBUG_SCROLL_WORKFLOW_DUMP_2026-07-25.md`) made the conflict clear:
+   too many independent scroll-observing systems were fighting over the
+   same wheel events. **Emergency stabilization followed**: `useSectionScroll.ts`
+   deleted outright, all CSS `scroll-snap-type`/`scroll-snap-align` removed,
+   the `IntersectionObserver` removed from the walkthrough hook entirely.
+   Rebuilt `useWorkflowWalkthrough` as pure click-based state (`started`,
+   `activeStep`, `completed`, `start`, `jumpTo`) — no scroll, no wheel, no
+   `IntersectionObserver` anywhere in it.
+5. Deterministic `setTimeout`-driven autoplay was then added back on top of
+   this stable click-based base (`isPlaying` state, 1800ms dwell per step) —
+   "How it works" now autoplays step 1→2→3→4→recap on its own, with no
+   scroll/wheel involvement at all. Clicking a row directly still jumps to
+   it and pauses autoplay.
+
+**Two other fixes landed in the same pass:**
+- **Nav "Systems" link** was pointing at `#job-application-filter` (a
+  workaround for a since-removed CSS-snap bug) — corrected to `#systems`,
+  the actual quick-cards section id.
+- **Hash-based auto-expand** (`window.location.hash === '#'+project.id` →
+  auto-open details) was removed from `ProjectCard.tsx` entirely — it was
+  causing confusing "why did details just open" reports whenever a stale
+  hash sat in the URL bar during testing.
+
+**Visual polish added on the now-stable base:**
+- Left column: "How it works" is the clear primary action (filled accent
+  pill), "View details" is now a quiet secondary text-link — but only
+  inside `.p-controls` (walkthrough projects); the base `.view-details`
+  class used as-is by Archive cards is untouched.
+- **Workflow row visual grammar restored to match the archive's `.stage`/
+  `.s-marker` diagram** (this was flagged as a real readability regression —
+  the click-based accordion had become a plain text list): each `.w-step`
+  row now has a number, a vertical spine line, and a shape marker encoding
+  actor type — hollow circle (script), filled green circle (AI), dashed
+  circle (human), filled square (output) — using the exact same technique
+  as `.s-marker` but under separate `.w-step*` class names, so nothing here
+  can affect the archive's own static rows. The stage number never becomes
+  a checkmark; active/done state tints the marker green instead (same
+  principle as `.stage--selected`). The active panel's content is indented
+  (`padding-left:106px`) to align under the title column instead of
+  starting at the far left.
+- **Auto-zip on scroll-away**: a project's `View details` and/or "How it
+  works" walkthrough now resets to the clean default state once the card
+  has been visible and then scrolls fully out of view (reusing the
+  existing scroll-away `IntersectionObserver` in `ProjectCard.tsx` that
+  already handled `expanded` — extended to also call the walkthrough
+  hook's new `reset()`). A boundary case was found and fixed: two adjacent
+  full-viewport-height sections can land exactly edge-to-edge with ~0px of
+  overlap, which plain `threshold:0` still counts as "intersecting" —
+  fixed with `rootMargin:'-15% 0px -15% 0px'` on that same observer.
+- **Selected systems unified into one 7-card grid**: tried a quiet,
+  detached "Archive projects" link row below the four featured quick-cards
+  first — reversed almost immediately. Correct version: all 7 projects
+  render in the same `.system-card` grid/form (4 + 3, wrapping to a second
+  row), with Projects 05–07 getting a `.system-card--quiet` modifier
+  (muted number/title color at rest) rather than a separate heading or
+  demoted link list — still full, clickable cards with identical
+  hover/active feedback, not an afterthought. Card titles for projects
+  without a `shortTitle` now fall back to a derived short name (title
+  split at its em-dash) instead of the raw `title` string, avoiding an
+  HTML-entity leak the old fallback would have caused for the
+  video-pipeline project's smart-quote title. Doesn't duplicate the
+  Archive section further down the page.
+- **Projects 02–04 now have the same `hasWalkthrough` pattern as Project 01**
+  (`valueLine`/`miniRoadmap`/`proofChips`/`finalRoadmap`/`finalTakeaway` +
+  per-stage `miniNodes` added to `projects.json`) — Phase 4 of the original
+  v19 plan, done once Project 01 was confirmed stable. Archive projects
+  05–07 deliberately still use the old always-visible `WorkflowStages`
+  path, unchanged.
+
+**Standing rule from this pass — do not reintroduce without a fresh,
+explicit ask, each was tried and concretely failed:**
+`useSectionScroll` (whole-page wheel-jump controller), CSS
+`scroll-snap-type`/`scroll-snap-align`, `IntersectionObserver`-driven
+workflow step selection, `scrollIntoView` triggered by wheel events,
+manual Play/Pause/Next/Previous/Restart buttons, hash-based auto-expand.
+
+**Process note for future passes on this project:** this arc produced five
+separate `UPDATE_REPORT_2026-07-25_*.md` files (BASELINE, 1600, 1730,
+WORKFLOW_VISUAL_GRAMMAR, AUTOZIP_BOUNDARY, ARCHIVE_LINKS) plus
+`DEBUG_SCROLL_WORKFLOW_DUMP_2026-07-25.md`, each with an exact diff, build
+result, and live-DOM verification via Puppeteer rather than static code
+tracing alone — adopted after several rounds where a change was reported
+"done" without having actually been click-tested, which repeatedly turned
+out to hide real bugs. Recommend this pattern (print before-state, make
+the smallest change that solves the stated problem, verify live, print
+after-state with diff+build+checklist) continue for future updates to this
+project, not just this one session.
+
+**Verified:** `npm run build` clean throughout every step of this pass.
+Live-DOM Puppeteer verification (not just tracing) confirmed at each stage:
+autoplay genuinely runs on its own (traced with internal-delay sampling to
+rule out round-trip-latency artifacts); auto-zip genuinely resets on exit
+and genuinely doesn't reset prematurely; all 4 actor-type markers render
+with the correct shape/color; Archive's `.stage` rows are byte-for-byte
+unaffected; nav/hash fixes land correctly. One important test-methodology
+lesson from this pass: Puppeteer's default viewport (800×600) is *below*
+this site's own 900px mobile breakpoint, and `getComputedStyle` on a
+pseudo-element still resolves color/border declarations even when the
+parent is `display:none` — meaning a "passing" computed-style check can
+silently be validating mobile-hidden CSS instead of the desktop styles
+actually being tested. Always set an explicit desktop-width viewport
+(`launchOptions.defaultViewport`) before trusting a visual check on this
+project again.
+
+**Deploy note:** most of this pass (through the workflow-visual-grammar
+step) was committed and pushed by the user directly (commit `b4f459b`,
+message "1b") outside of any Claude-run `git commit`/`git push` — worth
+noting since it means the live site already reflected mid-arc state
+(everything up to and including the visual grammar restoration) before the
+auto-zip boundary fix and archive-links addition were made in the same
+session. Those two follow-ups were still uncommitted as of this writing.
+
+## v22 — Project 01 wording correction + Selected-grid/timing polish (2026-07-25)
+
+Two follow-up passes on the v21 baseline, same day. Full detail in
+`UPDATE_REPORT_2026-07-25_PROJECT01_DOCKER_SCHEDULE_NOTE.md` and
+`UPDATE_REPORT_2026-07-25_SELECTED_GRID_AND_TIMING_POLISH.md`; summary here:
+
+**Project 01 copy correction.** The user's suggested copy claimed the
+workflow was "Docker-based" and used "Claude · Notion". Both were checked
+against the real project (`D:\ai-test\job-application-filter\`) before
+writing anything: `package.json` shows `n8n` as a plain npm
+`devDependency`, no Dockerfile/compose file anywhere; the actual n8n
+workflow JSON contains only `manualTrigger` + `code` nodes, zero
+Claude/Anthropic/Notion references. Both claims were declined; accurate
+substitute copy was written instead (`valueLine`/`proofChips`/`workflowHtml`
+in `projects.json`), explicitly stating current mode = manual execution,
+planned mode = daily 09:30 Europe/Helsinki trigger (not yet built).
+
+**Fixed: Project 01 permanently green in Selected systems.** Root cause —
+the scroll-spy `IntersectionObserver` in `App.tsx` only ever *set*
+`activeId`, never cleared it. Fix: `#systems` is now also observed by the
+same observer; when it re-intersects the detection band, `setActiveId(null)`
+fires. Live IO verification was blocked by a Puppeteer-environment quirk
+this session (`document.visibilityState` stuck at `"hidden"` even with
+`headless:false`, so no `IntersectionObserver` callback fired at all,
+including the mandatory initial one on a bare test observer) — logic was
+instead verified by replicating the exact algorithm against real
+`getBoundingClientRect()` values across the full scroll range, both
+directions; a real click-through in a normal browser tab is still worth a
+spot-check later.
+
+**Added `overviewIntro`/`overviewChips`** (both optional on `Project`) —
+one short sentence + 3-5 tool/capability keywords per card, rendered only
+on the Selected-systems grid card (`ProofSummary.tsx`), not the full project
+section. Verified against real project files (same standing rule) before
+writing any chip: `investment-research-system` genuinely uses
+Python/SQLite/Markdown but **not** Claude via API (the LLM step is a human
+pasting a printed prompt into Claude Code interactively) and Notion sync is
+only an unused stub; the moss/`daily_content_system` pipeline genuinely uses
+Notion heavily but **not** a Claude API call in its pipeline scripts (Figma
+push happens via a human running Claude Code + the Figma MCP tool, not an
+automated call). Chips for both were written to match what's actually true,
+not the originally suggested tool list.
+
+**Renamed "Archive" → "Systems Lab"** (nav link, `flagshipHeading`,
+reworded `flagshipSub` since "Additional" was one of the explicitly
+disallowed labels). Remaining "Archive" strings are code comments only.
+
+**Timing:** `STEP_DWELL_MS` in `useWorkflowWalkthrough.ts` raised from
+`1800` to `3600` (single-constant design, no phase split). Verified live
+via real transition timestamps: 3600ms / 3623ms / 3580ms between steps —
+all inside the requested 3400-3800ms band; sequence still completes and
+stops on the recap without looping.
+
+**Verified:** `npm run build` clean before and after. `rg` for
+`useSectionScroll|scroll-snap|scrollIntoView|PLAY.*PAUSE` across `src/`
+returns only pre-existing code comments, no functional matches — nothing
+from the v21 "do not reintroduce" list came back.
+
+**Not committed or pushed** as of this writing — awaiting explicit
+"go commit" / "go push". `docs/` has not been rebuilt for this pass (or the
+prior auto-zip-boundary / unified-grid passes).
+
+**Follow-up same day: Selected-systems cards simplified to tag-first, no
+intro paragraph.** The `overviewIntro` sentence added above was reversed a
+few minutes later — cards were judged too busy (title + paragraph + chips).
+Final card form: number, title, `overviewChips` only, "Open case →".
+`overviewIntro` was removed from `types.ts`/`projects.json` entirely (not
+kept-but-unused — the diff was small enough that deleting was cleaner).
+Full detail: `UPDATE_REPORT_2026-07-25_SELECTED_GRID_TAGS_ONLY.md`.
+
+Also in that pass: the Docker claim for Project 01 was re-checked properly —
+`docker ps -a` / `docker images` / `docker volume ls` show real n8n-image
+containers on this machine (`n8n`, `elastic_cray`), so Docker n8n usage did
+happen at some point. But their timestamps (created 2025-08-19, last run
+2026-01-21) predate `job-application-filter`'s actual files (all dated
+2026-07-20/21) by 5-11 months — a different, unrelated n8n exploration, not
+this project. Chip kept as "Local workflow", not "Docker", based on that
+timing mismatch rather than a simple "no Docker files in the folder"
+argument.
+
 ## Not built / explicitly out of scope
 
 - No backend, no database, no external API calls.

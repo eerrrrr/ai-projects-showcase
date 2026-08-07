@@ -1,0 +1,518 @@
+/* V2 Swiss nav, footer, featured section, overview grid, and full
+   case-study page. All scoped under .v2-page. */
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--v2-ink);
+  color: var(--v2-paper);
+  padding: 8px 16px;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: var(--v2-space-sm);
+  top: var(--v2-space-sm);
+}
+
+.v2-nav {
+  padding: var(--v2-space-sm) var(--v2-grid-margin);
+  border-bottom: 1px solid var(--v2-rule);
+}
+.v2-nav-inner {
+  max-width: var(--v2-max-width);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--v2-space-sm);
+}
+.v2-nav-links {
+  display: flex;
+  gap: var(--v2-space-md);
+}
+.v2-nav-links a {
+  color: var(--v2-ink);
+  text-decoration: none;
+  font-size: 14px;
+}
+.v2-nav-links a:hover,
+.v2-nav-links a:focus-visible {
+  color: var(--v2-accent);
+}
+
+.v2-footer {
+  margin-top: var(--v2-space-xl);
+  padding-bottom: var(--v2-space-lg);
+}
+.v2-footer-inner {
+  padding-top: var(--v2-space-sm);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--v2-space-sm);
+}
+
+/* Featured Proof 01 inline section — 4:8 Project Chapter */
+.v2-case-section {
+  padding-block: var(--v2-space-section);
+}
+
+/* Primary composition: left 4-column System Summary rail, right
+   8-column Workflow field. This is what a recruiter sees first — the
+   long-form Problem/Implementation/Result text lives further below, in
+   the evidence block, not above this. */
+.v2-case-chapterGrid {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(20px, 2.4vw, 40px);
+  align-items: start;
+}
+.v2-case-summary {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* Sticks alongside the workflow field on tall desktop viewports only —
+     scoped to this chapter (top offset clears a fixed header if one is
+     ever added; harmless no-op otherwise). */
+  position: sticky;
+  top: clamp(24px, 4vh, 56px);
+}
+.v2-case-summary-number {
+  margin: 4px 0 0;
+  font-size: clamp(56px, 6vw, 100px);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: var(--v2-ink);
+}
+.v2-case-summary-title {
+  margin: 10px 0 0;
+  font-size: clamp(24px, 2.6vw, 38px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--v2-ink);
+  max-width: 14ch;
+}
+.v2-case-summary-value {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--v2-ink-2);
+  max-width: 32ch;
+}
+.v2-case-summary-sequence {
+  margin: 6px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--v2-ink-3);
+  max-width: 34ch;
+}
+.v2-case-summary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  color: var(--v2-ink-3);
+}
+.v2-case-workflowField {
+  grid-column: 5 / span 8;
+  min-width: 0;
+}
+
+.v2-case-evidence {
+  align-items: flex-end;
+  margin-bottom: var(--v2-space-md);
+}
+.v2-case-key {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.v2-case-key-number {
+  font-family: var(--v2-font-mono);
+  font-size: 28px;
+  font-weight: 600;
+}
+.v2-case-key-label {
+  font-size: 14px;
+  color: var(--v2-ink-2);
+}
+.v2-case-rule {
+  max-width: var(--v2-max-width);
+  margin: var(--v2-space-md) auto;
+  margin-left: var(--v2-grid-margin);
+  margin-right: var(--v2-grid-margin);
+}
+.v2-case-body {
+  row-gap: var(--v2-space-lg);
+}
+.v2-case-block {
+  grid-column: 1 / span 8;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.v2-case-workflow-row {
+  margin-block: var(--v2-space-lg);
+}
+.v2-case-block--full {
+  grid-column: 1 / -1;
+}
+/* Readability targets (direct feedback: "body text is dense", "hard to
+   read"): a real measure cap so paragraphs don't stretch the full 8-column
+   width at desktop, and font-size/line-height explicitly in range rather
+   than left to the browser default. */
+.v2-case-block p,
+.v2-case-block ul,
+.v2-case-block li {
+  margin: 0;
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--v2-ink);
+}
+.v2-case-block--human {
+  border-left: 2px solid var(--v2-accent);
+  padding-left: var(--v2-space-sm);
+}
+.v2-case-stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.v2-case-stage {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--v2-space-sm);
+  padding: var(--v2-space-sm) 0;
+  border-top: 1px solid var(--v2-rule);
+}
+.v2-case-stage:first-child {
+  border-top: none;
+}
+.v2-case-stage strong {
+  font-size: 16px;
+}
+.v2-case-stage-actor {
+  margin-left: var(--v2-space-sm);
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  color: var(--v2-ink-3);
+}
+.v2-case-stage--human {
+  background: var(--v2-accent-soft);
+  margin-inline: -12px;
+  padding-inline: 12px;
+  border-radius: 2px;
+}
+.v2-case-stage p {
+  margin-top: 4px;
+  color: var(--v2-ink-2);
+  font-size: 14px;
+}
+.v2-case-cta {
+  grid-column: 1 / -1;
+  margin-top: var(--v2-space-sm);
+}
+.v2-case-cta a {
+  color: var(--v2-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+.v2-case-cta a:hover,
+.v2-case-cta a:focus-visible {
+  text-decoration: underline;
+}
+
+/* SwissOverview */
+.v2-overview {
+  padding-bottom: var(--v2-space-xl);
+}
+.v2-overview-heading {
+  padding-top: var(--v2-space-md);
+}
+.v2-overview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.v2-overview-item {
+  padding-block: var(--v2-space-md);
+}
+.v2-overview-item .v2-grid {
+  grid-template-columns: 40px 1fr;
+  align-items: baseline;
+}
+.v2-overview-item-body h3 {
+  font-size: 20px;
+  margin: 0 0 4px;
+}
+.v2-overview-item-value {
+  color: var(--v2-ink-2);
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.v2-overview-item-key {
+  font-size: 13px;
+  color: var(--v2-ink-3);
+  margin: 0 0 6px;
+}
+
+/* Full case-study page (/ai/:projectId) — direct correction pass:
+   real 12-column masthead (title+framing left, proof+tags right, was
+   two disconnected grids before), editorial label/content section rows
+   instead of everything stacked in the left 8 columns with the right 4
+   permanently empty, fixed tags (was one word per line — no flex
+   wrapping was ever defined for this specific list), and real
+   previous/next case navigation (was "Next project" only, and it linked
+   back to the overview chapter anchor, not the next full page). */
+.v2-case-page {
+  padding-block: var(--v2-space-xl) var(--v2-space-section);
+}
+.v2-back-link {
+  display: block;
+  color: var(--v2-ink-2);
+  text-decoration: none;
+  font-size: 13px;
+  margin-bottom: var(--v2-space-sm);
+}
+.v2-back-link:hover,
+.v2-back-link:focus-visible {
+  color: var(--v2-accent);
+}
+.v2-case-not-available {
+  padding-block: var(--v2-space-section);
+}
+.v2-case-not-available a {
+  color: var(--v2-accent);
+}
+
+.v2-caseTopNav {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--v2-space-lg);
+}
+.v2-caseTopNav .v2-back-link {
+  margin-bottom: 0;
+}
+.v2-caseTopNav-position {
+  font-family: var(--v2-font-mono);
+  font-size: 13px;
+  color: var(--v2-ink-3);
+}
+
+.v2-caseMasthead {
+  padding-block: var(--v2-space-lg);
+  border-bottom: 1px solid var(--v2-rule);
+  margin-bottom: var(--v2-space-xl);
+  align-items: start;
+}
+.v2-caseMasthead-main {
+  grid-column: 1 / span 7;
+}
+.v2-caseMasthead-main h1 {
+  margin: 10px 0 0;
+  font-size: clamp(34px, 4.4vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--v2-ink);
+}
+.v2-caseMasthead-framing {
+  margin: 14px 0 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.55;
+  max-width: 52ch;
+  color: var(--v2-ink-2);
+}
+.v2-caseMasthead-proof {
+  grid-column: 9 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* Real flex wrap, not the default block-list one-word-per-line the tags
+   list had no explicit layout rule for before. */
+.v2-caseMasthead-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--v2-font-mono);
+  font-size: 12px;
+  color: var(--v2-ink-3);
+}
+
+/* Plain block container, NOT .v2-grid — WorkflowDiagram's own root
+   element has no class of its own, so a grid-column rule aimed at its
+   .v2-workflow descendant has no effect on the actual direct grid item
+   (the unstyled wrapper), which is what silently squeezed the whole
+   diagram into a single 1-of-12 grid track before this fix. */
+.v2-caseWorkflowSection {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+  margin-bottom: var(--v2-space-xl);
+}
+.v2-caseWorkflowSection-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: var(--v2-space-sm);
+}
+.v2-caseWorkflowSection-count {
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  color: var(--v2-ink-3);
+}
+
+.v2-caseSections {
+  margin-bottom: var(--v2-space-xl);
+}
+/* Editorial section row: label in the left ~3 columns, content in the
+   remaining ~9 — replaces every section stacking in the same 8-column
+   block with the right side of the page permanently empty. */
+.v2-caseRow {
+  padding-block: clamp(24px, 3.4vh, 40px);
+  border-top: 1px solid var(--v2-rule);
+  align-items: baseline;
+}
+.v2-caseRow:last-child {
+  border-bottom: 1px solid var(--v2-rule);
+}
+.v2-caseRow-label {
+  grid-column: 1 / span 3;
+  font-family: var(--v2-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--v2-ink-3);
+}
+.v2-caseRow-content {
+  grid-column: 4 / span 9;
+  min-width: 0;
+}
+.v2-caseRow-prose {
+  font-size: 17px;
+  font-weight: 450;
+  line-height: 1.62;
+  max-width: 68ch;
+  color: var(--v2-ink);
+}
+.v2-caseRow-prose ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.v2-caseRow-prose li {
+  margin-bottom: 8px;
+}
+.v2-caseRow-prose p {
+  margin: 0 0 10px;
+}
+.v2-caseRow-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.v2-caseNav {
+  padding-top: var(--v2-space-lg);
+  align-items: start;
+}
+.v2-caseNav-link {
+  grid-column: span 6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--v2-ink);
+  text-decoration: none;
+}
+.v2-caseNav-link--next {
+  text-align: right;
+  align-items: flex-end;
+}
+.v2-caseNav-link:hover,
+.v2-caseNav-link:focus-visible {
+  color: var(--v2-accent);
+}
+.v2-caseNav-link span:last-child {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Chapter grid stacks to one column below 1024px — the same threshold
+   used for the Hero's own responsive switch, so the whole page changes
+   its structural assumptions about "desktop" at one consistent width. */
+@media (max-width: 1023px) {
+  .v2-case-chapterGrid {
+    grid-template-columns: 1fr;
+    row-gap: var(--v2-space-lg);
+  }
+  .v2-case-summary,
+  .v2-case-workflowField {
+    grid-column: 1;
+  }
+  .v2-case-summary {
+    position: static;
+  }
+  .v2-case-summary-title {
+    max-width: none;
+  }
+  .v2-caseMasthead-main,
+  .v2-caseMasthead-proof {
+    grid-column: 1 / -1;
+  }
+  .v2-caseMasthead-proof {
+    margin-top: var(--v2-space-md);
+  }
+  .v2-caseRow-label {
+    grid-column: 1 / -1;
+    margin-bottom: 6px;
+  }
+  .v2-caseRow-content {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .v2-case-key,
+  .v2-case-tags,
+  .v2-case-block {
+    grid-column: 1 / -1;
+  }
+  .v2-caseNav {
+    row-gap: var(--v2-space-md);
+  }
+  .v2-caseNav-link {
+    grid-column: 1 / -1;
+  }
+  .v2-caseNav-link--next {
+    text-align: left;
+    align-items: flex-start;
+  }
+  .v2-overview-item .v2-grid {
+    grid-template-columns: 32px 1fr;
+  }
+  .v2-case-chapterGrid {
+    padding-inline: 20px;
+  }
+}

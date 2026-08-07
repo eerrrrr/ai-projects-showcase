@@ -1,0 +1,320 @@
+/* PASS A §1 — the one shared page-level wrapper used by every major
+   section after the Hero (Approach, Selected Systems, all 7 System
+   chapters, Supporting Infrastructure, Closing). Each gets a full
+   min-height:100svh "page" with a soft, non-mandatory scroll-snap stop —
+   scroll-snap-type itself is set on the document element imperatively by
+   AiPortfolioV2Page.tsx (scoped to /ai only, reset on unmount) rather
+   than in global CSS, so V1/other routes are never affected. */
+.v2-storyPage {
+  position: relative;
+  min-height: 125svh;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+  scroll-margin-top: 0;
+}
+/* Correction batch — the outer page stage no longer touches opacity at
+   all. The previous 0.62/0.90 opacity states were the actual root cause
+   of the "long grey interval" complaint: the page was still visibly
+   fading while its workflow had already started autoplaying underneath
+   it. Now the page itself stays fully dark and readable through the
+   whole roll (opacity: 1 in every state) — only a small translateY
+   communicates before/active/after, and only one chapter is ever
+   `active` at a time (single-owner engine in useChapterRollState.ts, not
+   each section deciding independently). `will-change` intentionally
+   omitted (PASS §10) — a handful of transform-only transitions don't
+   need a standing composited layer for the whole site. */
+.v2-storyPage-stage {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+  transform: translateY(0);
+  opacity: 1;
+  transform-origin: center top;
+  transition: transform 440ms var(--motion-ease-out);
+}
+.v2-storyPage-stage[data-story-state='before'] {
+  transform: translateY(10px);
+}
+.v2-storyPage-stage[data-story-state='active'] {
+  transform: translateY(0);
+}
+.v2-storyPage-stage[data-story-state='after'] {
+  transform: translateY(-8px);
+}
+.v2-storyPage-inner {
+  width: 100%;
+  padding-block: clamp(48px, 8vh, 96px);
+}
+@media (max-width: 720px), (prefers-reduced-motion: reduce) {
+  /* The sticky-stage rise/recede motion is a desktop-scroll nicety, not
+     a requirement — on small screens (where content routinely exceeds
+     one viewport, making a sticky 100svh stage clip real content) or
+     reduced motion, every page reverts to plain, fully-visible document
+     flow with no transform at all. */
+  .v2-storyPage {
+    min-height: 0;
+    scroll-snap-align: none;
+  }
+  .v2-storyPage-stage {
+    position: static;
+    min-height: 0;
+    overflow: visible;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Manifesto (content only — the page-level <section> is now the shared
+   StoryPage above; ManifestoPage.tsx renders just this grid). */
+.v2-manifesto-grid {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 32px);
+}
+.v2-manifesto-index {
+  grid-column: 1 / span 2;
+  margin: 0;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--v2-ink-3);
+  align-self: start;
+  padding-top: 0.35em;
+}
+.v2-manifesto-statement {
+  grid-column: 3 / span 9;
+  margin: 0;
+  font-size: clamp(38px, 5.4vw, 84px);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -0.045em;
+  color: var(--v2-ink);
+}
+.v2-manifesto-line {
+  display: block;
+}
+@media (max-width: 720px) {
+  .v2-manifesto-grid {
+    grid-template-columns: 1fr;
+    padding-inline: 20px;
+  }
+  .v2-manifesto-index {
+    grid-column: 1;
+    margin-bottom: var(--v2-space-sm);
+  }
+  .v2-manifesto-statement {
+    grid-column: 1;
+    font-size: clamp(30px, 9vw, 44px);
+  }
+}
+
+/* Selected Systems ruled index (content only, same reasoning as above). */
+.v2-systemIndex-inner {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+}
+.v2-systemIndex-header {
+  display: grid;
+  grid-template-columns: minmax(64px, 2fr) minmax(0, 10fr);
+  gap: clamp(18px, 2vw, 34px);
+  align-items: baseline;
+  padding-bottom: clamp(28px, 4vh, 48px);
+}
+.v2-systemIndex-header p {
+  margin: 0;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--v2-ink-3);
+}
+.v2-systemIndex-header h2 {
+  margin: 0;
+  font-size: clamp(36px, 4.6vw, 66px);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--v2-ink);
+}
+.v2-systemIndex-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--v2-rule-strong);
+}
+.v2-systemIndex-row {
+  display: grid;
+  grid-template-columns: minmax(40px, 0.7fr) minmax(220px, 5.3fr) minmax(200px, 4.8fr) minmax(20px, 0.4fr);
+  gap: clamp(14px, 2vw, 30px);
+  align-items: baseline;
+  min-height: clamp(62px, 7.2vh, 88px);
+  padding-block: clamp(14px, 1.8vh, 22px);
+  border-bottom: 1px solid var(--v2-rule);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    color 160ms var(--v2-ease-soft),
+    border-color 160ms var(--v2-ease-soft);
+}
+.v2-systemIndex-number,
+.v2-systemIndex-signals,
+.v2-systemIndex-arrow {
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.045em;
+  color: var(--v2-ink-3);
+  transition: color 160ms var(--v2-ease-soft);
+}
+.v2-systemIndex-title {
+  display: inline-block;
+  font-size: clamp(17px, 1.6vw, 26px);
+  line-height: 1.1;
+  color: var(--v2-ink);
+  transition: transform 180ms var(--v2-ease-soft);
+}
+/* Regression-repair-adjacent polish (PASS A §3): title AND keyword line
+   now sharpen together on hover/focus, not just the title, and the arrow
+   gets its own small, distinct 3-5px movement rather than reusing the
+   title's translateX. */
+.v2-systemIndex-row:hover .v2-systemIndex-title,
+.v2-systemIndex-row:focus-visible .v2-systemIndex-title {
+  transform: translateX(5px);
+}
+.v2-systemIndex-row:hover .v2-systemIndex-signals,
+.v2-systemIndex-row:focus-visible .v2-systemIndex-signals {
+  color: var(--v2-ink-2);
+}
+.v2-systemIndex-arrow {
+  transition: transform 180ms var(--v2-ease-soft);
+}
+.v2-systemIndex-row:hover .v2-systemIndex-arrow,
+.v2-systemIndex-row:focus-visible .v2-systemIndex-arrow {
+  transform: translateX(4px);
+}
+.v2-systemIndex-row:hover,
+.v2-systemIndex-row:focus-visible {
+  border-color: var(--v2-rule-strong);
+}
+.v2-systemIndex-row:focus-visible {
+  outline: 1px solid var(--v2-ink);
+  outline-offset: 4px;
+}
+@media (max-width: 720px) {
+  .v2-systemIndex-inner {
+    padding-inline: 20px;
+  }
+  .v2-systemIndex-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+  .v2-systemIndex-signals {
+    grid-column: 2;
+  }
+  .v2-systemIndex-arrow {
+    display: none;
+  }
+}
+
+/* Supporting Infrastructure (PASS A §9) — clean 3-row ruled list, same
+   visual language as the Selected Systems index rather than a card grid. */
+.v2-supporting-inner {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+}
+.v2-supporting-header {
+  display: grid;
+  grid-template-columns: minmax(64px, 2fr) minmax(0, 10fr);
+  gap: clamp(18px, 2vw, 34px);
+  align-items: baseline;
+  padding-bottom: clamp(28px, 4vh, 48px);
+}
+.v2-supporting-header p {
+  margin: 0;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--v2-ink-3);
+}
+.v2-supporting-header h2 {
+  margin: 0;
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--v2-ink);
+}
+.v2-supporting-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--v2-rule-strong);
+}
+.v2-supporting-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 3fr) minmax(200px, 3fr) minmax(260px, 6fr);
+  gap: clamp(16px, 2vw, 32px);
+  align-items: start;
+  padding-block: clamp(20px, 3vh, 32px);
+  border-bottom: 1px solid var(--v2-rule);
+}
+.v2-supporting-row h3 {
+  margin: 0;
+  font-size: clamp(18px, 1.7vw, 24px);
+  color: var(--v2-ink);
+}
+.v2-supporting-row p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--v2-ink-2);
+  max-width: 60ch;
+}
+@media (max-width: 720px) {
+  .v2-supporting-inner {
+    padding-inline: 20px;
+  }
+  .v2-supporting-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* Closing (PASS A §10) — a real final page, not a 2-line footer squeeze. */
+.v2-closing-inner {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+  max-width: 62ch;
+}
+.v2-closing-eyebrow {
+  margin: 0 0 var(--v2-space-md);
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--v2-ink-3);
+}
+.v2-closing-line {
+  margin: 0 0 10px;
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.45;
+  color: var(--v2-ink);
+}
+.v2-closing-links {
+  display: flex;
+  gap: clamp(18px, 2vw, 32px);
+  margin-top: var(--v2-space-lg);
+}
+.v2-closing-links a {
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--v2-ink-2);
+  text-decoration: none;
+}
+.v2-closing-links a:hover,
+.v2-closing-links a:focus-visible {
+  color: var(--v2-accent);
+}

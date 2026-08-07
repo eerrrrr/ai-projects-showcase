@@ -1,0 +1,52 @@
+/* Correction batch §J — since the outer page no longer fades (see
+   story-pages.css), these inner reveals can be more restrained: a major
+   title/statement never dips below 0.82, a small eyebrow/label never
+   dips below 0.78. Both exceed the "no essential text below 0.72"
+   floor. transform + opacity only, no blur, no scale — fires once, then
+   stays fully opaque (see Reveal.tsx). */
+.v2-reveal {
+  opacity: 0.82;
+  transform: translateY(12px);
+  transition:
+    opacity 420ms var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 420ms var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.v2-reveal--small {
+  opacity: 0.78;
+  transform: translateY(5px);
+  transition:
+    opacity 290ms var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 290ms var(--motion-ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.v2-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-reveal {
+    transition: none !important;
+  }
+}
+
+/* Word-by-word mechanical reveal (WordTypeReveal.tsx) — each word sits in
+   its own final layout position from the start (inline-block), only
+   opacity/transform animate, so wrapping and line breaks behave exactly
+   like normal text and nothing reflows as words become visible. */
+.v2-wordReveal-line {
+  display: block;
+}
+.v2-wordReveal-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.14em) scale(0.985);
+  transition: opacity 150ms cubic-bezier(0.22, 1, 0.36, 1), transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.v2-wordReveal-word--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-wordReveal-word {
+    transition: none !important;
+  }
+}

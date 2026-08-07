@@ -5,33 +5,45 @@
     "total": 7,
     "tier": 1,
     "tierLabel": "Featured proof",
-    "title": "Job Search Automation System",
-    "shortTitle": "Job Search Automation System",
-    "taglineHtml": "Criteria-first job screening workflow. OpenClaw was the early experiment; n8n is the verified rebuild.",
-    "whatItProvesHtml": "I can turn messy job listings into structured, criteria-based review output.",
-    "productionSignalHtml": "Real n8n execution &middot; validation rules &middot; review report generated &middot; edge case caught",
-    "tags": ["n8n", "Job search", "Workflow automation", "Human-in-the-loop"],
-    "keyNumber": "9",
-    "keyLabel": "mock listings screened · 4 review states · 0 silent drops",
-    "goalHtml": "<ul><li>Make job-opportunity review more consistent.</li><li>Check explicit criteria before judgment.</li><li>Flag missing data, location mismatch and language risk.</li><li>Produce a review report for human decision.</li><li>Avoid automatic applications or hidden rejection.</li></ul>",
-    "methodHtml": "<ul><li>Start from messy job listings.</li><li>Validate required fields before scoring.</li><li>Use rules to structure location, language and basic fit.</li><li>Let the workflow explain the review state.</li><li>Keep the final apply / reject decision manual.</li></ul>",
-    "resultHtml": "<ul><li>Explored the first job-screening logic in OpenClaw.</li><li>Rebuilt the useful logic as a verified n8n workflow.</li><li>Ran the workflow and generated a structured report.</li><li>Caught an incomplete listing / validation edge case.</li><li>Kept rejected and incomplete items visible.</li></ul>",
-    "failureHandledHtml": "<ul><li>OpenClaw is shown as early exploration, not a finished product.</li><li>The rebuild removed unreliable parts and kept the useful filter logic.</li><li>Missing data is flagged instead of guessed.</li><li>Nothing is silently dropped from the report.</li></ul>",
-    "decisionHtml": "<ul><li>AI and workflow assist with structure and review.</li><li>Human decision stays final.</li><li>The system does not auto-apply.</li><li>The report supports judgment; it does not replace it.</li></ul>",
-    "limitationHtml": "<ul><li>Uses controlled / mock listing data.</li><li>Current rules focus on location, language and missing data.</li><li>It is not yet a full job-fit evaluator.</li><li>Human review is still required.</li></ul>",
-    "stagesLabel": "Workflow — validate before score, human decides",
-    "stageCountLabel": "4 stages",
+    "title": "Job Screening Validation Workflow",
+    "shortTitle": "Job Screening Validation Workflow",
+    "taglineHtml": "Validation gate for OpenClaw-style task records. OpenClaw was the early experiment; n8n is the verified rebuild.",
+    "valueHtml": "Checks and normalizes OpenClaw-style task records before they reach Notion, and keeps every outcome — including a failed write — visible.",
+    "problemHtml": "Task records from an OpenClaw-style router (or manual entry) arrive in inconsistent shapes — tags as strings instead of arrays, non-ISO dates, oversized text, missing fields — any of which can silently break a Notion write or make it look like it succeeded when it didn't.",
+    "workflowHtml": "I built a real n8n workflow that normalizes incoming records, validates required fields and safety rules, maps them into a schema-safe Notion payload, and routes each one to a review state (READY / NEEDS_REVIEW / BLOCKED) before any write is attempted. A Manual Trigger runs six repeatable test records; a Webhook input is built for a real sender but not yet published or authenticated.",
+    "resultShortHtml": "A live Notion write was attempted and failed safely — the integration didn't yet have permission on the target database — so no fake success was reported; every record's outcome stays visible.",
+    "whatItProvesHtml": "I can build a validation gate that keeps AI/router output honest before it reaches a shared system, and report a failed write honestly instead of hiding it.",
+    "productionSignalHtml": "Real n8n execution &middot; 6 records normalized and validated &middot; schema-safe Notion payload built &middot; live write attempt failed safely, not silently",
+    "tags": ["n8n", "OpenClaw", "Notion", "Human-in-the-loop"],
+    "keyNumber": "6",
+    "keyLabel": "task records processed · 3 review states · 1 write attempt, failed safely",
+    "goalHtml": "<ul><li>Check AI/router output before it reaches Notion.</li><li>Normalize inconsistent field shapes (tags, dates, text length) before anything is judged.</li><li>Separate records into READY, NEEDS_REVIEW and BLOCKED instead of writing everything the same way.</li><li>Keep a human-readable report of what happened, including failures.</li><li>Never report a successful write that didn't actually happen.</li></ul>",
+    "methodHtml": "<ul><li>Start from OpenClaw-style task records — a manual test set, plus a Webhook input built for a real sender.</li><li>Normalize field shapes first: tags, dates, long text, unknown fields.</li><li>Validate required fields and safety rules before mapping anything toward Notion.</li><li>Map into the exact Notion payload shape, then assign a review state.</li><li>Attempt the write only for approved records; report success and failure honestly.</li></ul>",
+    "resultHtml": "<ul><li>Explored the first job-screening logic in OpenClaw.</li><li>Rebuilt it as a verified n8n workflow with normalization, validation and Notion payload mapping.</li><li>Ran the workflow on 6 controlled records: 1 READY, 3 NEEDS_REVIEW, 2 BLOCKED.</li><li>Attempted a live Notion write; it failed safely on a permission error, and that failure stayed visible instead of being hidden.</li><li>Kept every record's outcome — including the failed write — visible in the report.</li></ul>",
+    "failureHandledHtml": "<ul><li>OpenClaw is shown as early exploration, not a finished product.</li><li>Malformed fields (string tags, non-ISO dates, oversized text) are normalized instead of breaking the write.</li><li>The one live Notion write attempt failed on a permission error — the workflow reported that failure rather than a fake success.</li><li>Nothing is silently dropped from the report.</li></ul>",
+    "decisionHtml": "<ul><li>AI/router output is validated and normalized, but not trusted blindly.</li><li>NEEDS_REVIEW and BLOCKED records are not written without a human decision.</li><li>A failed write is reported as a failure, never disguised as success.</li><li>The report supports judgment; it does not replace it.</li></ul>",
+    "limitationHtml": "<ul><li>Uses controlled test records, not a live sender yet.</li><li>The Webhook input is built but not authenticated or published.</li><li>The one live Notion write attempt failed on a permission error — production use still needs that access granted, plus retry, dedupe and an independent error workflow.</li><li>Human review is still required before any write.</li></ul>",
+    "stagesLabel": "Workflow — validate before Notion write, human decides",
+    "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Manual trigger", "body": "Runs on demand from n8n or CLI; no silent background run.", "image": "/case-media/job-search-automation/stage-1-manual-trigger.png", "caption": "Manual trigger in the verified n8n workflow." },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Load listings", "body": "Loads one item per job listing so the source data stays visible.", "image": "/case-media/job-search-automation/stage-2-load-listings.png", "caption": "Raw listing data entering the workflow." },
-      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Validate, score and flag", "body": "Checks required fields first, then applies location, language-risk and fit rules.", "image": "/case-media/job-search-automation/stage-3-validate-score.png", "caption": "Validation and rule-based scoring logic." },
-      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Build summary report", "body": "Generates a readable report where passed, rejected and incomplete listings remain visible.", "image": "/case-media/job-search-automation/stage-4-summary-report.png", "caption": "Final report generated by the workflow." }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Intake trigger", "body": "A Manual Trigger runs six repeatable test records; a Webhook input is built for a real sender but not yet published or authenticated.", "caption": "Two trigger paths feed the same normalization step: manual test fixtures and a not-yet-live Webhook.", "miniNodes": ["Manual test fixtures", "Webhook built, not published", "No auto-run in background"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Normalize record", "body": "Incoming records are unwrapped, checked against an allowed-field list, and cleaned into one consistent shape before anything is judged.", "caption": "Tag strings become arrays, unknown fields are dropped, every record gets a correlation ID.", "miniNodes": ["Tags string → array", "Unknown fields removed", "Correlation ID assigned"] },
+      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Validate safety rules", "body": "Required fields, intent, dates, long text and oversized URLs are checked before anything is mapped toward Notion.", "caption": "Malformed dates and oversized text fall back instead of breaking the write; missing required fields are flagged, not guessed.", "miniNodes": ["Required fields checked", "Date / URL / text fallback", "Missing data flagged"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Map Notion payload", "body": "Validated records are mapped into the exact property shape Notion's API requires — before any write is attempted.", "caption": "Schema-safe payload preview, built and checked before touching the live database.", "miniNodes": ["Schema-safe mapping", "Payload preview built", "No write yet"] },
+      { "num": 5, "actor": "human", "actorLabel": "Human", "title": "Route review state", "body": "Each record becomes READY, NEEDS_REVIEW or BLOCKED — only READY records are eligible for a write; the rest wait for a human decision.", "caption": "Three review states keep every record visible instead of silently writing or silently dropping it.", "miniNodes": ["READY", "NEEDS_REVIEW", "BLOCKED"] },
+      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Review report / write outcome", "body": "The workflow generates a human-readable report; a real write attempt is reported honestly, including when it fails.", "caption": "One live write attempt failed on a Notion permission error — the workflow reported that failure instead of a fake success.", "miniNodes": ["Markdown report", "Real write attempted", "Failure reported, not hidden"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
-      "Validates required fields before scoring.",
-      "Keeps rejected and incomplete items visible for review."
-    ]
+      "Normalizes inconsistent field shapes before validation.",
+      "Reports a failed write honestly instead of a fake success."
+    ],
+    "valueLine": "OpenClaw-style intake → n8n validation → Notion-safe review handoff.",
+    "overviewChips": ["n8n", "Notion validation gate", "Safe failure"],
+    "miniRoadmap": ["Intake", "Normalize + validate", "Review state", "Notion handoff"],
+    "proofChips": ["n8n", "OpenClaw-style input", "Claude Code", "Notion API", "Safe failure"],
+    "finalRoadmap": "Task record → normalize → validate → Notion payload → review state → report / write outcome",
+    "finalTakeaway": "Check first. Normalize before judging. Report failure honestly."
   },
   {
     "id": "investment-research-system",
@@ -42,6 +54,10 @@
     "title": "Investment Reasoning Learning Database",
     "shortTitle": "Investment Reasoning Learning Database",
     "taglineHtml": "Source-first database for learning investment reasoning through evidence, risk and invalidation.",
+    "valueHtml": "Separates facts, assumptions, missing data and risk before any human decision.",
+    "problemHtml": "Expert investment write-ups mix facts, assumptions and conclusions together, making it hard to learn the reasoning behind them.",
+    "workflowHtml": "I built a source-first database that separates evidence from interpretation, then extracts the gates, assumptions, risks and invalidation logic behind each case.",
+    "resultShortHtml": "This is not a stock-picking system — it turns learning into reviewable criteria, with human judgment owning the final call.",
     "whatItProvesHtml": "I can learn expert reasoning structure instead of copying final opinions.",
     "productionSignalHtml": "Source-first database &middot; evidence gates &middot; assumptions / risks / invalidation extracted &middot; reusable skill logic",
     "tags": ["Investment learning", "Source-first", "Reasoning structure", "Skill database"],
@@ -56,16 +72,22 @@
     "stagesLabel": "Workflow — extract reasoning, not answers",
     "stageCountLabel": "4 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Source inbox", "body": "Collect notes, filings, discussions and research examples as source material.", "image": "/case-media/investment-learning-system/stage-1-source-inbox.png", "caption": "Source material entering the research database." },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Evidence tiering", "body": "Separate source evidence from interpretation, opinion and missing information.", "image": "/case-media/investment-learning-system/stage-2-evidence-tiering.png", "caption": "Evidence-tier grading applied to a source." },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Reasoning extraction", "body": "Extract gates, assumptions, risks and invalidation logic — not final calls, not automatic answers.", "image": "/case-media/investment-learning-system/stage-3-reasoning-extraction.png", "caption": "Distillation output: structure, not conclusion." },
-      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Skill card review", "body": "Human review decides whether a pattern becomes reusable skill logic.", "image": "/case-media/investment-learning-system/stage-4-skill-card-review.png", "caption": "A proposed skill patch awaiting human review." }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Source inbox", "body": "Collect source material before extracting lessons or patterns.", "image": "/case-media/investment-learning-system/stage-1-source-inbox.png", "caption": "Source material entering the research database.", "miniNodes": ["Filings, articles, interviews", "Notes and discussions", "Source material first"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Evidence tiering", "body": "Separate evidence from interpretation, opinion and missing information.", "image": "/case-media/investment-learning-system/stage-2-evidence-tiering.png", "caption": "Evidence-tier grading applied to a source.", "miniNodes": ["Separate evidence from opinion", "Flag missing information", "Evidence-tier grading"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Reasoning extraction", "body": "Extract gates, assumptions, risks and invalidation logic, not final calls.", "image": "/case-media/investment-learning-system/stage-3-reasoning-extraction.png", "caption": "Distillation output: structure, not conclusion.", "miniNodes": ["Extract gates and assumptions", "Extract risks and invalidation logic", "Not final calls or answers"] },
+      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Skill card review", "body": "Human review decides whether a repeated pattern becomes reusable skill logic.", "image": "/case-media/investment-learning-system/stage-4-skill-card-review.png", "caption": "A proposed skill patch awaiting human review.", "miniNodes": ["Human reviews the pattern", "Decides if it becomes a skill", "Reusable, not automatic"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
       "Distils expert process without copying final opinions.",
       "Turns repeated reasoning patterns into reviewed skill logic."
-    ]
+    ],
+    "valueLine": "Learn reasoning structure, not final opinions.",
+    "overviewChips": ["Python", "SQLite", "Source-first"],
+    "miniRoadmap": ["Sources", "Evidence", "Reasoning", "Skill review"],
+    "proofChips": ["Source-first", "Risk logic", "Human-gated"],
+    "finalRoadmap": "Source → evidence → reasoning pattern → human-reviewed skill logic",
+    "finalTakeaway": "Learn reasoning structure, not final opinions."
   },
   {
     "id": "moss-content-factory",
@@ -76,6 +98,10 @@
     "title": "Source-to-Figma Data Visualization Pipeline",
     "shortTitle": "Source-to-Figma Data Visualization Pipeline",
     "taglineHtml": "Collected sources &rarr; clear angle &rarr; structured content &rarr; Figma-ready visual output.",
+    "valueHtml": "Keeps research, drafting and visual layout connected through structured content and human review.",
+    "problemHtml": "Research, drafting and visual layout are usually disconnected, so content work has to be redone by hand each time.",
+    "workflowHtml": "I built a pipeline that collects sources, finds the angle, structures the evidence into content blocks, then hands off structured content directly into Figma.",
+    "resultShortHtml": "188 logged pipeline runs later, human review still gates every piece before it's approved or posted.",
     "whatItProvesHtml": "I can connect source collection, analysis and visual communication.",
     "productionSignalHtml": "Source material &rarr; angle finding &rarr; structured content blocks &rarr; Figma-ready output &middot; human approval before publish",
     "tags": ["Source collection", "Data visualization", "Figma handoff", "Human-in-the-loop"],
@@ -90,16 +116,22 @@
     "stagesLabel": "Workflow — source to angle to visual output",
     "stageCountLabel": "4 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Source collection", "body": "Collect notes, images, references and source material from reviewed sources.", "image": "/case-media/social-media-pipeline/stage-1-source-collection.png", "caption": "Tiered source material entering the pipeline." },
-      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Angle finding", "body": "Identify the main point before generating content or layout.", "image": "/case-media/social-media-pipeline/stage-2-angle-finding.png", "caption": "AI draft with a clear angle, before human review." },
-      { "num": 3, "actor": "human", "actorLabel": "Human", "title": "Content structure", "body": "Turn evidence into captions, content blocks and visual text.", "image": "/case-media/social-media-pipeline/stage-3-content-structure.png", "caption": "Human review gate before anything is approved." },
-      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Figma-ready output", "body": "Prepare structured content for Figma layout and final human review.", "image": "/case-media/social-media-pipeline/stage-4-figma-output.png", "caption": "Final Figma-ready visual output." }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Source collection", "body": "Collect notes, images and references from reviewed sources.", "image": "/case-media/social-media-pipeline/stage-1-source-collection.png", "caption": "Tiered source material entering the pipeline.", "miniNodes": ["Notes, images, references", "Reviewed sources only", "No invented facts"] },
+      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Angle finding", "body": "Identify the main point before generating content or layout.", "image": "/case-media/social-media-pipeline/stage-2-angle-finding.png", "caption": "AI draft with a clear angle, before human review.", "miniNodes": ["Find the angle first", "Before content or layout", "AI drafts, doesn't invent"] },
+      { "num": 3, "actor": "human", "actorLabel": "Human", "title": "Content structure", "body": "Turn evidence into captions, content blocks and visual text.", "image": "/case-media/social-media-pipeline/stage-3-content-structure.png", "caption": "Human review gate before anything is approved.", "miniNodes": ["Evidence into captions", "Structured content blocks", "Human review gate"] },
+      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Figma-ready output", "body": "Prepare structured content for Figma layout and final human review.", "image": "/case-media/social-media-pipeline/stage-4-figma-output.png", "caption": "Final Figma-ready visual output.", "miniNodes": ["Figma-ready layout", "Final human review", "Approved before publish"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
       "Turns reviewed source material into visual output without losing evidence.",
       "Connects database content to Figma-ready communication materials."
-    ]
+    ],
+    "valueLine": "Turn reviewed sources into visual communication.",
+    "overviewChips": ["Notion", "Figma handoff", "Human review"],
+    "miniRoadmap": ["Sources", "Angle", "Content blocks", "Figma output"],
+    "proofChips": ["Source-backed", "Figma output", "Human approval"],
+    "finalRoadmap": "Source → angle → content blocks → Figma output → human review",
+    "finalTakeaway": "Source evidence becomes visual communication."
   },
   {
     "id": "evidence-review-decision-gate",
@@ -110,6 +142,10 @@
     "title": "AI Output Review &amp; Debug Memory System",
     "shortTitle": "AI Output Review & Debug Memory System",
     "taglineHtml": "Checks AI output, captures mistakes and turns recurring issues into reusable review rules.",
+    "valueHtml": "Turns AI mistakes and unclear outputs into reusable review rules.",
+    "problemHtml": "Confident-sounding AI output can hide missing evidence or overstated claims.",
+    "workflowHtml": "I built a two-layer check — a rule-based gate plus an independent phrase scan — that reviews AI output before it's trusted, and logs what it finds.",
+    "resultShortHtml": "An unsafe note was rejected, a clean one passed, and a real scanner bug was found, fixed and logged as a reusable lesson.",
     "whatItProvesHtml": "I can test AI output before trusting it, and turn bugs or unclear answers into reusable workflow improvements.",
     "productionSignalHtml": "Unsafe output rejected &middot; clean output passed &middot; scanner bug found and fixed &middot; mistake logged for future reuse",
     "tags": ["AI review", "Debugging", "Mistake log", "Quality gate", "Reusable rules"],
@@ -124,16 +160,22 @@
     "stagesLabel": "Workflow — check AI output, then log the lesson",
     "stageCountLabel": "4 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Structured extraction", "body": "Split rough AI output into facts, assumptions, missing information and claims.", "image": "/case-media/ai-mistake-review-gate/stage-1-structured-extraction.png", "caption": "Facts, interpretation and missing data split apart." },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Evidence and consistency check", "body": "Checks whether claims have source support, whether key information is missing, and whether the answer overstates certainty.", "image": "/case-media/ai-mistake-review-gate/stage-2-rule-based-gate.png", "caption": "Missing evidence and unsupported claims flagged." },
-      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Independent phrase scan", "body": "Runs a second check on the rendered output to catch unsafe wording, action bias or unsupported conclusions.", "image": "/case-media/ai-mistake-review-gate/stage-3-phrase-scan.png", "caption": "A second, separate scan of the rendered report text." },
-      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Debug memory update", "body": "Records the bug, lesson and what to avoid next time so the same mistake can become a future check.", "image": "/case-media/ai-mistake-review-gate/stage-4-decision-report.png", "caption": "REJECT or PASS_FOR_REVIEW, with reasons." }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Structured extraction", "body": "Split rough AI output into facts, assumptions, missing information and claims.", "image": "/case-media/ai-mistake-review-gate/stage-1-structured-extraction.png", "caption": "Facts, interpretation and missing data split apart.", "miniNodes": ["Facts vs assumptions", "Missing information flagged", "Claims separated out"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Evidence and consistency check", "body": "Check source support, missing information and overstated certainty.", "image": "/case-media/ai-mistake-review-gate/stage-2-rule-based-gate.png", "caption": "Missing evidence and unsupported claims flagged.", "miniNodes": ["Check source support", "Flag missing information", "Catch overstated certainty"] },
+      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Independent phrase scan", "body": "Run a second check to catch unsafe wording, action bias or unsupported conclusions.", "image": "/case-media/ai-mistake-review-gate/stage-3-phrase-scan.png", "caption": "A second, separate scan of the rendered report text.", "miniNodes": ["Second, independent check", "Catch unsafe wording", "Catch action bias"] },
+      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Debug memory update", "body": "Record the bug, lesson and what to avoid next time so the mistake becomes reusable.", "image": "/case-media/ai-mistake-review-gate/stage-4-decision-report.png", "caption": "REJECT or PASS_FOR_REVIEW, with reasons.", "miniNodes": ["Log the bug and lesson", "Record what to avoid", "Becomes a future check"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
       "Separates verified information from AI interpretation before reuse.",
       "Uses two checks so one weak gate does not decide alone."
-    ]
+    ],
+    "valueLine": "Check AI output before reuse.",
+    "overviewChips": ["Rule-based gate", "Phrase scan", "Debug memory"],
+    "miniRoadmap": ["AI output", "Evidence check", "Risk scan", "Debug memory"],
+    "proofChips": ["2 safety layers", "Bug fixed", "Reusable checks"],
+    "finalRoadmap": "AI output → evidence check → risk scan → debug memory → reusable rule",
+    "finalTakeaway": "Mistakes become reusable review rules."
   },
   {
     "id": "method-of-loci",
@@ -142,7 +184,9 @@
     "tier": 2,
     "tierLabel": "Supporting system",
     "title": "Method of Loci — automated document-ingestion pipeline",
+    "taglineHtml": "Turns saved social-media archives into a searchable, offline knowledge base.",
     "tags": ["Document ingestion", "AI extraction", "Scheduled automation", "Python · Gemini · SQLite"],
+    "overviewChips": ["Python", "Gemini AI", "SQLite"],
     "keyNumber": "860",
     "keyLabel": "AI extracts · 175 posts · 748 assets · 3.5 months hands-off",
     "goalHtml": "Turn saved social-media archives into a <strong>searchable, offline knowledge base</strong>.",
@@ -151,12 +195,17 @@
     "stagesLabel": "Workflow — runs unattended at login",
     "stageCountLabel": "5 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "ZIP inbox", "body": "Export archives enter a watched folder." },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Import + normalize", "body": "Files are unpacked, renamed and registered." },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "AI extraction", "body": "Gemini writes searchable image and video descriptions." },
-      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Sync to Notion", "body": "Each post carries a pipeline status." },
-      { "num": 5, "actor": "out", "actorLabel": "Output", "title": "Searchable database", "body": "SQLite remains the offline source of truth." }
-    ]
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "ZIP inbox", "body": "Export archives enter a watched folder.", "miniNodes": ["Watched folder", "Export archive arrives"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Import + normalize", "body": "Files are unpacked, renamed and registered.", "miniNodes": ["Unpacked", "Renamed", "Registered"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "AI extraction", "body": "Gemini writes searchable image and video descriptions.", "miniNodes": ["Gemini AI", "Image descriptions", "Video descriptions"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Sync to Notion", "body": "Each post carries a pipeline status.", "miniNodes": ["Synced to Notion", "Pipeline status tracked"] },
+      { "num": 5, "actor": "out", "actorLabel": "Output", "title": "Searchable database", "body": "SQLite remains the offline source of truth.", "miniNodes": ["SQLite database", "Offline source of truth"] }
+    ],
+    "valueLine": "Scheduled Python pipeline that turns saved archives into a searchable, offline knowledge base.",
+    "miniRoadmap": ["Inbox", "Import", "AI extract", "Sync", "Database"],
+    "proofChips": ["860 AI extracts", "175 posts", "3.5 months hands-off"],
+    "finalRoadmap": "ZIP inbox → import + normalize → AI extraction → sync to Notion → searchable database",
+    "finalTakeaway": "Runs unattended. SQLite stays the source of truth."
   },
   {
     "id": "video-pipeline",
@@ -165,7 +214,9 @@
     "tier": 3,
     "tierLabel": "Learning lab",
     "title": "AI-Assisted Video Pipeline — &ldquo;decide before render&rdquo;",
+    "taglineHtml": "Plan-before-render editing pipeline for phone footage &rarr; publishable vertical reels.",
     "tags": ["Process design", "Cost control", "Privacy automation", "ffmpeg · Resolve API · DCTL"],
+    "overviewChips": ["ffmpeg", "Resolve API", "Privacy pass"],
     "keyNumber": "2",
     "keyLabel": "Published productions · locked reusable template · full chain incl. privacy pass",
     "goalHtml": "Turn raw phone footage into publishable vertical reels without wasting time on repeated renders.",
@@ -174,13 +225,18 @@
     "stagesLabel": "Workflow — plan approved before compute is spent",
     "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Footage ingest", "body": "Read metadata and group clips." },
-      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Privacy pass", "body": "Mosaic bystander faces with a QA contact sheet." },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Triage + EDIT_PLAN", "body": "Mark KEEP / TRIM / KILL and write the edit plan." },
-      { "num": 4, "actor": "human", "actorLabel": "Human", "title": "Human approval", "body": "No render before sign-off." },
-      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Build the cut", "body": "ffmpeg assembles the approved plan." },
-      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Final export", "body": "Exported, metadata-stripped, versioned output." }
-    ]
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Footage ingest", "body": "Read metadata and group clips.", "miniNodes": ["Read metadata", "Group clips"] },
+      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Privacy pass", "body": "Mosaic bystander faces with a QA contact sheet.", "miniNodes": ["Mosaic bystander faces", "QA contact sheet"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Triage + EDIT_PLAN", "body": "Mark KEEP / TRIM / KILL and write the edit plan.", "miniNodes": ["KEEP / TRIM / KILL", "Edit plan written"] },
+      { "num": 4, "actor": "human", "actorLabel": "Human", "title": "Human approval", "body": "No render before sign-off.", "miniNodes": ["Human sign-off required", "No render before approval"] },
+      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Build the cut", "body": "ffmpeg assembles the approved plan.", "miniNodes": ["ffmpeg assembly", "Approved plan only"] },
+      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Final export", "body": "Exported, metadata-stripped, versioned output.", "miniNodes": ["Metadata stripped", "Versioned output"] }
+    ],
+    "valueLine": "Plan-before-render editing pipeline — nothing renders until a human approves the edit plan.",
+    "miniRoadmap": ["Ingest", "Privacy", "Triage", "Approval", "Render", "Export"],
+    "proofChips": ["2 productions", "Privacy pass", "Human approval gate"],
+    "finalRoadmap": "Footage ingest → privacy pass → triage + EDIT_PLAN → human approval → build the cut → final export",
+    "finalTakeaway": "Compute is spent only after a human-approved plan."
   },
   {
     "id": "blender-comfyui-previs",
@@ -189,7 +245,9 @@
     "tier": 3,
     "tierLabel": "Learning lab",
     "title": "Blender + ComfyUI — controllable AI video on free local models",
+    "taglineHtml": "Tests whether local AI video tools can produce controllable motion, camera and material effects.",
     "tags": ["Generative AI", "Prototyping", "Build-vs-buy", "Blender · Wan2.1 · IPAdapter"],
+    "overviewChips": ["Blender", "ComfyUI", "Wan2.1"],
     "keyNumber": "3",
     "keyLabel": "Finished content tracks · graded masters · written case study",
     "goalHtml": "Test whether local AI video tools can produce controllable motion, camera and material effects.",
@@ -198,12 +256,17 @@
     "stagesLabel": "Workflow — a 3D control layer feeds the video model",
     "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "3D", "title": "Blender greybox", "body": "Rough 3D scene defines camera and blocking." },
-      { "num": 2, "actor": "sys", "actorLabel": "3D", "title": "Depth render", "body": "Depth pass becomes the control signal." },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Wan2.1 VACE generation", "body": "Local model generates motion from control inputs." },
-      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Grade + upscale", "body": "Improve the raw output." },
-      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Finish", "body": "Add interpolation and room tone." },
-      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Release packages", "body": "Export vertical, square and showcase formats." }
-    ]
+      { "num": 1, "actor": "sys", "actorLabel": "3D", "title": "Blender greybox", "body": "Rough 3D scene defines camera and blocking.", "miniNodes": ["Rough 3D scene", "Camera blocking"] },
+      { "num": 2, "actor": "sys", "actorLabel": "3D", "title": "Depth render", "body": "Depth pass becomes the control signal.", "miniNodes": ["Depth pass", "Control signal"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Wan2.1 VACE generation", "body": "Local model generates motion from control inputs.", "miniNodes": ["Local model", "Motion generation", "Control inputs"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Grade + upscale", "body": "Improve the raw output.", "miniNodes": ["Grade the output", "Upscale"] },
+      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Finish", "body": "Add interpolation and room tone.", "miniNodes": ["Interpolation", "Room tone"] },
+      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Release packages", "body": "Export vertical, square and showcase formats.", "miniNodes": ["Vertical format", "Square format", "Showcase format"] }
+    ],
+    "valueLine": "A 3D control layer (Blender) drives local AI video generation for controllable motion and camera.",
+    "miniRoadmap": ["Greybox", "Depth", "AI generate", "Grade", "Finish", "Release"],
+    "proofChips": ["3 content tracks", "Graded masters", "Local models"],
+    "finalRoadmap": "Blender greybox → depth render → Wan2.1 VACE generation → grade + upscale → finish → release packages",
+    "finalTakeaway": "A 3D control layer keeps local AI video generation controllable."
   }
 ]

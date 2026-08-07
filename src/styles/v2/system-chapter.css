@@ -1,0 +1,255 @@
+/* PASS A §4 — the one reusable System chapter template, used by all 7
+   Systems (previously only System 01 had this depth). 12-column grid:
+   left rail ~4 columns (concise identity + CTA), right field ~8 columns
+   (workflow), zipped evidence spanning full width below. */
+.v2-chapter-grid {
+  width: min(100%, var(--v2-max-width));
+  margin-inline: auto;
+  padding-inline: var(--v2-grid-margin);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(20px, 2.4vw, 40px);
+  row-gap: clamp(32px, 4vh, 56px);
+  align-items: start;
+}
+.v2-chapter-rail {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: clamp(24px, 4vh, 56px);
+}
+.v2-chapter-number {
+  margin: 4px 0 0;
+  font-size: clamp(56px, 6vw, 100px);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: var(--v2-ink);
+}
+.v2-chapter-title {
+  margin: 10px 0 0;
+  font-size: clamp(24px, 2.6vw, 38px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--v2-ink);
+  max-width: 14ch;
+}
+.v2-chapter-value {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--v2-ink-2);
+  max-width: 32ch;
+}
+.v2-chapter-sequence {
+  margin: 6px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--v2-ink-3);
+  max-width: 34ch;
+}
+.v2-chapter-key {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--v2-ink-2);
+}
+.v2-chapter-key-number {
+  font-family: var(--v2-font-mono);
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+.v2-chapter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  color: var(--v2-ink-3);
+}
+.v2-chapter-cta {
+  margin-top: var(--v2-space-sm);
+}
+.v2-chapter-cta a {
+  color: var(--v2-accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+.v2-chapter-cta a:hover,
+.v2-chapter-cta a:focus-visible {
+  text-decoration: underline;
+}
+
+.v2-chapter-workflowField {
+  grid-column: 5 / span 8;
+  min-width: 0;
+}
+
+/* Correction batch §F/G — evidence moved INTO the right workflow field,
+   below the workflow + its detail rail, as a compact label selector +
+   one shared panel (EvidenceInspector.tsx) instead of six independently
+   expanding blocks spanning the full chapter width. Only one panel can
+   ever be open (enforced in the component, not just visually here), so
+   opening evidence never distorts the sticky stage's height enough to
+   confuse the roll engine's chapter-boundary math. */
+.v2-evidenceInspector {
+  margin-top: var(--v2-space-md);
+  border-top: 1px solid var(--v2-rule);
+  padding-top: clamp(16px, 2vh, 24px);
+}
+.v2-evidenceInspector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  background: transparent;
+  border: 1px solid var(--v2-rule);
+}
+/* Transparent, not the tan --v2-paper-2 fill the whole grid used to
+   sit on — grid lines now come from real borders on each tab (below)
+   instead of the page background peeking through 1px gaps, since a
+   transparent grid background would otherwise erase those lines too. */
+/* Correction batch (2nd pass): readability targets — 13-14px (was
+   10.5px), weight 600 (was 500), title case via the short-label mapping
+   in EvidenceInspector.tsx instead of forced uppercase, restrained
+   letter-spacing. Plain UI sans, not the mono label font, since these
+   are now real short words ("Build", "Outcome"), not metadata codes. */
+.v2-evidenceInspector-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 13px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--v2-rule);
+  border-bottom: 1px solid var(--v2-rule);
+  cursor: pointer;
+  font-family: var(--v2-font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  color: var(--v2-ink-3);
+  text-align: left;
+  transition: color 160ms var(--v2-ease-soft), background-color 160ms var(--v2-ease-soft);
+}
+.v2-evidenceInspector-tab:nth-child(3n) {
+  border-right: none;
+}
+.v2-evidenceInspector-tab:nth-child(n + 4) {
+  border-bottom: none;
+}
+.v2-evidenceInspector-tab:hover,
+.v2-evidenceInspector-tab:focus-visible {
+  color: var(--v2-ink);
+}
+.v2-evidenceInspector-tab--active {
+  color: var(--v2-ink);
+  background: var(--v2-accent-soft);
+  border-bottom: 1.5px solid var(--v2-accent);
+}
+.v2-evidenceInspector-panel {
+  margin-top: clamp(14px, 2vh, 20px);
+  animation: v2-evidenceInspector-in 320ms var(--motion-ease-out, ease-out);
+}
+@keyframes v2-evidenceInspector-in {
+  from {
+    opacity: 0.6;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.v2-evidenceInspector-content {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--v2-ink);
+  max-width: 68ch;
+}
+.v2-evidenceInspector-content ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.v2-evidenceInspector-content li {
+  margin-bottom: 8px;
+}
+.v2-evidenceInspector-content li[hidden],
+.v2-evidenceInspector-content > *[hidden] {
+  display: none;
+}
+.v2-quickread-toggle {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--v2-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.v2-quickread-toggle:hover,
+.v2-quickread-toggle:focus-visible {
+  color: var(--v2-ink);
+}
+.v2-evidenceInspector-content p {
+  margin: 0 0 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-evidenceInspector-panel {
+    animation: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .v2-chapter-grid {
+    grid-template-columns: 1fr;
+  }
+  .v2-chapter-rail,
+  .v2-chapter-workflowField {
+    grid-column: 1;
+  }
+  .v2-chapter-rail {
+    position: static;
+  }
+  .v2-chapter-title {
+    max-width: none;
+  }
+}
+@media (max-width: 720px) {
+  .v2-chapter-grid {
+    padding-inline: 20px;
+  }
+  .v2-evidenceInspector-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Re-derive the grid-line borders for 2 columns (3 rows of 6 items) —
+     the desktop 3n/n+4 rules above assume 3 columns. */
+  .v2-evidenceInspector-tab:nth-child(3n) {
+    border-right: 1px solid var(--v2-rule);
+  }
+  .v2-evidenceInspector-tab:nth-child(n + 4) {
+    border-bottom: 1px solid var(--v2-rule);
+  }
+  .v2-evidenceInspector-tab:nth-child(2n) {
+    border-right: none;
+  }
+  .v2-evidenceInspector-tab:nth-child(n + 5) {
+    border-bottom: none;
+  }
+}
