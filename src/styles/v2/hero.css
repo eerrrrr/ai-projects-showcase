@@ -18,6 +18,22 @@
   margin: 0;
   overflow: hidden;
   isolation: isolate;
+  /* Real bug, confirmed by direct feedback: dragging the browser window
+     narrow enough to cross the desktop/mobile breakpoint below (roughly
+     1023px, or a 4:3-and-shorter aspect ratio) flips this element's
+     height from 100svh straight to auto in one frame — since the mobile
+     rule's resolved height is only the image's own height, everything
+     below the Hero instantly snaps up/down by hundreds of pixels rather
+     than reflowing smoothly. A plain transition on height/min-height/
+     padding turns that snap into a short glide in browsers that support
+     animating to/from `auto` (current Chrome/Edge); it's a no-op — same
+     as before, not worse — in browsers that don't, so this is a pure
+     enhancement, never a regression. Reduced-motion carve-out below. */
+  transition:
+    height 320ms var(--v2-ease-soft),
+    min-height 320ms var(--v2-ease-soft),
+    padding-top 320ms var(--v2-ease-soft),
+    padding-bottom 320ms var(--v2-ease-soft);
   /* Two-layer studio background: a soft radial "room" glow (matches the
      photo's own upper-centre light falloff) plus a top-to-bottom
      gradient using the same real-PNG-measured edge colours as before
@@ -33,6 +49,11 @@
   background:
     radial-gradient(ellipse 92% 88% at 50% 13%, rgba(249, 244, 239, 0.96) 0%, rgba(238, 229, 222, 0.96) 50%, rgba(220, 211, 204, 1) 100%),
     linear-gradient(to bottom, var(--v2-hero-top), var(--v2-hero-mid) 58%, var(--v2-hero-bottom));
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-hero {
+    transition: none !important;
+  }
 }
 
 /* Two-layer full-viewport Hero (Gate 1, point 1/3): the sharp primary
