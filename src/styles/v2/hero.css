@@ -20,7 +20,7 @@
   isolation: isolate;
   /* Real bug, confirmed by direct feedback: dragging the browser window
      narrow enough to cross the desktop/mobile breakpoint below (roughly
-     760px, or a 4:3-and-shorter aspect ratio) flips this element's
+     760px, or a 3:4-and-shorter aspect ratio) flips this element's
      height from 100svh straight to auto in one frame — since the mobile
      rule's resolved height is only the image's own height, everything
      below the Hero instantly snaps up/down by hundreds of pixels rather
@@ -148,7 +148,7 @@
     rgba(235, 225, 217, 1) 100%
   );
 }
-@media (max-width: 760px), (max-aspect-ratio: 4/3) {
+@media (max-width: 760px), (max-aspect-ratio: 3/4) {
   .v2-hero::after,
   .v2-hero::before {
     height: clamp(20px, 3vh, 28px);
@@ -301,15 +301,32 @@
    coordinate space hotspots/annotations measure against — it is NOT
    masked itself (only .v2-hero-sceneFocus, its purely-visual child, is
    — see below), so hotspots and the annotation layer are never faded by
-   the edge blend. */
+   the edge blend.
+
+   Real bug, confirmed by direct feedback: at a genuinely tall/portrait
+   window (e.g. ~1101x1377, aspect ratio ~0.8), pure height-led sizing
+   forces width = height * 1.8112 — for a 1377px-tall Hero that is
+   ~2494px, nearly 2.3x the actual viewport width, so .v2-hero's
+   `overflow: hidden` crops off both side card piles and leaves only a
+   narrow centre slice. This is the exact bug the aspect-ratio fallback
+   breakpoint further down exists to dodge entirely, but dodging it
+   loses the whole interactive experience for any portrait-ish window,
+   not just extreme phone ones. Fixed at the source instead: height is
+   capped to whichever is smaller — 100% of the Hero, or the height that
+   would make the image exactly viewport-width (100vw / the image's own
+   ratio). Landscape/wide viewports are completely unaffected (100% is
+   always the smaller value there, identical to before); portrait
+   viewports now get a width-capped, vertically-centred image with no
+   crop, instead of an oversized one sliced by overflow:hidden. */
 .v2-hero-scenePositioner {
   position: absolute;
   left: 50%;
-  top: 0;
-  height: 100%;
+  top: 50%;
+  --v2-hero-ratio: 1.811197917;
+  height: min(100%, calc(100vw / var(--v2-hero-ratio)));
   width: auto;
   aspect-ratio: 2782 / 1536;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   --focus-x: 50%;
   --focus-y: 50%;
   --focus-radius-x: 14%;
@@ -528,18 +545,30 @@
    "is this actually a landscape desktop viewport" — a narrow-but-tall
    window is never that, regardless of its raw width number. Two OR'd
    conditions (comma = OR in a media query): width below the threshold
-   below, OR an aspect ratio no wider than 4:3 (catches portrait/
-   near-square windows at ANY width, including wide-but-tall ones).
+   below, OR an aspect ratio no wider than the ratio below (catches
+   portrait/near-square windows at ANY width, including wide-but-tall
+   ones).
    Per direct feedback: a plain desktop browser window that's simply not
    maximized (still landscape, still mouse-driven) was falling back to
    the plain numbered-link list far too eagerly at the old 1023px cutoff
    — losing the image/hover experience for an ordinary "window isn't
    full-screen" case, not just genuinely small/mobile viewports. Narrowed
-   to 760px, which a resized-but-still-landscape desktop window clears
-   easily; the aspect-ratio condition above is UNCHANGED, so the original
-   921x1400-style tall-narrow cropping bug this breakpoint fixed stays
-   fixed regardless of width. */
-@media (max-width: 760px), (max-aspect-ratio: 4/3) {
+   to 760px.
+   Second round, per further direct feedback with a real ~1101x1377
+   (aspect ratio ~0.8) window: the ORIGINAL reason this aspect-ratio
+   condition existed at all — the cropping bug described above — is now
+   fixed at its source in .v2-hero-scenePositioner (height is capped so
+   the image can never overflow the viewport's width). That means this
+   condition no longer needs to catch every portrait-ish window, only
+   the genuinely narrow/phone-like ones where the image would become too
+   short to be a meaningful interactive surface. Loosened from 4/3
+   (1.333 — rejected almost anything portrait) to 3/4 (0.75), so a
+   moderately tall window like the reported 0.8 case now correctly gets
+   the full image/hover layout with no crop; true phone-portrait ratios
+   (≈0.5625 for 9:16) still fall back, and those devices are normally
+   touch anyway, already independently caught by the `(pointer: coarse)`
+   rule further below regardless of this condition. */
+@media (max-width: 760px), (max-aspect-ratio: 3/4) {
   .v2-hero {
     height: auto;
     min-height: 0;
