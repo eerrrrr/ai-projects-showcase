@@ -44,13 +44,17 @@ export function WordTypeReveal({
         triggeredRef.current = true
         observer.disconnect()
 
-        let elapsed = 200 // wait after the label before the first word
+        // Slowed down per direct feedback — the original 90ms stagger with
+        // a 150ms fade (in reveal.css) read as a fast strobe rather than a
+        // calm cascade. Kept as the only change: no other motion system in
+        // this app was touched.
+        let elapsed = 260 // wait after the label before the first word
         const timers: number[] = []
         wordEntriesRef.current.forEach((word, i) => {
           const id = window.setTimeout(() => setRevealedCount((c) => Math.max(c, i + 1)), elapsed)
           timers.push(id)
           const endsWithPunctuation = /[,.]$/.test(word)
-          elapsed += 90 + (endsWithPunctuation ? 140 : 0)
+          elapsed += 150 + (endsWithPunctuation ? 200 : 0)
         })
       },
       { threshold: 0.2 },
