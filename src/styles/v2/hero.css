@@ -20,7 +20,7 @@
   isolation: isolate;
   /* Real bug, confirmed by direct feedback: dragging the browser window
      narrow enough to cross the desktop/mobile breakpoint below (roughly
-     1023px, or a 4:3-and-shorter aspect ratio) flips this element's
+     760px, or a 4:3-and-shorter aspect ratio) flips this element's
      height from 100svh straight to auto in one frame — since the mobile
      rule's resolved height is only the image's own height, everything
      below the Hero instantly snaps up/down by hundreds of pixels rather
@@ -148,7 +148,7 @@
     rgba(235, 225, 217, 1) 100%
   );
 }
-@media (max-width: 1023px), (max-aspect-ratio: 4/3) {
+@media (max-width: 760px), (max-aspect-ratio: 4/3) {
   .v2-hero::after,
   .v2-hero::before {
     height: clamp(20px, 3vh, 28px);
@@ -527,10 +527,19 @@
    zoom. The real condition that matters is not "is the width small" but
    "is this actually a landscape desktop viewport" — a narrow-but-tall
    window is never that, regardless of its raw width number. Two OR'd
-   conditions (comma = OR in a media query): width below 1024px, OR an
-   aspect ratio no wider than 4:3 (catches portrait/near-square windows
-   at ANY width, including ones ≥1024px tall-and-narrow). */
-@media (max-width: 1023px), (max-aspect-ratio: 4/3) {
+   conditions (comma = OR in a media query): width below the threshold
+   below, OR an aspect ratio no wider than 4:3 (catches portrait/
+   near-square windows at ANY width, including wide-but-tall ones).
+   Per direct feedback: a plain desktop browser window that's simply not
+   maximized (still landscape, still mouse-driven) was falling back to
+   the plain numbered-link list far too eagerly at the old 1023px cutoff
+   — losing the image/hover experience for an ordinary "window isn't
+   full-screen" case, not just genuinely small/mobile viewports. Narrowed
+   to 760px, which a resized-but-still-landscape desktop window clears
+   easily; the aspect-ratio condition above is UNCHANGED, so the original
+   921x1400-style tall-narrow cropping bug this breakpoint fixed stays
+   fixed regardless of width. */
+@media (max-width: 760px), (max-aspect-ratio: 4/3) {
   .v2-hero {
     height: auto;
     min-height: 0;
