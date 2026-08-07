@@ -185,6 +185,19 @@ export function SwissHero() {
   // debugging pass): React's synthetic onFocus never reliably fires on
   // these hotspot buttons in this app/environment; a plain
   // addEventListener('focus', ...) attached directly to the element does.
+  //
+  // Real bug, confirmed by direct feedback: a mouse click on one of these
+  // <button> elements natively focuses it in this browser (Chrome/Windows
+  // default), which fires `handleFocus` below and pins the annotation to
+  // full strength via keyboardTargetIdRef — overriding proximity entirely
+  // until the user clicks elsewhere to blur it. The comment above (and
+  // the hotspot buttons below) already document that a click is not
+  // supposed to mean anything here; this was an unintended side effect of
+  // native click-to-focus, not an actual click handler. Fixed by
+  // preventing the browser's default focus-on-mousedown for pointer
+  // input specifically — Tab-key focus (which never fires mousedown) is
+  // completely unaffected, so keyboard reachability still works exactly
+  // as before.
   useEffect(() => {
     const cleanups: Array<() => void> = []
     heroToolTargets.forEach((target) => {
@@ -196,11 +209,16 @@ export function SwissHero() {
       const handleBlur = () => {
         if (keyboardTargetIdRef.current === target.id) keyboardTargetIdRef.current = null
       }
+      const handleMouseDown = (event: MouseEvent) => {
+        event.preventDefault()
+      }
       el.addEventListener('focus', handleFocus)
       el.addEventListener('blur', handleBlur)
+      el.addEventListener('mousedown', handleMouseDown)
       cleanups.push(() => {
         el.removeEventListener('focus', handleFocus)
         el.removeEventListener('blur', handleBlur)
+        el.removeEventListener('mousedown', handleMouseDown)
       })
     })
     return () => cleanups.forEach((fn) => fn())
