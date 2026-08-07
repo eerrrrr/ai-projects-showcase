@@ -22,9 +22,12 @@ import { useReducedMotion } from '../../hooks/useReducedMotion'
 // - manual hover/focus on a node still takes control immediately and
 //   stays that way until Replay Workflow is clicked or the chapter is
 //   re-entered (leaving and coming back resets `userControlRef`).
-const WORKFLOW_SETTLE_DELAY = 220
-const WORKFLOW_STEP_MS = 600
-const DETAIL_UPDATE_DELAY_MS = 130
+// Slowed down further per direct feedback that the whole diagram —
+// node-by-node cadence, entrance stagger, detail-rail update — read as
+// too fast to actually follow.
+const WORKFLOW_SETTLE_DELAY = 260
+const WORKFLOW_STEP_MS = 1200
+const DETAIL_UPDATE_DELAY_MS = 220
 
 export function WorkflowDiagram({
   workflow,
@@ -167,7 +170,7 @@ export function WorkflowDiagram({
               {i > 0 && (
                 <div
                   className={`v2-workflow-connector${connectorDimmed ? ' v2-workflow-connector--dim' : ''}`}
-                  style={{ transitionDelay: hasEntered ? `${Math.max(0, i * 90)}ms` : '0ms' }}
+                  style={{ transitionDelay: hasEntered ? `${Math.max(0, i * 140)}ms` : '0ms' }}
                   aria-hidden="true"
                 />
               )}
@@ -176,7 +179,7 @@ export function WorkflowDiagram({
                 className={`v2-flowNode v2-flowNode--${node.actor.toLowerCase()}${
                   isNodeActive ? ' v2-flowNode--active' : ''
                 }`}
-                style={{ transitionDelay: hasEntered ? `${Math.max(0, i * 90)}ms` : '0ms' }}
+                style={{ transitionDelay: hasEntered ? `${Math.max(0, i * 140)}ms` : '0ms' }}
                 onPointerEnter={() => selectStage(node.id)}
                 onFocus={() => selectStage(node.id)}
                 aria-describedby={`${workflow.id}-detail`}

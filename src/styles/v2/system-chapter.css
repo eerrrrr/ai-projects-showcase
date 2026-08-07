@@ -155,7 +155,7 @@
 }
 .v2-evidenceInspector-panel {
   margin-top: clamp(14px, 2vh, 20px);
-  animation: v2-evidenceInspector-in 200ms var(--motion-ease-out, ease-out);
+  animation: v2-evidenceInspector-in 320ms var(--motion-ease-out, ease-out);
 }
 @keyframes v2-evidenceInspector-in {
   from {

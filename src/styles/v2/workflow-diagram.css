@@ -40,7 +40,7 @@
   background: var(--v2-rule);
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 240ms ease, background-color 200ms ease, opacity 200ms ease;
+  transition: transform 420ms ease, background-color 260ms ease, opacity 260ms ease;
 }
 .v2-workflow--entered .v2-workflow-connector {
   transform: scaleX(1);
@@ -89,7 +89,7 @@
      never resets), not the repeating highlight cycle. */
   opacity: 0.72;
   transform: translateY(5px);
-  transition: opacity 300ms var(--motion-ease-out, ease), transform 300ms var(--motion-ease-out, ease), border-color 200ms ease, background-color 200ms ease;
+  transition: opacity 460ms var(--motion-ease-out, ease), transform 460ms var(--motion-ease-out, ease), border-color 260ms ease, background-color 260ms ease;
 }
 .v2-workflow--entered .v2-flowNode {
   opacity: 1;
@@ -193,7 +193,7 @@
   min-height: 84px;
 }
 .v2-workflow-detail-content {
-  animation: v2-workflow-detail-in 180ms ease-out;
+  animation: v2-workflow-detail-in 280ms ease-out;
 }
 @keyframes v2-workflow-detail-in {
   from {
