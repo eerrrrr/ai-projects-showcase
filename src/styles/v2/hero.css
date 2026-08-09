@@ -268,7 +268,18 @@
    Also folds in a very small directional micro-shift
    (--hero-identity-shift-x/-y, written each frame by SwissHero.tsx,
    capped at 1.5px/1px) — the canonical spec calls for both a scale AND a
-   tiny translation response, not scale alone. */
+   tiny translation response, not scale alone.
+   Per direct feedback: also folds in the independent identity-block
+   PROXIMITY effect (--identity-proximity-strength, 0-1, written each
+   frame by SwissHero.tsx from real pointer-to-rect distance — a
+   separate calculation from the card engine's --hero-focus-strength
+   above). The two terms are simply ADDED together here, in the same
+   scale/translateY expression — that's what "independent but never
+   fighting" means in practice: each system computes its own 0-1
+   strength from its own trigger, and this one shared keyframe sums
+   them, so neither can override or fight the other. +0.01 scale and
+   -2px translateY at identity-proximity-strength's own max (1),
+   on top of the existing card-driven terms. */
 @keyframes v2-hero-identity-in {
   from {
     opacity: 0;
@@ -279,9 +290,9 @@
     transform:
       translate(
         calc(var(--hero-identity-shift-x, 0) * 1px),
-        calc(var(--hero-identity-shift-y, 0) * 1px)
+        calc((var(--hero-identity-shift-y, 0) - var(--identity-proximity-strength, 0) * 2) * 1px)
       )
-      scale(calc(1 + var(--hero-focus-strength, 0) * 0.0025));
+      scale(calc(1 + var(--hero-focus-strength, 0) * 0.0025 + var(--identity-proximity-strength, 0) * 0.01));
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -331,6 +342,43 @@
   --focus-y: 50%;
   --focus-radius-x: 14%;
   --focus-radius-y: 16%;
+}
+
+/* Per direct feedback: the seam users actually saw was NOT at .v2-hero's
+   own outer top/bottom edges (already softened above) — it's at the
+   PHOTO's own top/bottom edges, between "ERIN WONG" and where the sharp
+   image begins. That gap only exists because the positioner's height is
+   now capped (see the min() above) whenever the viewport is portrait-ish
+   enough that pure height-led sizing would overflow — the capped photo
+   no longer always reaches .v2-hero's own edges, so it needs its own
+   edge treatment, not just the outer section's. Feathers the photo's own
+   top/bottom directly into the surrounding page tone (--v2-hero-top/
+   -bottom, inherited from .v2-hero, so the colour always matches exactly
+   — no separate colour to keep in sync). Unconditional (not scoped to
+   any breakpoint): harmless and redundant in the plain full-height case
+   (this band just sits right on top of .v2-hero's own already-matching
+   edge fade there), and is what actually fixes the gap in the
+   height-capped case. z-index lifts it above .v2-hero-sceneFocus (the
+   photo) in paint order; pointer-events: none keeps the card hotspots
+   beneath it fully clickable regardless of paint order. */
+.v2-hero-scenePositioner::before,
+.v2-hero-scenePositioner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.v2-hero-scenePositioner::before {
+  top: 0;
+  height: clamp(28px, 4vh, 44px);
+  background: linear-gradient(to bottom, var(--v2-hero-top) 0%, rgba(235, 225, 217, 0.55) 45%, rgba(235, 225, 217, 0) 100%);
+}
+.v2-hero-scenePositioner::after {
+  bottom: 0;
+  height: clamp(32px, 4.5vh, 52px);
+  background: linear-gradient(to top, var(--v2-hero-bottom) 0%, rgba(220, 211, 204, 0.55) 45%, rgba(220, 211, 204, 0) 100%);
 }
 
 /* Scene FOCUS layer — the only element that ever moves (restrained
