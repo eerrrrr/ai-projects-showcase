@@ -7,6 +7,7 @@ import { StoryPage } from '../components/v2/StoryPage'
 import { ManifestoPage } from '../components/v2/ManifestoPage'
 import { SelectedSystemsIndex } from '../components/v2/SelectedSystemsIndex'
 import { SystemChapter } from '../components/v2/SystemChapter'
+import { ProjectProgressRail } from '../components/v2/ProjectProgressRail'
 import { SupportingInfrastructurePage } from '../components/v2/SupportingInfrastructurePage'
 import { ClosingPage } from '../components/v2/ClosingPage'
 import '../styles/v2/tokens.css'
@@ -52,6 +53,8 @@ export function AiPortfolioV2Page() {
       <a className="skip-link" href="#v2-main-content">
         Skip to content
       </a>
+
+      <ProjectProgressRail projects={sortedProjects} />
 
       <main id="v2-main-content">
         <SwissHero />
