@@ -9,9 +9,21 @@ import { useReducedMotion } from '../../hooks/useReducedMotion'
 // (display: inline-block, only opacity/transform animate) — no word is
 // inserted into the DOM progressively, so there is no layout reflow as
 // the sequence plays and natural text wrapping still works exactly as
-// normal. Fires once via IntersectionObserver; does not restart on
-// resize or on small scroll movement around the trigger threshold,
-// because the observer disconnects itself the first time it fires.
+// normal.
+//
+// Per direct feedback (two corrections):
+// 1. Trigger timing — threshold was 0.2 (fires once a mere 20% of the
+//    block is visible), which happens very early during scroll, so by
+//    the time a user actually arrives and looks at the section the
+//    whole reveal had already finished silently in the background.
+//    Raised to 0.5 so it starts once the block is substantially in
+//    view, closer to when it's actually being looked at.
+// 2. Replays on every re-entry, not just the first time ever — the
+//    original "fires once via IntersectionObserver, then disconnects"
+//    design meant scrolling away and back (in either direction) never
+//    replayed it. Now resets to hidden when the block leaves the
+//    viewport and replays the full sequence on each re-entry, whether
+//    scrolling down into it or back up into it from below.
 export function WordTypeReveal({
   lines,
   ariaLabel,
@@ -26,7 +38,7 @@ export function WordTypeReveal({
   const reducedMotion = useReducedMotion()
   const containerRef = useRef<HTMLElement | null>(null)
   const [revealedCount, setRevealedCount] = useState(0)
-  const triggeredRef = useRef(false)
+  const timersRef = useRef<number[]>([])
 
   const wordEntriesRef = useRef(lines.flatMap((line) => line.split(' ')))
   const totalWords = wordEntriesRef.current.length
@@ -37,30 +49,43 @@ export function WordTypeReveal({
       return
     }
     const el = containerRef.current
-    if (!el || triggeredRef.current) return
+    if (!el) return
+
+    const clearTimers = () => {
+      timersRef.current.forEach((id) => window.clearTimeout(id))
+      timersRef.current = []
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting || triggeredRef.current) return
-        triggeredRef.current = true
-        observer.disconnect()
+        clearTimers()
+        if (!entry.isIntersecting) {
+          // Left the viewport (either direction) — reset to hidden so
+          // the next entry replays the full sequence from the start.
+          setRevealedCount(0)
+          return
+        }
 
+        setRevealedCount(0)
         // Slowed down per direct feedback — the original 90ms stagger with
         // a 150ms fade (in reveal.css) read as a fast strobe rather than a
         // calm cascade. Kept as the only change: no other motion system in
         // this app was touched.
         let elapsed = 260 // wait after the label before the first word
-        const timers: number[] = []
         wordEntriesRef.current.forEach((word, i) => {
           const id = window.setTimeout(() => setRevealedCount((c) => Math.max(c, i + 1)), elapsed)
-          timers.push(id)
+          timersRef.current.push(id)
           const endsWithPunctuation = /[,.]$/.test(word)
           elapsed += 150 + (endsWithPunctuation ? 200 : 0)
         })
       },
-      { threshold: 0.2 },
+      { threshold: 0.5 },
     )
     observer.observe(el)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      clearTimers()
+    }
   }, [reducedMotion, totalWords])
 
   let globalIndex = 0

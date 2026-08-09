@@ -7,6 +7,8 @@ import { StoryPage } from '../components/v2/StoryPage'
 import { ManifestoPage } from '../components/v2/ManifestoPage'
 import { SelectedSystemsIndex } from '../components/v2/SelectedSystemsIndex'
 import { SystemChapter } from '../components/v2/SystemChapter'
+import { ProjectProgressRail } from '../components/v2/ProjectProgressRail'
+import { ScrollCue } from '../components/v2/ScrollCue'
 import { SupportingInfrastructurePage } from '../components/v2/SupportingInfrastructurePage'
 import { ClosingPage } from '../components/v2/ClosingPage'
 import '../styles/v2/tokens.css'
@@ -53,28 +55,35 @@ export function AiPortfolioV2Page() {
         Skip to content
       </a>
 
+      <ProjectProgressRail projects={sortedProjects} />
+
       <main id="v2-main-content">
         <SwissHero />
 
         <StoryPage id="approach" ariaLabel="Approach">
           <ManifestoPage />
+          <ScrollCue target="#selected-systems" label="Scroll to Selected systems" />
         </StoryPage>
 
         <StoryPage id="selected-systems" ariaLabel="Selected systems index">
           <SelectedSystemsIndex projects={sortedProjects} />
+          <ScrollCue target="#system-01" label="Scroll to System 01" />
         </StoryPage>
 
         {sortedProjects.map((project) => {
           const chapterId = `system-${String(project.index).padStart(2, '0')}`
+          const nextChapterId = project.index < sortedProjects.length ? `system-${String(project.index + 1).padStart(2, '0')}` : 'supporting-infrastructure'
           return (
             <StoryPage key={project.id} id={chapterId} ariaLabel={`System ${project.index}: ${project.shortTitle ?? project.title}`}>
               <SystemChapter project={project} chapterId={chapterId} />
+              <ScrollCue target={`#${nextChapterId}`} label={`Scroll to ${nextChapterId === 'supporting-infrastructure' ? 'Supporting infrastructure' : nextChapterId.replace('system-', 'System ')}`} />
             </StoryPage>
           )
         })}
 
         <StoryPage id="supporting-infrastructure" ariaLabel="Supporting infrastructure">
           <SupportingInfrastructurePage supporting={content.supporting} />
+          <ScrollCue target="#closing" label="Scroll to Closing" />
         </StoryPage>
 
         <StoryPage id="closing" ariaLabel="Closing">

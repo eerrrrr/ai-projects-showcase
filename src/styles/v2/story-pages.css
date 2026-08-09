@@ -67,6 +67,312 @@
   }
 }
 
+/* Section-state surface progression (per direct request) — each major
+   section owns a real, flat background over its own full box (painted
+   directly on .v2-storyPage via its existing id, no structural change,
+   no touch to StoryPage.tsx or the roll engine). Approach and Closing
+   etc. are simple flat handoffs — the colour deltas between them are
+   small enough not to read as a hard cut. Selected Systems is the one
+   deliberate exception: a gradient across its own box that stays solid
+   for most of its height, then brightens toward the Project tone over
+   its own final ~22vh, so crossing into System 01 (already the same
+   settled tone) is seamless rather than a hard line. System 01-07 all
+   share ONE tone — reads as one collection, not seven separate themes. */
+#approach {
+  background: var(--v2-surface-approach);
+}
+#selected-systems {
+  background: linear-gradient(
+    to bottom,
+    var(--v2-surface-selected-systems) 0%,
+    var(--v2-surface-selected-systems) calc(100% - 22vh),
+    var(--v2-surface-project) 100%
+  );
+}
+#system-01,
+#system-02,
+#system-03,
+#system-04,
+#system-05,
+#system-06,
+#system-07 {
+  background: var(--v2-surface-project);
+}
+#supporting-infrastructure {
+  background: var(--v2-surface-supporting);
+}
+#closing {
+  background: var(--v2-surface-closing);
+}
+
+/* Project progress rail — refinement pass per direct feedback (dots
+   confirmed as the right pattern, this is polish only): moved in from
+   the edge so it doesn't read as part of the browser's own scrollbar,
+   inactive dots dimmed further into the background, active dot grows
+   only slightly (4px -> 6px, was 5px -> 8px), the active item's own
+   number stays permanently docked next to its dot while every other
+   number stays hidden at all times (hover reveals a short TITLE label
+   to the left instead of a number — see .v2-progressRail-label), and a
+   24x24 CSS px minimum hit target per WCAG 2.2's pointer target size
+   guidance even though the visible dot itself stays small. */
+.v2-progressRail {
+  position: fixed;
+  top: 50%;
+  right: clamp(20px, 2vw, 32px);
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms var(--v2-ease-soft);
+}
+.v2-progressRail[data-visible='true'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* Secondary "return to Selected Systems index" node — per direct
+   feedback, sits ABOVE the 01-07 sequence with extra separation
+   (margin-bottom, on top of the rail's own 12px gap), deliberately
+   weaker than every project dot so it reads as a quiet entry point, not
+   an 8th project. No number/text visible at rest — "INDEX" only
+   appears on hover/focus, positioned left of the dot like the project
+   items' own hover label. */
+.v2-progressRail-index {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin-bottom: 10px;
+  text-decoration: none;
+}
+.v2-progressRail-indexMark {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--v2-ink-3);
+  opacity: 0.3;
+  transform: scale(1);
+  transition:
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Moderately more visible while Selected Systems is the active section
+   — still well under an active project dot's full dark-ink strength. */
+.v2-progressRail-index[data-index-active='true'] .v2-progressRail-indexMark {
+  opacity: 0.5;
+}
+.v2-progressRail-index:hover .v2-progressRail-indexMark,
+.v2-progressRail-index:focus-visible .v2-progressRail-indexMark {
+  opacity: 0.65;
+  transform: scale(1.25);
+}
+.v2-progressRail-indexLabel {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translate(-8px, -50%);
+  margin-right: 4px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  font-family: var(--v2-font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v2-ink-2);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.v2-progressRail-index:hover .v2-progressRail-indexLabel,
+.v2-progressRail-index:focus-visible .v2-progressRail-indexLabel {
+  opacity: 0.55;
+  transform: translate(0, -50%);
+}
+.v2-progressRail-index:focus-visible {
+  outline: 2px solid var(--v2-accent);
+  outline-offset: 4px;
+}
+.v2-progressRail-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  /* Visible content is a few px; the hit target is not — WCAG 2.2
+     (2.5.8) minimum pointer target size is 24x24 CSS px. */
+  min-width: 24px;
+  min-height: 24px;
+  text-decoration: none;
+}
+/* Hover-revealed short title, to the LEFT of the dot column — replaces
+   the old "reveal the number on hover" behaviour. Absolute so it never
+   pushes the dot column or its neighbours. */
+.v2-progressRail-label {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translate(-8px, -50%);
+  margin-right: 4px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--v2-ink);
+  background: var(--v2-surface-project, var(--v2-paper));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--v2-ease-soft),
+    transform 200ms var(--v2-ease-soft);
+}
+.v2-progressRail-labelNumber {
+  color: var(--v2-ink-3);
+}
+.v2-progressRail-item:hover .v2-progressRail-label,
+.v2-progressRail-item:focus-visible .v2-progressRail-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+/* The active item's OWN number — permanently visible, not hover-gated.
+   Every other item's number stays hidden at all times (see the base
+   opacity:0 with no hover rule reintroducing it — hover shows the full
+   label above instead). */
+.v2-progressRail-number {
+  font-family: var(--v2-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--v2-ink-3);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.v2-progressRail-item[data-active='true'] .v2-progressRail-number {
+  opacity: 1;
+}
+.v2-progressRail-mark {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--v2-ink-3);
+  /* Inactive dots dimmed further — reads as navigation background, not
+     content competing with the Swiss grid/workflow nodes/rules. */
+  opacity: 0.65;
+  transition:
+    background-color 200ms ease,
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+.v2-progressRail-item:hover .v2-progressRail-mark,
+.v2-progressRail-item:focus-visible .v2-progressRail-mark {
+  background: var(--v2-ink-2);
+  opacity: 1;
+}
+.v2-progressRail-item[data-active='true'] .v2-progressRail-mark {
+  background: var(--v2-ink);
+  opacity: 1;
+  /* 4px base * 1.5 = 6px, per direct spec (was 5px -> 8px). */
+  transform: scale(1.5);
+}
+.v2-progressRail-item:focus-visible {
+  outline: 2px solid var(--v2-accent);
+  outline-offset: 4px;
+}
+@media (max-width: 900px) {
+  .v2-progressRail {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-progressRail {
+    transition: none;
+  }
+  .v2-progressRail-label,
+  .v2-progressRail-indexMark,
+  .v2-progressRail-indexLabel {
+    transition: none;
+  }
+}
+
+/* Scroll cue — per direct request, a tiny "next page" hint on the three
+   opening story pages only (Hero, Approach, Selected Systems). Quiet
+   editorial navigation, not a CTA: no button/border/pill/box, tiny mono
+   caps text, resting well under half-opacity. Positioned against
+   whichever ancestor already establishes a positioning context for that
+   page (.v2-hero is position:relative; .v2-storyPage-stage is
+   position:sticky) — no geometry changed anywhere to accommodate this. */
+.v2-scrollCue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 2.2vh, 28px);
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Visible text stays tiny; the hit area doesn't (~32x24px). */
+  min-width: 32px;
+  min-height: 24px;
+  padding: 4px 8px;
+  font-family: var(--v2-font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  /* Per direct feedback: black (--v2-ink) — confirmed fine at this
+     size/opacity, reads as more legible without going heavy. */
+  color: var(--v2-ink);
+  text-decoration: none;
+  /* Per direct feedback: 100% at rest now, not a dimmed resting state
+     with a hover boost — hover/focus-visible no longer need their own
+     opacity rule since there's nowhere higher to go. */
+  opacity: 1;
+  animation:
+    v2-scrollCue-in 550ms var(--v2-ease-soft) 750ms both,
+    v2-scrollCue-breathe 2.6s ease-in-out 1300ms infinite;
+  transition: opacity 200ms ease;
+}
+.v2-scrollCue:focus-visible {
+  outline: 2px solid var(--v2-accent);
+  outline-offset: 2px;
+}
+@keyframes v2-scrollCue-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+/* Starts exactly when the entrance animation ends (750ms delay + 550ms
+   duration = 1300ms) — no handoff jump. Movement capped at 3px, slow
+   (2.6s), text stays legible/near-static throughout. */
+@keyframes v2-scrollCue-breathe {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-scrollCue {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Manifesto (content only — the page-level <section> is now the shared
    StoryPage above; ManifestoPage.tsx renders just this grid). */
 .v2-manifesto-grid {

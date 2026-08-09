@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { AiPortfolioV2Page } from './pages/AiPortfolioV2Page'
 import { CaseStudyPage } from './pages/CaseStudyPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { PersistentTopNav } from './components/v2/PersistentTopNav'
 
 // AiLandingPage (V1 content on the /ai route) is intentionally left
 // unimported here, not deleted — src/pages/AiLandingPage.tsx still exists
@@ -35,6 +36,7 @@ export default function App() {
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
       <RedirectBridge />
+      <PersistentTopNav />
       <Routes>
         <Route path="/" element={<AiPortfolioV2Page />} />
         <Route path="/ai" element={<AiPortfolioV2Page />} />

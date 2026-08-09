@@ -413,15 +413,24 @@
   grid-column: 4 / span 9;
   min-width: 0;
 }
+/* Real bug, confirmed by direct feedback with an annotated screenshot on
+   the overview page's equivalent (.v2-evidenceInspector-content) - the
+   same fix applied here for consistency across the whole site: content
+   should fill the same width as its column, not stop at a narrow
+   reading-width cap with empty space beside it. */
 .v2-caseRow-prose {
   font-size: 17px;
   font-weight: 450;
   line-height: 1.62;
-  max-width: 68ch;
   color: var(--v2-ink);
 }
+/* Same hanging-indent fix as .v2-evidenceInspector-content ul in
+   system-chapter.css — margin-left cancels the padding's positional
+   effect, so the bullet marker hangs slightly outside/before the row's
+   true left edge while the readable text lands exactly flush with the
+   label column and workflow diagram above it. */
 .v2-caseRow-prose ul {
-  margin: 0;
+  margin: 0 0 0 -20px;
   padding-left: 20px;
 }
 .v2-caseRow-prose li {
