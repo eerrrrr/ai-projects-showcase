@@ -674,6 +674,9 @@
     left: 0;
     right: 0;
     padding: 14px 20px;
+    /* PersistentTopNav.tsx wraps this nav in its own .v2-page div so
+       these tokens resolve correctly even though the nav now mounts
+       outside any page's own .v2-page (see App.tsx). */
     background: var(--v2-surface-approach, var(--v2-paper));
     justify-content: flex-start;
     flex-wrap: wrap;

@@ -105,6 +105,135 @@
   background: var(--v2-surface-closing);
 }
 
+/* Project progress rail — refinement pass per direct feedback (dots
+   confirmed as the right pattern, this is polish only): moved in from
+   the edge so it doesn't read as part of the browser's own scrollbar,
+   inactive dots dimmed further into the background, active dot grows
+   only slightly (4px -> 6px, was 5px -> 8px), the active item's own
+   number stays permanently docked next to its dot while every other
+   number stays hidden at all times (hover reveals a short TITLE label
+   to the left instead of a number — see .v2-progressRail-label), and a
+   24x24 CSS px minimum hit target per WCAG 2.2's pointer target size
+   guidance even though the visible dot itself stays small. */
+.v2-progressRail {
+  position: fixed;
+  top: 50%;
+  right: clamp(20px, 2vw, 32px);
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms var(--v2-ease-soft);
+}
+.v2-progressRail[data-visible='true'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+.v2-progressRail-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  /* Visible content is a few px; the hit target is not — WCAG 2.2
+     (2.5.8) minimum pointer target size is 24x24 CSS px. */
+  min-width: 24px;
+  min-height: 24px;
+  text-decoration: none;
+}
+/* Hover-revealed short title, to the LEFT of the dot column — replaces
+   the old "reveal the number on hover" behaviour. Absolute so it never
+   pushes the dot column or its neighbours. */
+.v2-progressRail-label {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translate(-8px, -50%);
+  margin-right: 4px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--v2-ink);
+  background: var(--v2-surface-project, var(--v2-paper));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--v2-ease-soft),
+    transform 200ms var(--v2-ease-soft);
+}
+.v2-progressRail-labelNumber {
+  color: var(--v2-ink-3);
+}
+.v2-progressRail-item:hover .v2-progressRail-label,
+.v2-progressRail-item:focus-visible .v2-progressRail-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+/* The active item's OWN number — permanently visible, not hover-gated.
+   Every other item's number stays hidden at all times (see the base
+   opacity:0 with no hover rule reintroducing it — hover shows the full
+   label above instead). */
+.v2-progressRail-number {
+  font-family: var(--v2-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--v2-ink-3);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.v2-progressRail-item[data-active='true'] .v2-progressRail-number {
+  opacity: 1;
+}
+.v2-progressRail-mark {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--v2-ink-3);
+  /* Inactive dots dimmed further — reads as navigation background, not
+     content competing with the Swiss grid/workflow nodes/rules. */
+  opacity: 0.65;
+  transition:
+    background-color 200ms ease,
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+.v2-progressRail-item:hover .v2-progressRail-mark,
+.v2-progressRail-item:focus-visible .v2-progressRail-mark {
+  background: var(--v2-ink-2);
+  opacity: 1;
+}
+.v2-progressRail-item[data-active='true'] .v2-progressRail-mark {
+  background: var(--v2-ink);
+  opacity: 1;
+  /* 4px base * 1.5 = 6px, per direct spec (was 5px -> 8px). */
+  transform: scale(1.5);
+}
+.v2-progressRail-item:focus-visible {
+  outline: 2px solid var(--v2-accent);
+  outline-offset: 4px;
+}
+@media (max-width: 900px) {
+  .v2-progressRail {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v2-progressRail {
+    transition: none;
+  }
+  .v2-progressRail-label {
+    transition: none;
+  }
+}
+
 /* Manifesto (content only — the page-level <section> is now the shared
    StoryPage above; ManifestoPage.tsx renders just this grid). */
 .v2-manifesto-grid {
