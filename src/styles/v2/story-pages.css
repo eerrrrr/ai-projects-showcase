@@ -327,10 +327,9 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  /* Per direct feedback: darker than --v2-ink-2 (#55503f) but not full
-     black (--v2-ink) either — a darker warm grey, small enough at 9px
-     that this reads as more legible without going heavy. */
-  color: #302c22;
+  /* Per direct feedback: black (--v2-ink) — confirmed fine at this
+     size/opacity, reads as more legible without going heavy. */
+  color: var(--v2-ink);
   text-decoration: none;
   opacity: 0.44;
   animation:
