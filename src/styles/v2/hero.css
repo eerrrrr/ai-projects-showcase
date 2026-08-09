@@ -352,6 +352,37 @@
   --focus-radius-y: 16%;
 }
 
+/* Permanent architecture fix (regression repair — replaces the previous
+   mobile-only cream ::before band and the "disable the mask on narrow
+   viewports" approach, both removed below). The Hero's top/bottom edge
+   dissolve must never depend on a layer whose job is legitimately
+   viewport-conditional — .v2-hero-bgLayer exists to fill EXTRA space
+   outside the primary frame on wide layouts only, and is correctly
+   hidden on narrow ones. This is a SEPARATE, LOCAL blurred duplicate of
+   the same source image, living inside .v2-hero-scenePositioner itself
+   (not the wider Hero section), sized and positioned identically to
+   .v2-hero-sceneFocus and painted directly behind it in DOM order. It is
+   present at EVERY viewport, unconditionally — no breakpoint hides it —
+   so .v2-hero-sceneFocus's alpha mask (below) always has a real
+   photographic continuation to reveal underneath it, whether or not
+   .v2-hero-bgLayer happens to be visible. This is the one thing that
+   makes the dissolve a permanent property of the frame instead of
+   something a later breakpoint or content change can silently switch
+   off again. */
+.v2-hero-sceneAtmosphere {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.v2-hero-sceneAtmosphere-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.05);
+  filter: blur(18px) saturate(0.92) contrast(0.96);
+}
+
 /* REMOVED per direct feedback: this used to hold
    .v2-hero-scenePositioner::before/::after, a colour-gradient overlay
    painted ON TOP of the sharp image (fading to an opaque
@@ -382,9 +413,16 @@
    photographic dissolve, matching how the left/right edges already
    work below, instead of painting a beige band over the image. Narrow
    by design — the middle of the image is untouched; only the extreme
-   ~16-24px top / ~22-30px bottom actually fades. Unconditional (not
-   gated to any aspect ratio), since the seam this fixes shows up at
-   ordinary viewport shapes, not just extreme ones. */
+   ~18-24px top / ~24-32px bottom actually fades (retuned to these exact
+   ranges per direct measurement feedback — narrower than an earlier
+   40-72px bottom value, since .v2-hero-sceneAtmosphere above now backs
+   the whole frame at every viewport, so a shorter fade already reads as
+   a real dissolve without needing a wide band to reach a
+   sometimes-hidden global layer). Unconditional — not gated to any
+   aspect ratio or breakpoint, and there is no narrow/mobile override
+   anywhere in this file that disables or replaces this mask (see the
+   regression-repair note at the narrow media query further below, which
+   used to do exactly that and has been removed). */
 .v2-hero-sceneFocus {
   position: absolute;
   inset: 0;
@@ -394,15 +432,15 @@
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0,
-    #000 clamp(16px, 2vh, 24px),
-    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    #000 clamp(18px, 2.2vh, 24px),
+    #000 calc(100% - clamp(24px, 3vh, 32px)),
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
-    #000 clamp(16px, 2vh, 24px),
-    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    #000 clamp(18px, 2.2vh, 24px),
+    #000 calc(100% - clamp(24px, 3vh, 32px)),
     transparent 100%
   );
 }
@@ -430,8 +468,8 @@
       linear-gradient(
         to bottom,
         transparent 0,
-        #000 clamp(16px, 2vh, 24px),
-        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        #000 clamp(18px, 2.2vh, 24px),
+        #000 calc(100% - clamp(24px, 3vh, 32px)),
         transparent 100%
       ),
       linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
@@ -440,8 +478,8 @@
       linear-gradient(
         to bottom,
         transparent 0,
-        #000 clamp(16px, 2vh, 24px),
-        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        #000 clamp(18px, 2.2vh, 24px),
+        #000 calc(100% - clamp(24px, 3vh, 32px)),
         transparent 100%
       ),
       linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
@@ -660,9 +698,12 @@
     margin-bottom: var(--v2-space-md);
   }
   .v2-hero-scenePositioner {
-    /* Static full-bleed image, no height-led geometry or mask-blend on
-       mobile — the real image ratio in normal flow, full width, in the
-       document flow (not absolutely positioned). */
+    /* Static full-bleed image, real image ratio in normal flow, full
+       width, in the document flow (not absolutely positioned). The
+       height-led geometry is a wide-viewport-only concern (it exists to
+       cap width against a TALL viewport's height); it is correctly off
+       here. The photographic edge mask below is NOT a geometry concern —
+       it stays on unconditionally, same as every other viewport. */
     position: relative;
     left: auto;
     top: auto;
@@ -670,31 +711,24 @@
     width: 100%;
     transform: none;
   }
-  /* Narrow/stacked-layout-only top dissolve: the identity block above the
-     image ends on a flat colour, and the image's own top edge began right
-     underneath it with no transition — a real hard seam, confirmed live.
-     Short, page-tone-to-transparent gradient over the image's own top
-     pixels; does not touch geometry, hotspots (already hidden in this
-     breakpoint) or the wide desktop layout, which never gets this rule at
-     all since it's nested inside this same narrow media query. */
-  .v2-hero-scenePositioner::before {
-    content: '';
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: clamp(22px, 3vw, 36px);
-    background: linear-gradient(to bottom, var(--v2-hero-top) 0%, rgba(235, 225, 217, 0) 100%);
-    pointer-events: none;
-  }
-  .v2-hero-sceneFocus {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
+  /* Regression repair (permanent architecture fix): this breakpoint used
+     to (1) paint a fake top-only cream-gradient ::before band over the
+     image and (2) explicitly disable .v2-hero-sceneFocus's real
+     photographic mask via `mask-image: none` — meaning the actual
+     top/bottom dissolve was ALWAYS off on every narrow/mobile viewport,
+     replaced by an imitation that only ever covered the top edge and had
+     no bottom equivalent at all. Both rules are removed. The mask defined
+     once, unconditionally, on .v2-hero-sceneFocus above now applies here
+     too, unchanged — backed by .v2-hero-sceneAtmosphere (also defined
+     once, unconditionally, above), which is never hidden by this
+     breakpoint. There is no longer a competing narrow-layout-only edge
+     system to fall out of sync with the desktop one. */
   /* No pointer-proximity interaction on mobile, per Phase 13 — the
      numbered project links below the image are the real, touch-friendly
-     path instead. */
+     path instead. .v2-hero-bgLayer stays hidden here: its job is to fill
+     EXTRA viewport space outside the primary frame on wide layouts, which
+     doesn't apply once the frame is full-bleed at 100% width — that's a
+     legitimate, viewport-scoped reason, unlike the mask removal above. */
   .v2-tool-hotspots,
   .v2-hero-focusVeil,
   .v2-toolAnnotation,
