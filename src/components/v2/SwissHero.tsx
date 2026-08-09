@@ -62,6 +62,24 @@ const MAX_VEIL_STRENGTH = 0.025
 const MAX_IDENTITY_SHIFT_X = 1.5
 const MAX_IDENTITY_SHIFT_Y = 1
 const VEIL_RADIUS_MULTIPLIER = 1.8 // local veil ellipse = target's own reach radius * this, not a full-scene wash
+// Independent proximity effect for the identity text block (ERIN WONG +
+// tagline + focus line), per direct feedback: the whole heading group
+// should get its own subtle "premium" zoom-in as the pointer approaches
+// it — before direct hover, no click, no bounce. This is a SEPARATE
+// calculation from the tool-card engine above (different trigger — a
+// rectangular text block, not an elliptical card target — and a
+// different CSS custom property), so it can never fight the card
+// system; the two are simply combined additively in the CSS keyframe
+// that already reads --hero-focus-strength (see hero.css). Reuses the
+// same dampToward asymmetric enter/exit smoothing as everything else in
+// this engine for a consistent feel.
+// Pointer distance (px) from the block's own edge where the effect
+// starts ramping in. Only this threshold lives in JS — the actual scale
+// (+1%) and translateY (-2px) ceilings are applied directly in hero.css's
+// v2-hero-identity-in keyframe (CSS can't read a JS constant), since
+// that's the same place the card engine's own --hero-focus-strength term
+// already lives, and both need to be summed in one keyframe expression.
+const IDENTITY_REACH_PX = 150
 // Asymmetric enter/exit smoothing (no Motion/Framer Motion dependency in
 // this project — checked package.json/node_modules directly, neither
 // exists, and "no new dependency" has been a standing rule since the
@@ -142,6 +160,7 @@ export function SwissHero() {
   const sceneFocusRef = useRef<HTMLDivElement | null>(null)
   const veilRef = useRef<HTMLDivElement | null>(null)
   const annotationRef = useRef<HTMLDivElement | null>(null)
+  const identityRef = useRef<HTMLDivElement | null>(null)
 
   // Continuous state lives in refs, written straight to the DOM every
   // animation frame — NOT React state, per the explicit "do not trigger a
@@ -151,6 +170,13 @@ export function SwissHero() {
   // showing (each changes rarely — at proximity-threshold crossings, not
   // every frame).
   const pointerRef = useRef<{ x: number; y: number } | null>(null)
+  // Raw viewport-pixel pointer position — separate from pointerRef above
+  // (which is normalised 0-100 relative to the scenePositioner, for the
+  // card engine's own coordinate math). The identity-block proximity
+  // effect needs real pixel distance to a plain DOM rect instead, so it
+  // gets its own tracking, updated by the same pointermove/pointerleave
+  // listeners below rather than a second set of listeners.
+  const rawPointerPxRef = useRef<{ x: number; y: number } | null>(null)
   const keyboardTargetIdRef = useRef<string | null>(null)
   const activeTargetIdRef = useRef<string | null>(null)
   const smoothedRef = useRef({
@@ -162,6 +188,7 @@ export function SwissHero() {
     veil: 0,
     strength: 0,
     labelOpacity: 0,
+    identityProximity: 0,
   })
   const rafRef = useRef<number | null>(null)
   const lastFrameTimeRef = useRef<number | null>(null)
@@ -306,9 +333,11 @@ export function SwissHero() {
         x: ((event.clientX - rect.left) / rect.width) * 100,
         y: ((event.clientY - rect.top) / rect.height) * 100,
       }
+      rawPointerPxRef.current = { x: event.clientX, y: event.clientY }
     }
     const handlePointerLeave = () => {
       pointerRef.current = null
+      rawPointerPxRef.current = null
     }
 
     hero.addEventListener('pointermove', handlePointerMove)
@@ -454,6 +483,27 @@ export function SwissHero() {
         heroSectionRef.current.style.setProperty('--hero-focus-strength', String(reducedMotion ? 0 : s.strength))
       }
 
+      // Identity-block proximity — completely independent of the card
+      // engine above (different trigger rect, own smoothed value), per
+      // direct feedback: the whole ERIN WONG/tagline/focus-line group
+      // should get a subtle zoom-in as the pointer approaches it, not
+      // just on direct hover. Distance is measured to the block's own
+      // rendered rect (0 once the pointer is inside it), so the effect
+      // ramps up smoothly across the last ~150px of approach.
+      let rawIdentityStrength = 0
+      if (identityRef.current && rawPointerPxRef.current) {
+        const rect = identityRef.current.getBoundingClientRect()
+        const px = rawPointerPxRef.current
+        const dx = Math.max(rect.left - px.x, 0, px.x - rect.right)
+        const dy = Math.max(rect.top - px.y, 0, px.y - rect.bottom)
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        rawIdentityStrength = smoothstep(IDENTITY_REACH_PX, 0, dist)
+      }
+      s.identityProximity = reducedMotion ? 0 : dampToward(s.identityProximity, rawIdentityStrength, dt)
+      if (heroSectionRef.current) {
+        heroSectionRef.current.style.setProperty('--identity-proximity-strength', String(s.identityProximity))
+      }
+
       // 6. Discrete content state — only touches React when it actually
       //    changes (proximity-threshold crossings, not every frame).
       //
@@ -529,7 +579,7 @@ export function SwissHero() {
         )}
       </nav>
 
-      <div className="v2-hero-identity">
+      <div className="v2-hero-identity" ref={identityRef}>
         <h1 className="v2-hero-name">{v2HeroContent.name.toUpperCase()}</h1>
         <p className="v2-hero-tagline">{v2HeroContent.tagline.toUpperCase()}</p>
         <p className="v2-hero-focus">{v2HeroContent.focusLine.replace('\n', ' ').toUpperCase()}</p>
