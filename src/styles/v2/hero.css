@@ -381,10 +381,20 @@
    already sitting behind in paint order) through the gap. That's a real
    photographic dissolve, matching how the left/right edges already
    work below, instead of painting a beige band over the image. Narrow
-   by design — the middle of the image is untouched; only the extreme
-   ~16-24px top / ~22-30px bottom actually fades. Unconditional (not
+   by design — the middle of the image is untouched. Unconditional (not
    gated to any aspect ratio), since the seam this fixes shows up at
-   ordinary viewport shapes, not just extreme ones. */
+   ordinary viewport shapes, not just extreme ones.
+
+   Bottom fade widened to ~60-110px (was ~22-30px), confirmed live at a
+   wide/short viewport (~2:1 aspect): unlike the left/right edges, which
+   get a genuinely soft transition because .v2-hero-scenePositioner is
+   narrower than the Hero there (real extra margin for .v2-hero-bgLayer
+   to breathe in before the mask even starts), the top/bottom edges have
+   NO such margin — the positioner is height:100% of the Hero at these
+   ratios, so the entire dissolve has to happen inside the mask band
+   itself. The old ~30px band was too tight to read as soft under that
+   constraint; a wider band gives the same kind of gradual room the
+   sides get "for free" from their own extra margin. */
 .v2-hero-sceneFocus {
   position: absolute;
   inset: 0;
@@ -395,14 +405,14 @@
     to bottom,
     transparent 0,
     #000 clamp(16px, 2vh, 24px),
-    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    #000 calc(100% - clamp(60px, 8vh, 110px)),
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
     #000 clamp(16px, 2vh, 24px),
-    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    #000 calc(100% - clamp(60px, 8vh, 110px)),
     transparent 100%
   );
 }
@@ -431,7 +441,7 @@
         to bottom,
         transparent 0,
         #000 clamp(16px, 2vh, 24px),
-        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        #000 calc(100% - clamp(60px, 8vh, 110px)),
         transparent 100%
       ),
       linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
@@ -441,7 +451,7 @@
         to bottom,
         transparent 0,
         #000 clamp(16px, 2vh, 24px),
-        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        #000 calc(100% - clamp(60px, 8vh, 110px)),
         transparent 100%
       ),
       linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
