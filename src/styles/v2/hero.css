@@ -116,12 +116,20 @@
    fills the full Hero height or is capped/letterboxed); this section's
    fade added nothing and is deleted, not just tuned down. */
 
-/* Navigation — top-right, transparent, no navbar box. */
+/* Navigation — top-right, transparent, no navbar box. Per direct
+   request: stays in the same viewport position at all times, not just
+   while scrolled within the Hero — position:fixed instead of absolute
+   (escapes the Hero's own box entirely, so this is the one property
+   that actually makes it persistent) plus a z-index high enough to
+   clear every story section's own content, none of which sets a
+   z-index above single digits. This is a plain positioning change to
+   an existing UI element, not a change to the Hero's photographic
+   scene/proximity/mask system, which stays untouched. */
 .v2-hero-nav {
-  position: absolute;
+  position: fixed;
   top: clamp(20px, 3vh, 32px);
   right: clamp(24px, 4vw, 64px);
-  z-index: 3;
+  z-index: 50;
   display: flex;
   /* Real bug, confirmed by direct feedback: no align-items was set here
      (defaults to stretch), so once the "Visual Portfolio" badge grew
@@ -658,8 +666,15 @@
     overflow: visible;
   }
   .v2-hero-nav {
-    position: static;
-    padding: 0 20px var(--v2-space-sm);
+    /* Stays position:fixed (inherited from the base rule) so it's
+       persistent on narrow viewports too — full-width bar instead of
+       the desktop's right-aligned corner, since a right-clamp position
+       would crowd three items into a narrow strip. */
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 14px 20px;
+    background: var(--v2-surface-approach, var(--v2-paper));
     justify-content: flex-start;
     flex-wrap: wrap;
   }
