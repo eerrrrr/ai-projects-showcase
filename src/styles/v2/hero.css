@@ -123,6 +123,14 @@
   right: clamp(24px, 4vw, 64px);
   z-index: 3;
   display: flex;
+  /* Real bug, confirmed by direct feedback: no align-items was set here
+     (defaults to stretch), so once the "Visual Portfolio" badge grew
+     taller than the plain LinkedIn/GitHub text links (via its own
+     vertical padding), those plain links' text sat at the TOP of their
+     own stretched flex box instead of centering against the badge —
+     reading as "too high" relative to it. Centers all three items on
+     the row's cross-axis instead. */
+  align-items: center;
   gap: clamp(16px, 2vw, 28px);
   animation: v2-hero-fade-in 500ms ease-out 420ms both;
 }
