@@ -156,7 +156,16 @@ function usageLines(target: HeroToolTarget): UsageLines {
     if (overflow > 0) full.push(`+${String(overflow).padStart(2, '0')} MORE SYSTEM${overflow > 1 ? 'S' : ''}`)
     return { full }
   }
-  if (target.usageSummary) return { full: [target.usageSummary.toUpperCase()] }
+  // Per direct feedback: the usageSummary fallback (currently only
+  // Claude Code — it's a portfolio-wide meta-claim, not tied to any
+  // single project's own verified fields, which is exactly why it never
+  // had a projectUsage list) rendered as a bare sentence with no
+  // prefix, breaking the "NN / TEXT" rhythm every other tool's
+  // annotation uses. "00" is used deliberately instead of a real
+  // project number (01-07 are all genuine project indices) — it reads
+  // as "not tied to a specific project" while still matching the same
+  // visual format. The sentence itself is completely unchanged.
+  if (target.usageSummary) return { full: [`00 / ${target.usageSummary.toUpperCase()}`] }
   return { full: [] }
 }
 
