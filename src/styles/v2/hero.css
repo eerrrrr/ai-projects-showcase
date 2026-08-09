@@ -137,6 +137,15 @@
 .v2-hero-nav a:focus-visible {
   color: var(--v2-accent);
 }
+/* Per direct feedback: "Visual Portfolio" made bold + underlined to
+   stand out from the other two nav links, which stay as they were.
+   Needs the `a.` prefix — .v2-hero-nav a's own text-decoration: none
+   above has higher specificity (class + element) than a bare class
+   alone, so a plain .v2-hero-nav-featured rule silently lost. */
+.v2-hero-nav a.v2-hero-nav-featured {
+  font-weight: 700;
+  text-decoration: underline;
+}
 
 /* Identity block — upper-left negative space. Dominant but capped so it
    never occupies the whole upper half. Independent of the image canvas —
