@@ -137,14 +137,35 @@
 .v2-hero-nav a:focus-visible {
   color: var(--v2-accent);
 }
-/* Per direct feedback: "Visual Portfolio" made bold + underlined to
-   stand out from the other two nav links, which stay as they were.
-   Needs the `a.` prefix — .v2-hero-nav a's own text-decoration: none
-   above has higher specificity (class + element) than a bare class
-   alone, so a plain .v2-hero-nav-featured rule silently lost. */
+/* Per direct feedback (two rounds): "Visual Portfolio" first went bold +
+   underlined, then evolved further into a filled black badge with bold
+   white text for maximum legibility, plus its own pointer-proximity
+   zoom (same technique as the ERIN WONG identity block, own rect/own
+   CSS custom property — see SwissHero.tsx's navFeaturedRef and
+   --nav-featured-proximity-strength). Needs the `a.` prefix — .v2-hero-nav
+   a's own text-decoration/color rules above have higher specificity
+   (class + element) than a bare class alone, so a plain
+   .v2-hero-nav-featured rule would silently lose the cascade. The solid
+   fill is the visual distinction now, so the earlier underline is
+   dropped — redundant once it's a real badge, not still a text link. */
 .v2-hero-nav a.v2-hero-nav-featured {
+  display: inline-flex;
+  align-items: center;
+  color: #fff;
+  background: var(--v2-ink);
   font-weight: 700;
-  text-decoration: underline;
+  text-decoration: none;
+  padding: 5px clamp(10px, 1.2vw, 14px);
+  border-radius: 2px;
+  transform-origin: center;
+  transform:
+    scale(calc(1 + var(--nav-featured-proximity-strength, 0) * 0.025))
+    translateY(calc(var(--nav-featured-proximity-strength, 0) * -1px));
+}
+.v2-hero-nav a.v2-hero-nav-featured:hover,
+.v2-hero-nav a.v2-hero-nav-featured:focus-visible {
+  color: #fff;
+  background: var(--v2-accent);
 }
 
 /* Identity block — upper-left negative space. Dominant but capped so it

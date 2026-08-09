@@ -80,6 +80,15 @@ const VEIL_RADIUS_MULTIPLIER = 1.8 // local veil ellipse = target's own reach ra
 // that's the same place the card engine's own --hero-focus-strength term
 // already lives, and both need to be summed in one keyframe expression.
 const IDENTITY_REACH_PX = 150
+// Same proximity zoom idea, independently applied to the "Visual
+// Portfolio" nav link per direct feedback — its own rect, own reach
+// distance (smaller, since it's a small button rather than a large
+// text block — the effect should engage only once the pointer is
+// genuinely approaching it, not from across the whole nav), own CSS
+// custom property (--nav-featured-proximity-strength). Scale/
+// translateY ceilings live directly in hero.css, same reasoning as
+// IDENTITY_REACH_PX above.
+const NAV_FEATURED_REACH_PX = 90
 // Asymmetric enter/exit smoothing (no Motion/Framer Motion dependency in
 // this project — checked package.json/node_modules directly, neither
 // exists, and "no new dependency" has been a standing rule since the
@@ -161,6 +170,7 @@ export function SwissHero() {
   const veilRef = useRef<HTMLDivElement | null>(null)
   const annotationRef = useRef<HTMLDivElement | null>(null)
   const identityRef = useRef<HTMLDivElement | null>(null)
+  const navFeaturedRef = useRef<HTMLAnchorElement | null>(null)
 
   // Continuous state lives in refs, written straight to the DOM every
   // animation frame — NOT React state, per the explicit "do not trigger a
@@ -189,6 +199,7 @@ export function SwissHero() {
     strength: 0,
     labelOpacity: 0,
     identityProximity: 0,
+    navFeaturedProximity: 0,
   })
   const rafRef = useRef<number | null>(null)
   const lastFrameTimeRef = useRef<number | null>(null)
@@ -504,6 +515,24 @@ export function SwissHero() {
         heroSectionRef.current.style.setProperty('--identity-proximity-strength', String(s.identityProximity))
       }
 
+      // Nav "Visual Portfolio" button proximity — same technique, own
+      // rect, own reach distance, own CSS custom property. Independent
+      // of the identity-block effect above (different element, different
+      // trigger), so the two can never fight each other.
+      let rawNavFeaturedStrength = 0
+      if (navFeaturedRef.current && rawPointerPxRef.current) {
+        const rect = navFeaturedRef.current.getBoundingClientRect()
+        const px = rawPointerPxRef.current
+        const dx = Math.max(rect.left - px.x, 0, px.x - rect.right)
+        const dy = Math.max(rect.top - px.y, 0, px.y - rect.bottom)
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        rawNavFeaturedStrength = smoothstep(NAV_FEATURED_REACH_PX, 0, dist)
+      }
+      s.navFeaturedProximity = reducedMotion ? 0 : dampToward(s.navFeaturedProximity, rawNavFeaturedStrength, dt)
+      if (heroSectionRef.current) {
+        heroSectionRef.current.style.setProperty('--nav-featured-proximity-strength', String(s.navFeaturedProximity))
+      }
+
       // 6. Discrete content state — only touches React when it actually
       //    changes (proximity-threshold crossings, not every frame).
       //
@@ -574,6 +603,7 @@ export function SwissHero() {
               target="_blank"
               rel="noreferrer"
               className={link.label === 'Visual Portfolio' ? 'v2-hero-nav-featured' : undefined}
+              ref={link.label === 'Visual Portfolio' ? navFeaturedRef : undefined}
             >
               {link.label} ↗
             </a>
