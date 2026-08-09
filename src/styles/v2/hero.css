@@ -99,61 +99,22 @@
     linear-gradient(to bottom, rgba(235, 225, 217, 0.32), rgba(229, 219, 212, 0.32) 58%, rgba(220, 211, 204, 0.55));
 }
 
-/* Gate 1 retune: the 64px/large-fog version is retired — canonical
-   ceiling is 28-40px desktop, 20-28px mobile. This is a short dissolve
-   into the warm paper tone below, not a fog band; the tool piles
-   themselves are untouched (this only affects the literal bottom edge
-   pixels). */
-.v2-hero::after {
-  content: '';
-  position: absolute;
-  z-index: 30;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: clamp(28px, 3.5vh, 40px);
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(220, 211, 204, 0) 0%,
-    rgba(220, 211, 204, 0.12) 32%,
-    rgba(220, 211, 204, 0.52) 72%,
-    rgba(220, 211, 204, 1) 100%
-  );
-}
-/* Real bug, confirmed by direct feedback: the bottom edge above dissolves
-   into the paper tone, but the top edge had no equivalent — at some
-   window sizes (where the height-led scene canvas doesn't reach the very
-   top/bottom of .v2-hero, or the softened bgLayer's own blur radius runs
-   out before the edge) that left a visible hard seam only at the top.
-   Mirrors the bottom fade exactly, just flipped and using the top
-   gradient stop colour (--v2-hero-top, #ebe1d9) instead of the bottom
-   one, so both edges fuse into the surrounding page the same way as the
-   viewport is resized — this is a CSS-only responsive treatment, not a
-   fixed pixel band, so it holds at any window size. */
-.v2-hero::before {
-  content: '';
-  position: absolute;
-  z-index: 30;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: clamp(28px, 3.5vh, 40px);
-  pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgba(235, 225, 217, 0) 0%,
-    rgba(235, 225, 217, 0.12) 32%,
-    rgba(235, 225, 217, 0.52) 72%,
-    rgba(235, 225, 217, 1) 100%
-  );
-}
-@media (max-width: 760px), (max-aspect-ratio: 3/4) {
-  .v2-hero::after,
-  .v2-hero::before {
-    height: clamp(20px, 3vh, 28px);
-  }
-}
+/* REMOVED per direct feedback (the two-fade-layer correction pass): this
+   used to hold .v2-hero::before/::after — a section-outer-edge fade that
+   turned out to be pure redundant haze, not a real fix. Two facts made
+   that clear: (1) --v2-hero-bottom (#dcd3cc) is byte-identical to
+   --v2-paper in tokens.css — the page's own background colour — so the
+   boundary this band faded toward already matched exactly with ZERO fade
+   needed; there was never a seam there to fix. (2) In the ordinary
+   full-height case (the common one — most desktop viewports), this
+   band's box sat at the exact same y=0..~40px region as
+   .v2-hero-scenePositioner::before below, which fades the PHOTO's own
+   edge — the actual real seam. Stacking two opaque-at-the-edge gradients
+   in the same zone read as "too milky/foggy," per direct feedback on the
+   live site. The scenePositioner-level fade below is the one real fix
+   (it's anchored to the photo itself, so it works whether the photo
+   fills the full Hero height or is capped/letterboxed); this section's
+   fade added nothing and is deleted, not just tuned down. */
 
 /* Navigation — top-right, transparent, no navbar box. */
 .v2-hero-nav {
@@ -344,23 +305,23 @@
   --focus-radius-y: 16%;
 }
 
-/* Per direct feedback: the seam users actually saw was NOT at .v2-hero's
-   own outer top/bottom edges (already softened above) — it's at the
+/* The real top/bottom edge fix — the seam users actually saw is at the
    PHOTO's own top/bottom edges, between "ERIN WONG" and where the sharp
-   image begins. That gap only exists because the positioner's height is
-   now capped (see the min() above) whenever the viewport is portrait-ish
-   enough that pure height-led sizing would overflow — the capped photo
-   no longer always reaches .v2-hero's own edges, so it needs its own
-   edge treatment, not just the outer section's. Feathers the photo's own
-   top/bottom directly into the surrounding page tone (--v2-hero-top/
-   -bottom, inherited from .v2-hero, so the colour always matches exactly
-   — no separate colour to keep in sync). Unconditional (not scoped to
-   any breakpoint): harmless and redundant in the plain full-height case
-   (this band just sits right on top of .v2-hero's own already-matching
-   edge fade there), and is what actually fixes the gap in the
-   height-capped case. z-index lifts it above .v2-hero-sceneFocus (the
-   photo) in paint order; pointer-events: none keeps the card hotspots
-   beneath it fully clickable regardless of paint order. */
+   image begins, not at .v2-hero's own outer edges (a separate, now-
+   removed band used to sit there — see the comment left in its place
+   above; it turned out to be pure redundant haze, not a fix). This one
+   is anchored to the photo itself via .v2-hero-scenePositioner, so it
+   works correctly whether the photo fills the full Hero height or is
+   capped/letterboxed (portrait-window crop fix) — same treatment
+   either way, always right at the real edge. Feathers directly into the
+   surrounding page tone (--v2-hero-top/-bottom, inherited from .v2-hero,
+   so the colour always matches exactly). Narrowed per direct feedback —
+   "subtle and narrow, not broad and cloudy": top ~20-28px, bottom
+   ~28-40px, a single clean two-stop dissolve rather than a wide plateau,
+   so the image itself stays as large and intact as possible and only a
+   thin edge actually softens. z-index lifts it above .v2-hero-sceneFocus
+   (the photo) in paint order; pointer-events: none keeps the card
+   hotspots beneath it fully clickable regardless of paint order. */
 .v2-hero-scenePositioner::before,
 .v2-hero-scenePositioner::after {
   content: '';
@@ -372,13 +333,13 @@
 }
 .v2-hero-scenePositioner::before {
   top: 0;
-  height: clamp(28px, 4vh, 44px);
-  background: linear-gradient(to bottom, var(--v2-hero-top) 0%, rgba(235, 225, 217, 0.55) 45%, rgba(235, 225, 217, 0) 100%);
+  height: clamp(20px, 2.6vh, 28px);
+  background: linear-gradient(to bottom, var(--v2-hero-top) 0%, rgba(235, 225, 217, 0.3) 60%, rgba(235, 225, 217, 0) 100%);
 }
 .v2-hero-scenePositioner::after {
   bottom: 0;
-  height: clamp(32px, 4.5vh, 52px);
-  background: linear-gradient(to top, var(--v2-hero-bottom) 0%, rgba(220, 211, 204, 0.55) 45%, rgba(220, 211, 204, 0) 100%);
+  height: clamp(28px, 3.2vh, 40px);
+  background: linear-gradient(to top, var(--v2-hero-bottom) 0%, rgba(220, 211, 204, 0.3) 60%, rgba(220, 211, 204, 0) 100%);
 }
 
 /* Scene FOCUS layer — the only element that ever moves (restrained
