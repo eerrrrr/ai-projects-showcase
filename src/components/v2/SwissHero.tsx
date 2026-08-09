@@ -568,7 +568,13 @@ export function SwissHero() {
           .filter((link) => link.href !== '#systems')
           .map((link) =>
           link.external ? (
-            <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              className={link.label === 'Visual Portfolio' ? 'v2-hero-nav-featured' : undefined}
+            >
               {link.label} ↗
             </a>
           ) : (
