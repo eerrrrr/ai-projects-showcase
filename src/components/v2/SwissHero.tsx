@@ -1,27 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Html } from '../Html'
 import pageContent from '../../data/page-content.json'
-import projectsData from '../../data/projects.json'
+import { heroHotspots } from '../../data/heroHotspots'
 import { heroToolTargets, type HeroToolTarget } from '../../data/heroToolTargets'
 import { v2HeroContent } from '../../data/v2HeroContent'
-import type { PageContent, Project } from '../../data/types'
+import type { PageContent } from '../../data/types'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 
 const BASE = import.meta.env.BASE_URL
 const content = pageContent as PageContent
-// Mobile nav bug fix: the numbered links below the image used to be
-// driven by heroHotspots.ts, which only maps 4 of the 7 real projects —
-// it exists purely to describe 4 clickable regions ON the photo (image-
-// hotspot mapping), not to be a project index. Touch/narrow-viewport
-// visitors never see the photo's hotspots at all (Phase 13 disables them
-// on coarse pointers and this same narrow breakpoint), so they were
-// silently missing 3 of the 7 real projects with no way to reach them.
-// Derived here instead, straight from the same projects.json every other
-// project listing on the page reads from, sorted by real project.index —
-// heroHotspots.ts itself is untouched, still scoped only to the photo's
-// own 4 clickable regions.
-const allProjectsByIndex = (projectsData as Project[]).slice().sort((a, b) => a.index - b.index)
 
 // PROXIMITY-ENGINE pass (see PORTFOLIO_V2_INTERACTION_AND_WORKFLOW_BUILD_PROMPT.md's
 // 3rd interaction-correction pass). Generalises the camera-focus illusion
@@ -654,13 +641,6 @@ export function SwissHero() {
           the same variables, so the zoom point and the veil's centre can
           never drift apart. */}
       <div className="v2-hero-scenePositioner" ref={positionerRef}>
-        {/* Permanent architecture fix: local blurred duplicate of the same
-            image, painted directly behind .v2-hero-sceneFocus so its alpha
-            mask always has something real underneath it — unlike
-            .v2-hero-bgLayer above, this is never hidden by any breakpoint. */}
-        <div className="v2-hero-sceneAtmosphere" aria-hidden="true">
-          <img className="v2-hero-sceneAtmosphere-img" src={`${BASE}media/v2/ai-workflow-hero.png`} alt="" loading="eager" />
-        </div>
         <div className="v2-hero-sceneFocus" ref={sceneFocusRef}>
           <img
             className="v2-hero-scene"
@@ -734,21 +714,12 @@ export function SwissHero() {
       {/* Mobile fallback — no pointer-proximity interaction on touch/
           coarse-pointer devices (per Phase 13); the real, touch-friendly
           path into projects stays these numbered Swiss links. */}
-      <nav className="v2-hero-mobile-links" aria-label="Jump to a project">
+      <nav className="v2-hero-mobile-links" aria-label="Jump to a featured project">
         <hr className="v2-rule" />
-        {allProjectsByIndex.map((project) => (
-          // Real anchor id on the page is `system-NN` (see StoryPage/
-          // AiPortfolioV2Page.tsx's chapterId, built from project.index),
-          // NOT project.id — the old heroHotspots-driven version of this
-          // nav pointed at `#${project.id}` (e.g. "#job-application-
-          // filter"), which never matched any element in the DOM.
-          <a
-            key={project.id}
-            href={`#system-${String(project.index).padStart(2, '0')}`}
-            className="v2-hero-mobile-link"
-          >
-            <span className="v2-section-number">{String(project.index).padStart(2, '0')}</span>
-            <Html as="span" html={project.title} />
+        {heroHotspots.map((hotspot) => (
+          <a key={hotspot.id} href={`#${hotspot.targetProjectId}`} className="v2-hero-mobile-link">
+            <span className="v2-section-number">{String(hotspot.targetIndex).padStart(2, '0')}</span>
+            <span>{hotspot.label}</span>
           </a>
         ))}
         <hr className="v2-rule" />
