@@ -126,3 +126,31 @@ export function useChapterRollState(chapterId: string): { isActive: boolean; isS
   if (reducedMotion) return { isActive: true, isScrolling: false }
   return { isActive: activeId === chapterId, isScrolling }
 }
+
+// Reuses the exact same module-level engine/singleton as
+// useChapterRollState above (same listeners set, same startEngine call —
+// no second scroll/RAF loop) — just exposes the raw currently-active id
+// instead of a single chapterId's own isActive boolean, for UI that needs
+// to know WHICH chapter is active rather than react to one specific one
+// (e.g. a progress rail that shows/hides and highlights across several
+// chapters at once). Returns null under reduced motion, same as the
+// sticky-roll animation itself being off in that mode — nothing "is
+// active" in the pinned-stage sense, since every stage reverts to plain
+// static flow (see story-pages.css's reduced-motion override).
+export function useActiveChapterId(): string | null {
+  const reducedMotion = useReducedMotion()
+  const [, forceRender] = useState(0)
+
+  useEffect(() => {
+    if (reducedMotion) return
+    startEngine()
+    const listener = () => forceRender((n) => n + 1)
+    listeners.add(listener)
+    return () => {
+      listeners.delete(listener)
+    }
+  }, [reducedMotion])
+
+  if (reducedMotion) return null
+  return activeId
+}
