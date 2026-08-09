@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { heroHotspots } from '../../data/heroHotspots'
 import { heroToolTargets, type HeroToolTarget } from '../../data/heroToolTargets'
 import { v2HeroContent } from '../../data/v2HeroContent'
+import { ScrollCue } from './ScrollCue'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 
@@ -701,6 +702,8 @@ export function SwissHero() {
         ))}
         <hr className="v2-rule" />
       </nav>
+
+      <ScrollCue target="#approach" label="Scroll to Approach" />
     </section>
   )
 }

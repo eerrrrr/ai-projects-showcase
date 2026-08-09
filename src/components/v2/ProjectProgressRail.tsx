@@ -79,9 +79,27 @@ export function ProjectProgressRail({ projects }: { projects: Project[] }) {
   }, [])
 
   const sorted = [...projects].sort((a, b) => a.index - b.index)
+  const isIndexActive = activeId === 'selected-systems'
 
   return (
     <nav className="v2-progressRail" aria-label="Project progress" data-visible={visible} aria-hidden={!visible}>
+      {/* Secondary "return to Selected Systems index" node — per direct
+          feedback, deliberately NOT System 00 and not part of the 01-07
+          sequence (separate class, extra gap below via CSS, no number
+          shown). Weaker at rest than every project dot; becomes only
+          moderately more visible while Selected Systems itself is the
+          active section (data-index-active), never as strong as an
+          active project dot. */}
+      <a
+        href="#selected-systems"
+        className="v2-progressRail-index"
+        data-index-active={isIndexActive}
+        aria-label="Back to Selected systems"
+        tabIndex={visible ? 0 : -1}
+      >
+        <span className="v2-progressRail-indexLabel">INDEX</span>
+        <span className="v2-progressRail-indexMark" aria-hidden="true" />
+      </a>
       {sorted.map((project) => {
         const chapterId = `system-${String(project.index).padStart(2, '0')}`
         const isActive = activeId === chapterId

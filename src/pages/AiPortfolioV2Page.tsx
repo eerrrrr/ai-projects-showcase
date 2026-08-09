@@ -8,6 +8,7 @@ import { ManifestoPage } from '../components/v2/ManifestoPage'
 import { SelectedSystemsIndex } from '../components/v2/SelectedSystemsIndex'
 import { SystemChapter } from '../components/v2/SystemChapter'
 import { ProjectProgressRail } from '../components/v2/ProjectProgressRail'
+import { ScrollCue } from '../components/v2/ScrollCue'
 import { SupportingInfrastructurePage } from '../components/v2/SupportingInfrastructurePage'
 import { ClosingPage } from '../components/v2/ClosingPage'
 import '../styles/v2/tokens.css'
@@ -61,10 +62,12 @@ export function AiPortfolioV2Page() {
 
         <StoryPage id="approach" ariaLabel="Approach">
           <ManifestoPage />
+          <ScrollCue target="#selected-systems" label="Scroll to Selected systems" />
         </StoryPage>
 
         <StoryPage id="selected-systems" ariaLabel="Selected systems index">
           <SelectedSystemsIndex projects={sortedProjects} />
+          <ScrollCue target="#system-01" label="Scroll to System 01" />
         </StoryPage>
 
         {sortedProjects.map((project) => {
