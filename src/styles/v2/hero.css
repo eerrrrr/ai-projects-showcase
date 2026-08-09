@@ -305,54 +305,59 @@
   --focus-radius-y: 16%;
 }
 
-/* The real top/bottom edge fix — the seam users actually saw is at the
-   PHOTO's own top/bottom edges, between "ERIN WONG" and where the sharp
-   image begins, not at .v2-hero's own outer edges (a separate, now-
-   removed band used to sit there — see the comment left in its place
-   above; it turned out to be pure redundant haze, not a fix). This one
-   is anchored to the photo itself via .v2-hero-scenePositioner, so it
-   works correctly whether the photo fills the full Hero height or is
-   capped/letterboxed (portrait-window crop fix) — same treatment
-   either way, always right at the real edge. Feathers directly into the
-   surrounding page tone (--v2-hero-top/-bottom, inherited from .v2-hero,
-   so the colour always matches exactly). Narrowed per direct feedback —
-   "subtle and narrow, not broad and cloudy": top ~20-28px, bottom
-   ~28-40px, a single clean two-stop dissolve rather than a wide plateau,
-   so the image itself stays as large and intact as possible and only a
-   thin edge actually softens. z-index lifts it above .v2-hero-sceneFocus
-   (the photo) in paint order; pointer-events: none keeps the card
-   hotspots beneath it fully clickable regardless of paint order. */
-.v2-hero-scenePositioner::before,
-.v2-hero-scenePositioner::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-.v2-hero-scenePositioner::before {
-  top: 0;
-  height: clamp(20px, 2.6vh, 28px);
-  background: linear-gradient(to bottom, var(--v2-hero-top) 0%, rgba(235, 225, 217, 0.3) 60%, rgba(235, 225, 217, 0) 100%);
-}
-.v2-hero-scenePositioner::after {
-  bottom: 0;
-  height: clamp(28px, 3.2vh, 40px);
-  background: linear-gradient(to top, var(--v2-hero-bottom) 0%, rgba(220, 211, 204, 0.3) 60%, rgba(220, 211, 204, 0) 100%);
-}
+/* REMOVED per direct feedback: this used to hold
+   .v2-hero-scenePositioner::before/::after, a colour-gradient overlay
+   painted ON TOP of the sharp image (fading to an opaque
+   --v2-hero-top/-bottom colour). That is the wrong technique — it reads
+   as a horizontal cream/beige BAND sitting over the photo, not the photo
+   itself dissolving. The correct technique (matching how the left/right
+   edges already work) is an ALPHA MASK on the sharp image layer itself,
+   so the image becomes transparent at its own top/bottom edges and the
+   already-present atmospheric blurred duplicate (.v2-hero-bgLayer-img,
+   the SAME photo, sitting behind in paint order) shows through — a
+   genuine photographic dissolve, not a colour wash. See
+   .v2-hero-sceneFocus below, which now owns top/bottom blending the
+   same way it already owned left/right. There is only one owner of
+   photographic edge blending now. */
 
 /* Scene FOCUS layer — the only element that ever moves (restrained
    camera-focus scale + a small translate toward the active target), and
-   the ONLY element that gets the left/right photographic mask-blend —
-   applied here, not on the positioner, so the interactive hotspot/
-   annotation layer is never affected by it. */
+   the ONLY element that gets the photographic mask-blend — applied
+   here, not on the positioner, so the interactive hotspot/annotation
+   layer is never affected by it (masking a parent doesn't touch a
+   sibling). This is now the single owner of ALL FOUR edges' blending.
+
+   Top/bottom (per direct feedback correcting the previous colour-
+   overlay attempt): an ALPHA mask, not a colour gradient — the sharp
+   .v2-hero-scene image itself becomes transparent at its own top/
+   bottom edges, revealing .v2-hero-bgLayer-img (the same photo, blurred,
+   already sitting behind in paint order) through the gap. That's a real
+   photographic dissolve, matching how the left/right edges already
+   work below, instead of painting a beige band over the image. Narrow
+   by design — the middle of the image is untouched; only the extreme
+   ~16-24px top / ~22-30px bottom actually fades. Unconditional (not
+   gated to any aspect ratio), since the seam this fixes shows up at
+   ordinary viewport shapes, not just extreme ones. */
 .v2-hero-sceneFocus {
   position: absolute;
   inset: 0;
   transform-origin: var(--focus-x) var(--focus-y);
   transform: translate3d(0, 0, 0) scale(1);
   will-change: transform;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 clamp(16px, 2vh, 24px),
+    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 clamp(16px, 2vh, 24px),
+    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    transparent 100%
+  );
 }
 /* Regression repair: the mask was gated to `min-aspect-ratio: 19/9`
    (2.111) per the canonical spec's literal number, but that number was
@@ -367,23 +372,33 @@
    not a perception issue. Fixed by moving the threshold to 16/9 (1.778),
    safely BELOW the image's own 1.8112 ratio, so the mask is always
    already engaged by the time the fill layer could possibly be visible,
-   for any wide viewport, not just one specific recorded resolution. */
+   for any wide viewport, not just one specific recorded resolution.
+   At this breakpoint the element needs BOTH masks at once (top/bottom
+   always-on, left/right only here) — two mask layers combined with
+   mask-composite: intersect, so the final visible area is wherever
+   BOTH gradients are opaque, not a second mask replacing the first. */
 @media (min-aspect-ratio: 16 / 9) {
   .v2-hero-sceneFocus {
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      #000 2.2%,
-      #000 97.8%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      #000 2.2%,
-      #000 97.8%,
-      transparent 100%
-    );
+    -webkit-mask-image:
+      linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 clamp(16px, 2vh, 24px),
+        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        transparent 100%
+      ),
+      linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 clamp(16px, 2vh, 24px),
+        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        transparent 100%
+      ),
+      linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
+    mask-composite: intersect;
   }
 }
 @media (prefers-reduced-motion: reduce) {
