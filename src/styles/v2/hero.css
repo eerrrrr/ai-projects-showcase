@@ -226,7 +226,16 @@
   line-height: 1.45;
   letter-spacing: 0.015em;
   color: var(--v2-ink-2);
-  max-width: 560px;
+  /* Real bug, confirmed by direct feedback + reproduced at 1920px: the
+     full line ("PROCESS THINKING · DATA VISUALIZATION · HUMAN-REVIEWED
+     AI WORKFLOWS") needs ~616px to render on one line once the
+     clamp()'d font-size reaches its 15.5px ceiling (viewports >=1476px)
+     — wider than the old 560px cap, so "WORKFLOWS" orphaned onto its
+     own second line. Widened to 630px (measured natural width + a small
+     margin), still safely under the parent .v2-hero-identity's own
+     640px max-width, so this doesn't require touching that or anything
+     else's layout. */
+  max-width: 630px;
   animation: v2-hero-fade-in 620ms ease-out 200ms both;
 }
 
