@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { Html } from '../Html'
 
 // Per direct feedback: some project fields (problemHtml, workflowHtml,
@@ -30,53 +30,21 @@ function toBulletHtml(html: string): string {
   return `<ul><li>${html}</li></ul>`
 }
 
-// Shared progressive-disclosure wrapper — originally built for the
-// overview EvidenceInspector, now reused by CaseStudyLayout.tsx too so
-// both the compact overview panel and the full case-study page collapse
-// long source content the same way instead of each inventing its own
-// pattern. Collapses more than 3 list items or more than 2 top-level
-// blocks behind "Show full notes", using the real rendered DOM (native
-// `hidden` attribute) rather than string-parsing the source HTML.
-// Nothing is deleted or rewritten; collapsed items stay in the DOM.
+// Per direct feedback: the "Show full notes (+N)" collapse is removed —
+// the user does not want long text anyway ("i wont put too much text as
+// good for the reading afterall"), so hiding a couple of items behind a
+// click was solving a problem that no longer needs solving. Everything
+// the real data has is just shown directly now. Kept as a thin wrapper
+// (not inlined at call sites) only so toBulletHtml's normalization stays
+// centralized in one place for both the overview EvidenceInspector panel
+// and the full case-study page rows.
 export function QuickReadContent({ html: rawHtml, className }: { html: string; className?: string }) {
-  const [expanded, setExpanded] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const [overflowCount, setOverflowCount] = useState(0)
   const html = useMemo(() => toBulletHtml(rawHtml), [rawHtml])
-
-  useEffect(() => {
-    setExpanded(false)
-  }, [html])
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    const items = Array.from(container.querySelectorAll('li'))
-    const blocks = Array.from(container.children) as HTMLElement[]
-
-    if (items.length > 3) {
-      items.forEach((item, i) => {
-        item.hidden = !expanded && i >= 3
-      })
-      setOverflowCount(items.length - 3)
-    } else if (blocks.length > 2) {
-      blocks.forEach((block, i) => {
-        block.hidden = !expanded && i >= 2
-      })
-      setOverflowCount(blocks.length - 2)
-    } else {
-      setOverflowCount(0)
-    }
-  }, [html, expanded])
 
   return (
     <div>
       <Html as="div" ref={containerRef} className={className ?? 'v2-evidenceInspector-content'} html={html} />
-      {overflowCount > 0 && (
-        <button type="button" className="v2-quickread-toggle" onClick={() => setExpanded((e) => !e)}>
-          {expanded ? 'Hide full notes' : `Show full notes (+${overflowCount})`}
-        </button>
-      )}
     </div>
   )
 }
