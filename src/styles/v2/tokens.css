@@ -20,30 +20,34 @@
      exact same value as hero.css's `--v2-hero-edge-bottom`, both
      measured directly (Python median sample of the real PNG's own
      bottom-edge pixel ring, Gate 1.1 framing-correction pass), so the
-     Hero's own bottom edge and the very first pixel of Project 01 are
-     provably identical, not just visually close. The `table-surface`
-     tokens are held in reserve for any section that wants to lean
-     warmer/darker toward the photo's own cardboard tones without
-     introducing a second, disconnected palette. */
-  /* PASS A §11 — continuous lighter warm background across every story
-     page below the Hero. Kept as a gradient anchored to the EXACT value
-     Hero's own bottom dissolve already ends on (#dcd3cc — see hero.css's
-     --v2-hero-bottom) rather than the spec's literal top-stop (#f2ece7):
-     Hero is explicitly frozen this pass, so introducing a lighter tone
-     immediately below it would reopen the exact hard-seam regression
-     that was just fixed. Instead the page gets genuinely, continuously
-     lighter as it goes DOWN (reaching the spec's lightest tone by
-     Supporting/Closing), with zero seam change at the one pixel row that
-     actually touches the frozen Hero. --v2-paper itself is unchanged so
-     every other rule that already depends on it matching Hero's own
-     token (documented in hero.css) keeps doing so exactly.
-     --v2-paper-2 (node/panel fill) unchanged.*/
+     Hero's own bottom edge and the very first pixel of Approach are
+     provably identical, not just visually close. --v2-paper is kept
+     as-is (still the exact Hero-handoff value, still used by
+     .skip-link's text colour and anything else that already reads it)
+     — Hero stays frozen, untouched this pass. */
   --v2-paper: #dcd3cc;
-  --v2-paper-mid: #e6dfd8;
-  --v2-paper-light: #f2ece7;
   --v2-paper-2: #efe2cd;
   --v2-table-surface: #dbd3cc;
   --v2-table-surface-soft: #e6dbd1;
+
+  /* Section-state surface progression (per direct request) — replaces
+     the previous single long gradient that spanned the ENTIRE document
+     (every story page below the Hero, PASS A §11). That gradient was
+     real but imperceptible: diluted across thousands of px of unrelated
+     scroll distance, so no single section change ever read as "entering
+     a new chapter." These tokens instead back a handful of flat,
+     per-section surfaces (see story-pages.css's ID-selector rules) —
+     each transition happens at one real, perceivable scroll boundary,
+     not smeared. Values per direct spec, a small deliberate step up
+     from --v2-paper (#dcd3cc) for Approach, warming/lightening in
+     discrete stages down through Closing. Project chapters 01-07 all
+     share ONE settled tone (--v2-surface-project) — reads as one
+     collection, not seven different themes. */
+  --v2-surface-approach: #e2d8d1;
+  --v2-surface-selected-systems: #e9e2dc;
+  --v2-surface-project: #f2ede9;
+  --v2-surface-supporting: #eee7e2;
+  --v2-surface-closing: #f5f1ed;
   --v2-cardboard: #b98a5e;
   --v2-cardboard-dark: #8b6239;
   --v2-ink: #17140f;
@@ -95,7 +99,11 @@
   --v2-space-xl: 112px;
   --v2-space-section: 160px;
 
-  background: linear-gradient(180deg, var(--v2-paper) 0%, var(--v2-paper-mid) 45%, var(--v2-paper-light) 100%);
+  /* Flat fallback only — matches Hero's own bottom edge exactly. Each
+     story section below paints its own real background over this (see
+     story-pages.css); nothing here should ever actually show except as
+     a safety base. */
+  background: var(--v2-paper);
   color: var(--v2-ink);
   font-family: var(--v2-font-ui);
 }

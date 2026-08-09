@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import pageContent from '../../data/page-content.json'
 import { heroHotspots } from '../../data/heroHotspots'
 import { heroToolTargets, type HeroToolTarget } from '../../data/heroToolTargets'
 import { v2HeroContent } from '../../data/v2HeroContent'
-import type { PageContent } from '../../data/types'
+import { ScrollCue } from './ScrollCue'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 
 const BASE = import.meta.env.BASE_URL
-const content = pageContent as PageContent
 
 // PROXIMITY-ENGINE pass (see PORTFOLIO_V2_INTERACTION_AND_WORKFLOW_BUILD_PROMPT.md's
 // 3rd interaction-correction pass). Generalises the camera-focus illusion
@@ -80,6 +78,15 @@ const VEIL_RADIUS_MULTIPLIER = 1.8 // local veil ellipse = target's own reach ra
 // that's the same place the card engine's own --hero-focus-strength term
 // already lives, and both need to be summed in one keyframe expression.
 const IDENTITY_REACH_PX = 150
+// Same proximity zoom idea, independently applied to the "Visual
+// Portfolio" nav link per direct feedback — its own rect, own reach
+// distance (smaller, since it's a small button rather than a large
+// text block — the effect should engage only once the pointer is
+// genuinely approaching it, not from across the whole nav), own CSS
+// custom property (--nav-featured-proximity-strength). Scale/
+// translateY ceilings live directly in hero.css, same reasoning as
+// IDENTITY_REACH_PX above.
+const NAV_FEATURED_REACH_PX = 90
 // Asymmetric enter/exit smoothing (no Motion/Framer Motion dependency in
 // this project — checked package.json/node_modules directly, neither
 // exists, and "no new dependency" has been a standing rule since the
@@ -147,7 +154,16 @@ function usageLines(target: HeroToolTarget): UsageLines {
     if (overflow > 0) full.push(`+${String(overflow).padStart(2, '0')} MORE SYSTEM${overflow > 1 ? 'S' : ''}`)
     return { full }
   }
-  if (target.usageSummary) return { full: [target.usageSummary.toUpperCase()] }
+  // Per direct feedback: the usageSummary fallback (currently only
+  // Claude Code — it's a portfolio-wide meta-claim, not tied to any
+  // single project's own verified fields, which is exactly why it never
+  // had a projectUsage list) rendered as a bare sentence with no
+  // prefix, breaking the "NN / TEXT" rhythm every other tool's
+  // annotation uses. "00" is used deliberately instead of a real
+  // project number (01-07 are all genuine project indices) — it reads
+  // as "not tied to a specific project" while still matching the same
+  // visual format. The sentence itself is completely unchanged.
+  if (target.usageSummary) return { full: [`00 / ${target.usageSummary.toUpperCase()}`] }
   return { full: [] }
 }
 
@@ -161,6 +177,7 @@ export function SwissHero() {
   const veilRef = useRef<HTMLDivElement | null>(null)
   const annotationRef = useRef<HTMLDivElement | null>(null)
   const identityRef = useRef<HTMLDivElement | null>(null)
+  const navFeaturedRef = useRef<HTMLAnchorElement | null>(null)
 
   // Continuous state lives in refs, written straight to the DOM every
   // animation frame — NOT React state, per the explicit "do not trigger a
@@ -189,6 +206,7 @@ export function SwissHero() {
     strength: 0,
     labelOpacity: 0,
     identityProximity: 0,
+    navFeaturedProximity: 0,
   })
   const rafRef = useRef<number | null>(null)
   const lastFrameTimeRef = useRef<number | null>(null)
@@ -504,6 +522,24 @@ export function SwissHero() {
         heroSectionRef.current.style.setProperty('--identity-proximity-strength', String(s.identityProximity))
       }
 
+      // Nav "Visual Portfolio" button proximity — same technique, own
+      // rect, own reach distance, own CSS custom property. Independent
+      // of the identity-block effect above (different element, different
+      // trigger), so the two can never fight each other.
+      let rawNavFeaturedStrength = 0
+      if (navFeaturedRef.current && rawPointerPxRef.current) {
+        const rect = navFeaturedRef.current.getBoundingClientRect()
+        const px = rawPointerPxRef.current
+        const dx = Math.max(rect.left - px.x, 0, px.x - rect.right)
+        const dy = Math.max(rect.top - px.y, 0, px.y - rect.bottom)
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        rawNavFeaturedStrength = smoothstep(NAV_FEATURED_REACH_PX, 0, dist)
+      }
+      s.navFeaturedProximity = reducedMotion ? 0 : dampToward(s.navFeaturedProximity, rawNavFeaturedStrength, dt)
+      if (heroSectionRef.current) {
+        heroSectionRef.current.style.setProperty('--nav-featured-proximity-strength', String(s.navFeaturedProximity))
+      }
+
       // 6. Discrete content state — only touches React when it actually
       //    changes (proximity-threshold crossings, not every frame).
       //
@@ -556,34 +592,15 @@ export function SwissHero() {
         <img className="v2-hero-bgLayer-img" src={`${BASE}media/v2/ai-workflow-hero.png`} alt="" loading="eager" />
       </div>
 
-      <nav className="v2-hero-nav" aria-label="Primary navigation">
-        {/* Gate 1.1: "Systems" filtered out here, not deleted from
-            page-content.json — the shared JSON content stays untouched
-            per the redesign contract. It's also a genuinely dead link in
-            V2's own page structure: it points at "#systems", an anchor
-            id that doesn't exist anywhere in this routed page (V1's
-            single-page layout is where that id lives), so this is
-            removing a broken link, not just an unwanted label. */}
-        {content.nav.links
-          .filter((link) => link.href !== '#systems')
-          .map((link) =>
-          link.external ? (
-            <a
-              key={link.href}
-              href={link.href}
-              target="_blank"
-              rel="noreferrer"
-              className={link.label === 'Visual Portfolio' ? 'v2-hero-nav-featured' : undefined}
-            >
-              {link.label} ↗
-            </a>
-          ) : (
-            <a key={link.href} href={link.href}>
-              {link.label}
-            </a>
-          ),
-        )}
-      </nav>
+      {/* Nav moved out to PersistentTopNav.tsx, mounted once at the
+          App.tsx level — per direct feedback, the top bar needs to be
+          present on every route (it was previously only ever rendered
+          here, so the /ai/:projectId case-study page had none at all).
+          navFeaturedRef/NAV_FEATURED_REACH_PX above are now unused by
+          any rendered element (nothing attaches the ref any more) —
+          left in place rather than touched further: harmless (the
+          proximity computation just always reads a null rect), and
+          removing it isn't needed for this fix. */}
 
       <div className="v2-hero-identity" ref={identityRef}>
         <h1 className="v2-hero-name">{v2HeroContent.name.toUpperCase()}</h1>
@@ -685,6 +702,8 @@ export function SwissHero() {
         ))}
         <hr className="v2-rule" />
       </nav>
+
+      <ScrollCue target="#approach" label="Scroll to Approach" />
     </section>
   )
 }

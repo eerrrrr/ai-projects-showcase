@@ -56,10 +56,31 @@ export function WorkflowDiagram({
   const userControlRef = useRef(false)
   const timersRef = useRef<number[]>([])
   const wasActiveRef = useRef(false)
+  // Real bug, confirmed by direct feedback: onPointerEnter below took
+  // manual control PERMANENTLY (per the old file comment: "stays that
+  // way until Replay Workflow is clicked or the chapter is re-entered")
+  // — so a mouse cursor merely resting on or passing over any single
+  // node while scrolling silently killed autoplay for the rest of that
+  // visit, with no visible error and no way back short of leaving and
+  // re-entering the whole chapter. Fixed by resuming autoplay a short
+  // beat after the pointer actually leaves the node area, instead of
+  // requiring an explicit Replay click. isHoveringRef tracks whether the
+  // pointer is still over any node right now; the resume timer only
+  // actually restarts the sequence if it's genuinely still clear when it
+  // fires (guards against a fast re-hover of a different node).
+  const isHoveringRef = useRef(false)
+  const resumeTimerRef = useRef<number | null>(null)
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((id) => window.clearTimeout(id))
     timersRef.current = []
+  }, [])
+
+  const clearResumeTimer = useCallback(() => {
+    if (resumeTimerRef.current != null) {
+      window.clearTimeout(resumeTimerRef.current)
+      resumeTimerRef.current = null
+    }
   }, [])
 
   const runSequence = useCallback(() => {
@@ -99,7 +120,9 @@ export function WorkflowDiagram({
 
     if (!isActive) {
       clearTimers()
+      clearResumeTimer()
       userControlRef.current = false
+      isHoveringRef.current = false
       wasActiveRef.current = false
       setActiveNodeId(workflow.nodes[0]?.id ?? null)
       setActiveConnectorId(null)
@@ -123,9 +146,14 @@ export function WorkflowDiagram({
     }, WORKFLOW_SETTLE_DELAY_MS)
     timersRef.current.push(settleTimer)
     return () => window.clearTimeout(settleTimer)
-  }, [isActive, isScrolling, reducedMotion, hasEntered, clearTimers, runSequence, workflow.nodes])
+  }, [isActive, isScrolling, reducedMotion, hasEntered, clearTimers, clearResumeTimer, runSequence, workflow.nodes])
 
-  useEffect(() => clearTimers, [clearTimers])
+  useEffect(() => {
+    return () => {
+      clearTimers()
+      clearResumeTimer()
+    }
+  }, [clearTimers, clearResumeTimer])
 
   // Detail rail updates a short beat after the node itself activates.
   useEffect(() => {
@@ -139,21 +167,43 @@ export function WorkflowDiagram({
 
   const selectStage = useCallback(
     (id: string) => {
+      isHoveringRef.current = true
+      clearResumeTimer()
       userControlRef.current = true
       clearTimers()
       setActiveNodeId(id)
       setActiveConnectorId(id)
     },
-    [clearTimers],
+    [clearTimers, clearResumeTimer],
   )
 
+  // Real bug fix, continued: fires when the pointer leaves the node row
+  // entirely (not per-node — moving between adjacent nodes shouldn't
+  // trigger this). After a short pause — long enough to have genuinely
+  // finished looking at a node, not a passing brush — resumes autoplay
+  // from the top, same as clicking Replay, but only if the pointer is
+  // still clear of every node when the timer actually fires (a fast
+  // re-hover of a different node cancels it via clearResumeTimer above).
+  const RESUME_DELAY_MS = 900
+  const handleContainerPointerLeave = useCallback(() => {
+    isHoveringRef.current = false
+    clearResumeTimer()
+    if (!userControlRef.current || reducedMotion) return
+    resumeTimerRef.current = window.setTimeout(() => {
+      resumeTimerRef.current = null
+      if (isHoveringRef.current) return
+      runSequence()
+    }, RESUME_DELAY_MS)
+  }, [clearResumeTimer, reducedMotion, runSequence])
+
   const handleReplay = useCallback(() => {
+    clearResumeTimer()
     if (reducedMotion) {
       setActiveNodeId(workflow.nodes[0]?.id ?? null)
       return
     }
     runSequence()
-  }, [reducedMotion, runSequence, workflow.nodes])
+  }, [reducedMotion, runSequence, workflow.nodes, clearResumeTimer])
 
   const activeStage: WorkflowNode | undefined =
     workflow.nodes.find((node) => node.id === displayedNodeId) ?? workflow.nodes[0]
@@ -167,6 +217,7 @@ export function WorkflowDiagram({
         }`}
         role="list"
         aria-label={`${workflow.title} workflow, ${workflow.nodes.length} steps`}
+        onPointerLeave={handleContainerPointerLeave}
       >
         {workflow.nodes.map((node, i) => {
           const isNodeActive = activeNodeId === node.id

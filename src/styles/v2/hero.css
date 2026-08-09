@@ -116,13 +116,29 @@
    fills the full Hero height or is capped/letterboxed); this section's
    fade added nothing and is deleted, not just tuned down. */
 
-/* Navigation — top-right, transparent, no navbar box. */
+/* Navigation — top-right, transparent, no navbar box. Per direct
+   request: stays in the same viewport position at all times, not just
+   while scrolled within the Hero — position:fixed instead of absolute
+   (escapes the Hero's own box entirely, so this is the one property
+   that actually makes it persistent) plus a z-index high enough to
+   clear every story section's own content, none of which sets a
+   z-index above single digits. This is a plain positioning change to
+   an existing UI element, not a change to the Hero's photographic
+   scene/proximity/mask system, which stays untouched. */
 .v2-hero-nav {
-  position: absolute;
+  position: fixed;
   top: clamp(20px, 3vh, 32px);
   right: clamp(24px, 4vw, 64px);
-  z-index: 3;
+  z-index: 50;
   display: flex;
+  /* Real bug, confirmed by direct feedback: no align-items was set here
+     (defaults to stretch), so once the "Visual Portfolio" badge grew
+     taller than the plain LinkedIn/GitHub text links (via its own
+     vertical padding), those plain links' text sat at the TOP of their
+     own stretched flex box instead of centering against the badge —
+     reading as "too high" relative to it. Centers all three items on
+     the row's cross-axis instead. */
+  align-items: center;
   gap: clamp(16px, 2vw, 28px);
   animation: v2-hero-fade-in 500ms ease-out 420ms both;
 }
@@ -137,14 +153,35 @@
 .v2-hero-nav a:focus-visible {
   color: var(--v2-accent);
 }
-/* Per direct feedback: "Visual Portfolio" made bold + underlined to
-   stand out from the other two nav links, which stay as they were.
-   Needs the `a.` prefix — .v2-hero-nav a's own text-decoration: none
-   above has higher specificity (class + element) than a bare class
-   alone, so a plain .v2-hero-nav-featured rule silently lost. */
+/* Per direct feedback (two rounds): "Visual Portfolio" first went bold +
+   underlined, then evolved further into a filled black badge with bold
+   white text for maximum legibility, plus its own pointer-proximity
+   zoom (same technique as the ERIN WONG identity block, own rect/own
+   CSS custom property — see SwissHero.tsx's navFeaturedRef and
+   --nav-featured-proximity-strength). Needs the `a.` prefix — .v2-hero-nav
+   a's own text-decoration/color rules above have higher specificity
+   (class + element) than a bare class alone, so a plain
+   .v2-hero-nav-featured rule would silently lose the cascade. The solid
+   fill is the visual distinction now, so the earlier underline is
+   dropped — redundant once it's a real badge, not still a text link. */
 .v2-hero-nav a.v2-hero-nav-featured {
+  display: inline-flex;
+  align-items: center;
+  color: #fff;
+  background: var(--v2-ink);
   font-weight: 700;
-  text-decoration: underline;
+  text-decoration: none;
+  padding: 5px clamp(10px, 1.2vw, 14px);
+  border-radius: 2px;
+  transform-origin: center;
+  transform:
+    scale(calc(1 + var(--nav-featured-proximity-strength, 0) * 0.025))
+    translateY(calc(var(--nav-featured-proximity-strength, 0) * -1px));
+}
+.v2-hero-nav a.v2-hero-nav-featured:hover,
+.v2-hero-nav a.v2-hero-nav-featured:focus-visible {
+  color: #fff;
+  background: var(--v2-accent);
 }
 
 /* Identity block — upper-left negative space. Dominant but capped so it
@@ -205,7 +242,16 @@
   line-height: 1.45;
   letter-spacing: 0.015em;
   color: var(--v2-ink-2);
-  max-width: 560px;
+  /* Real bug, confirmed by direct feedback + reproduced at 1920px: the
+     full line ("PROCESS THINKING · DATA VISUALIZATION · HUMAN-REVIEWED
+     AI WORKFLOWS") needs ~616px to render on one line once the
+     clamp()'d font-size reaches its 15.5px ceiling (viewports >=1476px)
+     — wider than the old 560px cap, so "WORKFLOWS" orphaned onto its
+     own second line. Widened to 630px (measured natural width + a small
+     margin), still safely under the parent .v2-hero-identity's own
+     640px max-width, so this doesn't require touching that or anything
+     else's layout. */
+  max-width: 630px;
   animation: v2-hero-fade-in 620ms ease-out 200ms both;
 }
 
@@ -343,10 +389,20 @@
    already sitting behind in paint order) through the gap. That's a real
    photographic dissolve, matching how the left/right edges already
    work below, instead of painting a beige band over the image. Narrow
-   by design — the middle of the image is untouched; only the extreme
-   ~16-24px top / ~22-30px bottom actually fades. Unconditional (not
+   by design — the middle of the image is untouched. Unconditional (not
    gated to any aspect ratio), since the seam this fixes shows up at
-   ordinary viewport shapes, not just extreme ones. */
+   ordinary viewport shapes, not just extreme ones.
+
+   Bottom fade widened to ~60-110px (was ~22-30px), confirmed live at a
+   wide/short viewport (~2:1 aspect): unlike the left/right edges, which
+   get a genuinely soft transition because .v2-hero-scenePositioner is
+   narrower than the Hero there (real extra margin for .v2-hero-bgLayer
+   to breathe in before the mask even starts), the top/bottom edges have
+   NO such margin — the positioner is height:100% of the Hero at these
+   ratios, so the entire dissolve has to happen inside the mask band
+   itself. The old ~30px band was too tight to read as soft under that
+   constraint; a wider band gives the same kind of gradual room the
+   sides get "for free" from their own extra margin. */
 .v2-hero-sceneFocus {
   position: absolute;
   inset: 0;
@@ -357,14 +413,14 @@
     to bottom,
     transparent 0,
     #000 clamp(16px, 2vh, 24px),
-    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    #000 calc(100% - clamp(60px, 8vh, 110px)),
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
     #000 clamp(16px, 2vh, 24px),
-    #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+    #000 calc(100% - clamp(60px, 8vh, 110px)),
     transparent 100%
   );
 }
@@ -393,7 +449,7 @@
         to bottom,
         transparent 0,
         #000 clamp(16px, 2vh, 24px),
-        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        #000 calc(100% - clamp(60px, 8vh, 110px)),
         transparent 100%
       ),
       linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
@@ -403,7 +459,7 @@
         to bottom,
         transparent 0,
         #000 clamp(16px, 2vh, 24px),
-        #000 calc(100% - clamp(22px, 2.8vh, 30px)),
+        #000 calc(100% - clamp(60px, 8vh, 110px)),
         transparent 100%
       ),
       linear-gradient(to right, transparent 0%, #000 2.2%, #000 97.8%, transparent 100%);
@@ -610,8 +666,18 @@
     overflow: visible;
   }
   .v2-hero-nav {
-    position: static;
-    padding: 0 20px var(--v2-space-sm);
+    /* Stays position:fixed (inherited from the base rule) so it's
+       persistent on narrow viewports too — full-width bar instead of
+       the desktop's right-aligned corner, since a right-clamp position
+       would crowd three items into a narrow strip. */
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 14px 20px;
+    /* PersistentTopNav.tsx wraps this nav in its own .v2-page div so
+       these tokens resolve correctly even though the nav now mounts
+       outside any page's own .v2-page (see App.tsx). */
+    background: var(--v2-surface-approach, var(--v2-paper));
     justify-content: flex-start;
     flex-wrap: wrap;
   }
@@ -654,20 +720,21 @@
     -webkit-mask-image: none;
     mask-image: none;
   }
-  /* No pointer-proximity interaction on mobile, per Phase 13 — the
-     numbered project links below the image are the real, touch-friendly
-     path instead. */
+  /* No pointer-proximity interaction on mobile, per Phase 13. */
   .v2-tool-hotspots,
   .v2-hero-focusVeil,
   .v2-toolAnnotation,
   .v2-hero-bgLayer {
     display: none;
   }
-  .v2-hero-mobile-links {
-    display: block;
-    padding: 0 20px;
-    margin-top: var(--v2-space-lg);
-  }
+  /* Per direct feedback: the numbered-links list only ever covered 4 of
+     the 7 real projects (heroHotspots.ts is scoped to 4 photo hotspots,
+     not a project index) and was rejected on sight in this reverted
+     state — cut entirely on narrow viewports rather than shipping a
+     known-incomplete list. .v2-hero-mobile-links stays display:none
+     (its own base rule further below), no override here. Selected
+     Systems (the actual full 7-project index, further down the page)
+     is the real way in on narrow viewports for now. */
 }
 
 /* Coarse-pointer devices (touch) disable the image interaction even at

@@ -171,15 +171,30 @@
     transform: translateY(0);
   }
 }
+/* Real bug, confirmed by direct feedback with an annotated screenshot:
+   the workflow diagram/table above spans the full column width, but
+   this text was capped to a narrow ~68-character reading column,
+   leaving a large empty gap on the right. Removed the cap so it fills
+   the same width as the diagram/table above it. */
 .v2-evidenceInspector-content {
   font-size: 16px;
   font-weight: 500;
   line-height: 1.6;
   color: var(--v2-ink);
-  max-width: 68ch;
 }
+/* Real bug, confirmed by direct feedback with an annotated screenshot:
+   this 18px padding-left was already explicit (not just an un-reset
+   browser default), but once toBulletHtml (QuickReadContent.tsx) began
+   wrapping many previously-flush plain-paragraph fields into <ul><li>
+   too, that same 18px now visibly misaligned the actual bulleted TEXT
+   against the workflow diagram/evidence-table edges directly above it,
+   which all start flush at the container's true left edge. Hanging-
+   indent technique: margin-left cancels the padding's positional
+   effect, so the bullet MARKER hangs slightly outside/before the true
+   edge while the readable TEXT (which starts after the marker's
+   padding zone) lands exactly flush with everything else. */
 .v2-evidenceInspector-content ul {
-  margin: 0;
+  margin: 0 0 0 -18px;
   padding-left: 18px;
 }
 .v2-evidenceInspector-content li {
