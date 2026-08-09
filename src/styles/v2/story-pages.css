@@ -67,6 +67,44 @@
   }
 }
 
+/* Section-state surface progression (per direct request) — each major
+   section owns a real, flat background over its own full box (painted
+   directly on .v2-storyPage via its existing id, no structural change,
+   no touch to StoryPage.tsx or the roll engine). Approach and Closing
+   etc. are simple flat handoffs — the colour deltas between them are
+   small enough not to read as a hard cut. Selected Systems is the one
+   deliberate exception: a gradient across its own box that stays solid
+   for most of its height, then brightens toward the Project tone over
+   its own final ~22vh, so crossing into System 01 (already the same
+   settled tone) is seamless rather than a hard line. System 01-07 all
+   share ONE tone — reads as one collection, not seven separate themes. */
+#approach {
+  background: var(--v2-surface-approach);
+}
+#selected-systems {
+  background: linear-gradient(
+    to bottom,
+    var(--v2-surface-selected-systems) 0%,
+    var(--v2-surface-selected-systems) calc(100% - 22vh),
+    var(--v2-surface-project) 100%
+  );
+}
+#system-01,
+#system-02,
+#system-03,
+#system-04,
+#system-05,
+#system-06,
+#system-07 {
+  background: var(--v2-surface-project);
+}
+#supporting-infrastructure {
+  background: var(--v2-surface-supporting);
+}
+#closing {
+  background: var(--v2-surface-closing);
+}
+
 /* Manifesto (content only — the page-level <section> is now the shared
    StoryPage above; ManifestoPage.tsx renders just this grid). */
 .v2-manifesto-grid {
