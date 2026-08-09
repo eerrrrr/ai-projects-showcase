@@ -331,15 +331,14 @@
      size/opacity, reads as more legible without going heavy. */
   color: var(--v2-ink);
   text-decoration: none;
-  opacity: 0.44;
+  /* Per direct feedback: 100% at rest now, not a dimmed resting state
+     with a hover boost — hover/focus-visible no longer need their own
+     opacity rule since there's nowhere higher to go. */
+  opacity: 1;
   animation:
     v2-scrollCue-in 550ms var(--v2-ease-soft) 750ms both,
     v2-scrollCue-breathe 2.6s ease-in-out 1300ms infinite;
   transition: opacity 200ms ease;
-}
-.v2-scrollCue:hover,
-.v2-scrollCue:focus-visible {
-  opacity: 0.78;
 }
 .v2-scrollCue:focus-visible {
   outline: 2px solid var(--v2-accent);
@@ -351,7 +350,7 @@
     transform: translateX(-50%) translateY(4px);
   }
   to {
-    opacity: 0.44;
+    opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
 }
@@ -370,7 +369,7 @@
 @media (prefers-reduced-motion: reduce) {
   .v2-scrollCue {
     animation: none;
-    opacity: 0.44;
+    opacity: 1;
   }
 }
 
