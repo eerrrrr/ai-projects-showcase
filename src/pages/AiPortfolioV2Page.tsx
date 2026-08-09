@@ -72,15 +72,18 @@ export function AiPortfolioV2Page() {
 
         {sortedProjects.map((project) => {
           const chapterId = `system-${String(project.index).padStart(2, '0')}`
+          const nextChapterId = project.index < sortedProjects.length ? `system-${String(project.index + 1).padStart(2, '0')}` : 'supporting-infrastructure'
           return (
             <StoryPage key={project.id} id={chapterId} ariaLabel={`System ${project.index}: ${project.shortTitle ?? project.title}`}>
               <SystemChapter project={project} chapterId={chapterId} />
+              <ScrollCue target={`#${nextChapterId}`} label={`Scroll to ${nextChapterId === 'supporting-infrastructure' ? 'Supporting infrastructure' : nextChapterId.replace('system-', 'System ')}`} />
             </StoryPage>
           )
         })}
 
         <StoryPage id="supporting-infrastructure" ariaLabel="Supporting infrastructure">
           <SupportingInfrastructurePage supporting={content.supporting} />
+          <ScrollCue target="#closing" label="Scroll to Closing" />
         </StoryPage>
 
         <StoryPage id="closing" ariaLabel="Closing">
