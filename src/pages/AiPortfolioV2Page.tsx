@@ -74,7 +74,12 @@ export function AiPortfolioV2Page() {
           const chapterId = `system-${String(project.index).padStart(2, '0')}`
           const nextChapterId = project.index < sortedProjects.length ? `system-${String(project.index + 1).padStart(2, '0')}` : 'supporting-infrastructure'
           return (
-            <StoryPage key={project.id} id={chapterId} ariaLabel={`System ${project.index}: ${project.shortTitle ?? project.title}`}>
+            <StoryPage
+              key={project.id}
+              id={chapterId}
+              ariaLabel={`System ${project.index}: ${project.shortTitle ?? project.title}`}
+              className={project.systemLogicConcepts ? 'v2-storyPage--tall' : undefined}
+            >
               <SystemChapter project={project} chapterId={chapterId} />
               <ScrollCue target={`#${nextChapterId}`} label={`Scroll to ${nextChapterId === 'supporting-infrastructure' ? 'Supporting infrastructure' : nextChapterId.replace('system-', 'System ')}`} />
             </StoryPage>

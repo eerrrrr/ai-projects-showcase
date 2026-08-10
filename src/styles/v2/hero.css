@@ -749,3 +749,18 @@
     display: none;
   }
 }
+
+/* Print (hierarchy-rebuild pass, 2026-08-10) — no @media print rules
+   existed anywhere in v2 before this. .v2-hero-nav and .v2-toolAnnotation
+   are both position:fixed, so a browser print/PDF export re-stamps them
+   at the same viewport position on every printed page, overlapping
+   whatever section content happens to fall underneath on later pages —
+   this is what produced the overlap seen in a real exported PDF. Neither
+   adds value on a printed page. See story-pages.css for the matching
+   .v2-progressRail rule (third and last position:fixed element in v2). */
+@media print {
+  .v2-hero-nav,
+  .v2-toolAnnotation {
+    display: none !important;
+  }
+}

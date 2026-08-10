@@ -20,30 +20,70 @@
   position: sticky;
   top: clamp(24px, 4vh, 56px);
 }
+/* Levels 1-3 (System 01 typography-hierarchy pass, 2026-08-09) — sizes/
+   weights refined per direct research (Apple HIG hierarchy principles:
+   few weights, size+weight+colour together carry hierarchy, no light
+   weights at small sizes). Shared classes, used by every project's
+   chapter — a deliberate, scoped exception to this pass's otherwise
+   System-01-only changes, since coherent base typography benefits every
+   chapter and these are pure size/weight/colour refinements, not
+   content or structural changes. Every project's actual copy is
+   unaffected; only how it's set. */
 .v2-chapter-number {
   margin: 4px 0 0;
-  font-size: clamp(56px, 6vw, 100px);
-  font-weight: 700;
-  line-height: 0.8;
-  letter-spacing: -0.06em;
-  color: var(--v2-ink);
+  font-size: clamp(56px, 6vw, 88px);
+  font-weight: var(--type-weight-semibold);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: var(--v2-text-primary);
 }
 .v2-chapter-title {
   margin: 10px 0 0;
-  font-size: clamp(24px, 2.6vw, 38px);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: var(--v2-ink);
+  font-size: clamp(28px, 2.9vw, 44px);
+  font-weight: var(--type-weight-semibold);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--v2-text-primary);
   max-width: 14ch;
 }
 .v2-chapter-value {
-  margin: 4px 0 0;
-  font-size: 15px;
-  font-weight: 500;
+  margin: 6px 0 0;
+  /* Readability pass, 2026-08-09: 17px -> 18px (top of the 17-18px
+     range per direct feedback after watching a real recording). */
+  font-size: 18px;
+  font-weight: var(--type-weight-regular);
+  line-height: 1.45;
+  color: var(--v2-text-secondary);
+  /* Widened from 32ch (System 01 V3 correction, 2026-08-09) — the new
+     concrete value sentences ("An n8n workflow that cleans...") read
+     naturally at this width; shorter existing value lines on other
+     projects just wrap less aggressively, no visual harm. */
+  max-width: 40ch;
+}
+/* Real concrete examples under the value line — System 01 V3/V4
+   correction, 2026-08-09. Wrapped with its own "REAL CASES" eyebrow
+   (.v2-chapter-metaLine-label, shared with SystemControlStrip's
+   "Implementation" label) rather than floating unlabelled. */
+.v2-chapter-realExamplesBlock {
+  margin-top: 10px;
+}
+.v2-chapter-realExamples {
+  margin: 5px 0 0;
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Level 5 (data/example/result) — System 01 typography-hierarchy
+     pass, 2026-08-09: 12.5-14px / 450-500 / mono / dark neutral.
+     Readability pass, 2026-08-09: nudged to top of range (14px). */
+  font-size: 14px;
+  font-weight: var(--type-weight-medium);
   line-height: 1.4;
-  color: var(--v2-ink-2);
-  max-width: 32ch;
+  color: var(--v2-text-secondary);
+  max-width: 34ch;
+}
+.v2-chapter-realExamples li {
+  font-family: var(--v2-font-mono);
 }
 .v2-chapter-sequence {
   margin: 6px 0 0;
@@ -65,6 +105,16 @@
   font-weight: 700;
   color: var(--v2-ink);
 }
+/* Plain state line — System 01 V2 correction, 2026-08-09 — deliberately
+   NOT styled like --key-number/proofStats' large mono figure, since a
+   state list isn't performance evidence. */
+.v2-chapter-humanDecisionLabel {
+  margin: 8px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--v2-ink-2);
+}
 .v2-chapter-tags {
   display: flex;
   flex-wrap: wrap;
@@ -75,6 +125,69 @@
   font-family: var(--v2-font-mono);
   font-size: 11px;
   color: var(--v2-ink-3);
+}
+/* Shared small-label style — "Real cases" (rail) and "Implementation"
+   (SystemControlStrip, right side). System 01 V3/V4 correction,
+   2026-08-09. Weight raised + colour darkened from the original
+   9.5px/--ink-3 pairing — per direct feedback, micro-labels need enough
+   contrast to actually register, not just exist. */
+.v2-chapter-metaLine-label {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--v2-font-mono);
+  /* Readability pass, 2026-08-09: micro labels should never go below
+     ~11px, per direct feedback. */
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--v2-ink-2);
+}
+
+/* Top-level proof stats (System 01 Professional V2 pass, 2026-08-09) —
+   replaces the single v2-chapter-key line when a project supplies
+   proofStats (see ProofStats.tsx). Stacked, not a row — the rail is
+   narrow (4/12 columns), so 3 stat blocks read better vertically than
+   crammed side by side. */
+.v2-proofStats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+.v2-proofStats-item {
+  display: flex;
+  flex-direction: column;
+}
+.v2-proofStats-value {
+  font-family: var(--v2-font-mono);
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--v2-ink);
+}
+.v2-proofStats-label {
+  margin-top: 4px;
+  font-family: var(--v2-font-mono);
+  /* Raised from 10px/--ink-3 (System 01 V3 correction, 2026-08-09) — per
+     direct feedback, "8/8" alone doesn't tell a reader what it's 8 of;
+     the label needs enough contrast to actually be read, not just
+     present. */
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+  color: var(--v2-ink-2);
+}
+.v2-proofStats-sublabel {
+  margin-top: 2px;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--v2-ink-2);
 }
 .v2-chapter-cta {
   margin-top: var(--v2-space-sm);
@@ -90,9 +203,267 @@
   text-decoration: underline;
 }
 
+/* Distinguishes the main page's conceptual flow from the detail page's
+   real architecture diagram — System 01 V2 correction, 2026-08-09.
+   Reused as-is by SystemControlStrip's own "SYSTEM CONTROL" eyebrow for
+   visual consistency between the two right-side section labels. */
+.v2-chapter-workflowLabel {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--v2-ink-2);
+}
+/* One-line control summary (hierarchy-rebuild pass, 2026-08-10) —
+   replaces the full SystemControlStrip block on the main chapter. UI
+   font, not mono: this is a short natural-language sentence, not a
+   data value. Sits below the active-detail panel, quiet and secondary —
+   the full version lives on the detail page. */
+.v2-chapter-controlSummary {
+  /* Visual-hierarchy-reset pass, 2026-08-10: 13px -> 12px, kept on
+     text-tertiary — per direct correction, this line is "acceptable but
+     must not create another competing hierarchy level." Now the
+     quietest text in the right column, clearly a trailing footnote
+     rather than content competing with the active-stage panel above it. */
+  margin: var(--v2-space-sm) 0 0;
+  font-size: 12px;
+  color: var(--v2-text-tertiary, var(--v2-ink-3));
+}
+
+/* "How the system is engineered" strip — System 01 V4 correction,
+   2026-08-09. Plain grid+rules, deliberately no card background/border —
+   per direct feedback, the Swiss grid itself establishes structure
+   without needing to box every piece of data. */
+.v2-systemControlStrip {
+  margin-top: clamp(28px, 3.6vh, 44px);
+  padding-top: clamp(20px, 2.6vh, 32px);
+  border-top: 1px solid var(--v2-rule);
+}
+.v2-systemControlStrip-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.8vw, 24px);
+}
+.v2-systemControlStrip-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1.5px solid var(--v2-rule-strong);
+}
+.v2-systemControlStrip-eyebrow {
+  font-family: var(--v2-font-mono);
+  /* Readability pass, 2026-08-09: 9.5px -> 11px, "micro label shouldn't
+     go below ~11px" per direct feedback. */
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--v2-accent);
+}
+.v2-systemControlStrip-title {
+  /* Readability pass, 2026-08-09: 13px -> 15px. */
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+.v2-systemControlStrip-detail {
+  font-family: var(--v2-font-mono);
+  /* Readability pass, 2026-08-09: 11px -> 13px. */
+  font-size: 13px;
+  color: var(--v2-ink-2);
+}
+.v2-systemControlStrip-implementation {
+  margin: clamp(16px, 2vh, 24px) 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--v2-ink);
+}
+@media (max-width: 720px) {
+  .v2-systemControlStrip-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
 .v2-chapter-workflowField {
   grid-column: 5 / span 8;
   min-width: 0;
+}
+
+/* Architecture cards (System 01 Professional V2 pass, 2026-08-09) —
+   compact technical-layer summary, below the main workflow diagram (see
+   ArchitectureCards.tsx). Quick-reading cards, not paragraphs — 3-column
+   on desktop, stacks below the workflow's own breakpoint. */
+.v2-architectureCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+  list-style: none;
+  padding: 0;
+  margin: var(--v2-space-md) 0 0;
+}
+.v2-architectureCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--v2-rule);
+  border-radius: 3px;
+  background: #ffffff;
+}
+.v2-architectureCard-eyebrow {
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--v2-accent);
+}
+.v2-architectureCard-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+.v2-architectureCard-body {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--v2-ink-2);
+}
+@media (max-width: 720px) {
+  .v2-architectureCards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Proof matrix (System 01 Professional V2 pass, 2026-08-09) — a few
+   representative cases shown first (fast scan), full regression table
+   behind one disclosure control (progressive depth, see ProofMatrix.tsx).
+   Restrained styling deliberately: no dashboard red/green, a single
+   restrained check mark carries the "PASS" emphasis instead. */
+.v2-proofMatrix {
+  margin-top: var(--v2-space-md);
+}
+.v2-proofMatrix-cases {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--v2-space-sm);
+}
+/* Count-aware override (hierarchy-rebuild pass, 2026-08-10) — same
+   pattern already proven for the 6-node workflow grid's :has() fix.
+   System 01 is currently the only project with exactly 4
+   testEvidencePreview items (02/03/04 all have exactly 3, which already
+   fits the fixed 3-column default above perfectly) — without this, a
+   4th card wraps alone to a new row, leaving 62% of that row empty
+   beside it (measured). Auto-applies to any future project that
+   happens to supply exactly 4 items too. */
+.v2-proofMatrix-cases:has(.v2-proofMatrix-case:nth-child(4):last-child) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.v2-proofMatrix-case {
+  padding: 12px 14px;
+  border: 1px solid var(--v2-rule);
+  border-radius: 3px;
+  background: var(--v2-accent-soft);
+}
+.v2-proofMatrix-caseEyebrow {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--v2-ink-3);
+}
+.v2-proofMatrix-caseLines {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.v2-proofMatrix-caseLines li {
+  font-family: var(--v2-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--v2-ink);
+}
+@media (max-width: 720px) {
+  .v2-proofMatrix-cases {
+    grid-template-columns: 1fr;
+  }
+}
+.v2-proofMatrix-toggle {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--v2-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.v2-proofMatrix-toggle:hover,
+.v2-proofMatrix-toggle:focus-visible {
+  color: var(--v2-ink);
+}
+.v2-proofMatrix-tableWrap {
+  margin-top: var(--v2-space-sm);
+  overflow-x: auto;
+}
+.v2-proofMatrix-summary {
+  margin: 0 0 10px;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--v2-ink-3);
+}
+.v2-proofMatrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.v2-proofMatrix-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--v2-ink-3);
+  border-bottom: 1px solid var(--v2-rule-strong);
+  white-space: nowrap;
+}
+.v2-proofMatrix-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--v2-rule);
+  color: var(--v2-ink-2);
+  white-space: nowrap;
+}
+.v2-proofMatrix-table td:first-child {
+  font-family: var(--v2-font-mono);
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+.v2-proofMatrix-result {
+  color: var(--v2-ink) !important;
+  font-weight: 600;
+}
+.v2-proofMatrix-result span {
+  color: var(--v2-accent);
 }
 
 /* Correction batch §F/G — evidence moved INTO the right workflow field,
