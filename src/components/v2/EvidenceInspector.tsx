@@ -25,7 +25,20 @@ const SHORT_LABELS: Record<string, string> = {
   Limitations: 'Limits',
 }
 
-export function EvidenceInspector({ entries, isActive }: { entries: EvidenceEntry[]; isActive: boolean }) {
+export function EvidenceInspector({
+  entries,
+  isActive,
+  labelOverrides,
+}: {
+  entries: EvidenceEntry[]
+  isActive: boolean
+  // Per-project override of the short tab label (System 01 Professional
+  // V2 pass, 2026-08-09 — see Project.evidenceLabelOverrides). Keyed by
+  // the same generic label buildEvidenceEntries produces. Every other
+  // project passes nothing here and keeps the shared SHORT_LABELS below
+  // untouched.
+  labelOverrides?: Record<string, string>
+}) {
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const panelId = 'evidence-panel'
 
@@ -55,7 +68,7 @@ export function EvidenceInspector({ entries, isActive }: { entries: EvidenceEntr
               className={`v2-evidenceInspector-tab${selected ? ' v2-evidenceInspector-tab--active' : ''}`}
               onClick={() => setActiveKey((current) => (current === entry.label ? null : entry.label))}
             >
-              <span>{SHORT_LABELS[entry.label] ?? entry.label}</span>
+              <span>{labelOverrides?.[entry.label] ?? SHORT_LABELS[entry.label] ?? entry.label}</span>
               <span aria-hidden="true">{selected ? '−' : '+'}</span>
             </button>
           )

@@ -2,7 +2,14 @@ import { Link } from 'react-router-dom'
 import type { Project } from '../../data/types'
 import { buildWorkflowFromProject } from '../../data/workflowDiagram'
 import { Html } from '../Html'
+import { ArchitectureCards } from './ArchitectureCards'
+import { ArchitectureFlow } from './ArchitectureFlow'
+import { DecisionCases } from './DecisionCases'
+import { FullTechnicalNotes } from './FullTechnicalNotes'
+import { ImplementationList } from './ImplementationList'
+import { ProofMatrix } from './ProofMatrix'
 import { QuickReadContent } from './QuickReadContent'
+import { SystemLogicConcepts } from './SystemLogicConcepts'
 import { WorkflowDiagram } from './WorkflowDiagram'
 
 interface CaseSection {
@@ -35,7 +42,17 @@ function buildCaseSections(project: Project): CaseSection[] {
   const humanStages = project.stages.filter((stage) => stage.actor === 'human')
   if (humanStages.length > 0 || project.decisionHtml) {
     const stageParas = humanStages.map((stage) => `<p>${stage.body}</p>`).join('')
-    sections.push({ label: 'Human decision', html: `${stageParas}${project.decisionHtml ?? ''}` })
+    // Bug fix, 2026-08-10 (found during the global writing pass verification
+    // sweep): decisionHtml must be wrapped in its own <p> too. toBulletHtml
+    // (QuickReadContent.tsx) splits this section into bullets by matching
+    // <p>...</p> pairs via regex — when decisionHtml was appended as bare
+    // trailing text with no wrapper, the regex's match array simply never
+    // included it, so it silently disappeared from every rendered page
+    // (both the plain detail layout and the rich layout's collapsed
+    // Technical Notes section). Affected 5 of 7 projects: every one with
+    // both a human-actor stage and decisionHtml text (01/02/03/04/06).
+    const decisionPara = project.decisionHtml ? `<p>${project.decisionHtml}</p>` : ''
+    sections.push({ label: 'Human decision', html: `${stageParas}${decisionPara}` })
   }
 
   if (project.limitationHtml) sections.push({ label: 'Limitations', html: project.limitationHtml })
@@ -48,6 +65,12 @@ function buildCaseSections(project: Project): CaseSection[] {
 // projects render through this identically. `position` ("02 / 07") and
 // prev/next come from CaseStudyPage.tsx, which knows the full sorted
 // project list.
+//
+// System 01 two-level storytelling pass (2026-08-09, V2 correction) — a
+// project with systemLogicConcepts gets the richer "System Logic & Proof"
+// detail page (small header straight into evidence, no repeated main-page
+// diagram); every project without it keeps the original masthead +
+// workflow diagram + sections-loop layout, byte-identical to before.
 export function CaseStudyLayout({
   project,
   prevProject,
@@ -62,6 +85,11 @@ export function CaseStudyLayout({
   const framing = project.taglineHtml ?? project.valueHtml
   const sections = buildCaseSections(project)
   const workflow = buildWorkflowFromProject(project)
+  const hasDetailStorytelling = !!project.systemLogicConcepts
+
+  const passedCount = project.testMatrix?.filter((row) => row.result === 'PASS').length ?? 0
+  const totalCount = project.testMatrix?.length ?? 0
+  const failedCount = totalCount - passedCount
 
   return (
     <article className="v2-case-page">
@@ -72,49 +100,143 @@ export function CaseStudyLayout({
         <span className="v2-caseTopNav-position">{position}</span>
       </div>
 
-      <div className="v2-grid v2-caseMasthead">
-        <div className="v2-caseMasthead-main">
-          <span className="v2-eyebrow">
-            {String(project.index).padStart(2, '0')} · {project.tierLabel}
-          </span>
-          <Html as="h1" html={project.title} />
-          {framing && <Html as="p" className="v2-caseMasthead-framing" html={framing} />}
-        </div>
-        <div className="v2-caseMasthead-proof">
-          {(project.keyNumber || project.keyLabel) && (
-            <div className="v2-case-key">
-              <span className="v2-case-key-number">{project.keyNumber}</span>
-              <span className="v2-case-key-label">{project.keyLabel}</span>
-            </div>
-          )}
-          {project.tags.length > 0 && (
-            <ul className="v2-caseMasthead-tags">
-              {project.tags.map((tag) => (
-                <li key={tag}>{tag}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      {hasDetailStorytelling ? (
+        <>
+          <div className="v2-grid v2-caseDetail-header">
+            <span className="v2-eyebrow">
+              {position} · SYSTEM LOGIC &amp; PROOF
+            </span>
+            <Html as="h1" html={project.title} />
+            {project.detailSubtitle && <p className="v2-caseDetail-subtitle">{project.detailSubtitle}</p>}
+            {project.detailProofLine && <p className="v2-caseDetail-proofLine">{project.detailProofLine}</p>}
+          </div>
 
-      <div className="v2-caseWorkflowSection">
-        <div className="v2-caseWorkflowSection-heading">
-          <span className="v2-eyebrow">Sequence</span>
-          <span className="v2-caseWorkflowSection-count">{workflow.nodes.length} stages</span>
-        </div>
-        <WorkflowDiagram workflow={workflow} />
-      </div>
+          {project.whyIntro && (
+            <section className="v2-grid v2-caseDetail-section">
+              <span className="v2-caseDetail-sectionLabel">01 / WHY</span>
+              <div className="v2-caseDetail-sectionBody">
+                <p className="v2-caseDetail-lead">{project.whyIntro}</p>
+                {project.systemLogicIntro && <p className="v2-caseDetail-lead">{project.systemLogicIntro}</p>}
+              </div>
+            </section>
+          )}
 
-      <div className="v2-caseSections">
-        {sections.map((section) => (
-          <div className="v2-grid v2-caseRow" key={section.label}>
-            <span className="v2-caseRow-label">{section.label}</span>
-            <div className="v2-caseRow-content">
-              <QuickReadContent html={section.html} className="v2-caseRow-prose" />
+          {project.systemLogicConcepts && (
+            <section className="v2-grid v2-caseDetail-section">
+              <span className="v2-caseDetail-sectionLabel">02 / {project.systemLogicSectionLabel ?? 'DECISION MODEL'}</span>
+              <div className="v2-caseDetail-sectionBody">
+                <SystemLogicConcepts concepts={project.systemLogicConcepts} />
+                {project.systemLogicPrinciple && <p className="v2-caseDetail-principle">{project.systemLogicPrinciple}</p>}
+              </div>
+            </section>
+          )}
+
+          {project.decisionCases && (
+            <section className="v2-grid v2-caseDetail-section">
+              <span className="v2-caseDetail-sectionLabel">03 / REAL CASES</span>
+              <div className="v2-caseDetail-sectionBody">
+                <DecisionCases cases={project.decisionCases} layerLabels={project.systemLogicConcepts?.map((c) => c.eyebrow)} />
+              </div>
+            </section>
+          )}
+
+          {(project.architectureCards || project.architectureFlow) && (
+            <section className="v2-grid v2-caseDetail-section">
+              <span className="v2-caseDetail-sectionLabel">04 / SYSTEM ARCHITECTURE</span>
+              <div className="v2-caseDetail-sectionBody">
+                {/* Hierarchy-rebuild pass, 2026-08-10: intro moved to
+                    render FIRST, not last. It's a section introduction,
+                    not a diagram footnote — the old order (cards, flow,
+                    then intro) made the reader hit the "why" after the
+                    "what," and rendered the intro as a narrow orphan
+                    block (measured: 517px in a 1061px grid) with no
+                    visual relationship to the diagrams above it. See
+                    the matching case-study.css width change. */}
+                {project.architectureIntro && <p className="v2-caseDetail-note">{project.architectureIntro}</p>}
+                <ArchitectureCards cards={project.architectureCards} />
+                <ArchitectureFlow flow={project.architectureFlow} />
+              </div>
+            </section>
+          )}
+
+          {(project.testEvidencePreview || project.testMatrix) && (
+            <section className="v2-grid v2-caseDetail-section">
+              <span className="v2-caseDetail-sectionLabel">05 / {project.testEvidenceSectionLabel ?? 'TEST EVIDENCE'}</span>
+              <div className="v2-caseDetail-sectionBody">
+                {totalCount > 0 && (
+                  <p className="v2-caseDetail-proofLine">
+                    {passedCount} / {totalCount} EXPECTED OUTCOMES MATCHED
+                    {failedCount > 0 && ` · ${failedCount} FAILED`}
+                  </p>
+                )}
+                <ProofMatrix cases={project.testEvidencePreview} matrix={project.testMatrix} />
+              </div>
+            </section>
+          )}
+
+          {project.implementationDetails && (
+            <section className="v2-grid v2-caseDetail-section">
+              <span className="v2-caseDetail-sectionLabel">06 / IMPLEMENTATION</span>
+              <div className="v2-caseDetail-sectionBody">
+                <ImplementationList items={project.implementationDetails} />
+              </div>
+            </section>
+          )}
+
+          <div className="v2-grid v2-caseDetail-section">
+            <span className="v2-caseDetail-sectionLabel">07 / TECHNICAL NOTES</span>
+            <div className="v2-caseDetail-sectionBody">
+              <FullTechnicalNotes sections={sections} knownDependencies={project.knownDependencies} currentBoundary={project.currentBoundary} />
             </div>
           </div>
-        ))}
-      </div>
+        </>
+      ) : (
+        <>
+          <div className="v2-grid v2-caseMasthead">
+            <div className="v2-caseMasthead-main">
+              <span className="v2-eyebrow">
+                {String(project.index).padStart(2, '0')} · {project.tierLabel}
+              </span>
+              <Html as="h1" html={project.title} />
+              {framing && <Html as="p" className="v2-caseMasthead-framing" html={framing} />}
+            </div>
+            <div className="v2-caseMasthead-proof">
+              {(project.keyNumber || project.keyLabel) && (
+                <div className="v2-case-key">
+                  <span className="v2-case-key-number">{project.keyNumber}</span>
+                  <span className="v2-case-key-label">{project.keyLabel}</span>
+                </div>
+              )}
+              {project.tags.length > 0 && (
+                <ul className="v2-caseMasthead-tags">
+                  {project.tags.map((tag) => (
+                    <li key={tag}>{tag}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <div className="v2-caseWorkflowSection">
+            <div className="v2-caseWorkflowSection-heading">
+              <span className="v2-eyebrow">Sequence</span>
+              <span className="v2-caseWorkflowSection-count">{workflow.nodes.length} stages</span>
+            </div>
+            <WorkflowDiagram workflow={workflow} />
+          </div>
+
+          <div className="v2-caseSections">
+            {sections.map((section) => (
+              <div className="v2-grid v2-caseRow" key={section.label}>
+                <span className="v2-caseRow-label">{section.label}</span>
+                <div className="v2-caseRow-content">
+                  <QuickReadContent html={section.html} className="v2-caseRow-prose" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="v2-grid v2-caseNav">
         {prevProject ? (

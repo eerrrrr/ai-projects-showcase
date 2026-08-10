@@ -48,6 +48,23 @@
   width: 100%;
   padding-block: clamp(48px, 8vh, 96px);
 }
+/* Opt-in taller variant — System 01 only (readability pass, 2026-08-09),
+   applied via a conditional className on its <StoryPage> in
+   AiPortfolioV2Page.tsx, not a change to the shared .v2-storyPage/-stage
+   base rules above (every other chapter, 02-07 included, is unaffected).
+   System 01's richer content (real INPUT/RULE/OUTPUT detail panel, the
+   4-concept decision-model grid, the 3-card system-control strip) was
+   being forced into the same fixed 100svh sticky stage as every other,
+   simpler chapter — this gives it real breathing room instead of forcing
+   a cramped fit. useChapterRollState.ts measures each chapter's actual
+   getBoundingClientRect() rather than assuming a fixed height, so a
+   taller chapter here doesn't break the active/before/after roll logic. */
+.v2-storyPage--tall {
+  min-height: 145svh;
+}
+.v2-storyPage--tall .v2-storyPage-stage {
+  min-height: 118svh;
+}
 @media (max-width: 720px), (prefers-reduced-motion: reduce) {
   /* The sticky-stage rise/recede motion is a desktop-scroll nicety, not
      a requirement — on small screens (where content routinely exceeds
@@ -64,6 +81,12 @@
     overflow: visible;
     transform: none !important;
     transition: none !important;
+  }
+  .v2-storyPage--tall {
+    min-height: 0;
+  }
+  .v2-storyPage--tall .v2-storyPage-stage {
+    min-height: 0;
   }
 }
 
@@ -636,4 +659,13 @@
 .v2-closing-links a:hover,
 .v2-closing-links a:focus-visible {
   color: var(--v2-accent);
+}
+
+/* Print (hierarchy-rebuild pass, 2026-08-10) — see the matching
+   .v2-hero-nav/.v2-toolAnnotation rule in hero.css. .v2-progressRail is
+   position:fixed and repeats at the same spot on every printed page. */
+@media print {
+  .v2-progressRail {
+    display: none !important;
+  }
 }

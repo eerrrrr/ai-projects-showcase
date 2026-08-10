@@ -27,11 +27,14 @@ import { useReducedMotion } from '../../hooks/useReducedMotion'
 // moment the diagram enters; only the active-node highlight, the
 // connector immediately behind it, and the shared detail content
 // advance from there.
-const WORKFLOW_SETTLE_DELAY_MS = 400
-const INITIAL_NODE_HOLD_MS = 1000
-const WORKFLOW_STEP_MS = 1400
-const CONNECTOR_LEAD_MS = 180
-const DETAIL_UPDATE_DELAY_MS = 260
+// Doubled (System 01 V3 correction, 2026-08-09) — per direct feedback,
+// the whole autoplay sequence needed to be roughly half speed across
+// every project, not just System 01's own custom timing.
+const WORKFLOW_SETTLE_DELAY_MS = 800
+const INITIAL_NODE_HOLD_MS = 2000
+const WORKFLOW_STEP_MS = 2800
+const CONNECTOR_LEAD_MS = 360
+const DETAIL_UPDATE_DELAY_MS = 520
 
 export function WorkflowDiagram({
   workflow,
@@ -83,13 +86,20 @@ export function WorkflowDiagram({
     }
   }, [])
 
+  // Per-workflow pacing override (workflow.timing, see workflowDiagram.ts)
+  // — falls back to the shared constants above for any field/step it
+  // doesn't specify, so every project without an override behaves
+  // exactly as before this existed.
+  const initialHoldMs = workflow.timing?.initialHoldMs ?? INITIAL_NODE_HOLD_MS
+  const stepDurationsMs = workflow.timing?.stepDurationsMs
+
   const runSequence = useCallback(() => {
     clearTimers()
     userControlRef.current = false
     setActiveNodeId(workflow.nodes[0]?.id ?? null)
     setActiveConnectorId(null)
 
-    let cumulative = INITIAL_NODE_HOLD_MS
+    let cumulative = initialHoldMs
     workflow.nodes.forEach((node, i) => {
       if (i === 0) return
       const connectorTime = cumulative
@@ -103,12 +113,16 @@ export function WorkflowDiagram({
         setActiveNodeId(node.id)
       }, nodeTime)
       timersRef.current.push(connectorTimerId, nodeTimerId)
-      cumulative += WORKFLOW_STEP_MS
+      // stepDurationsMs[i - 1] is the hold time BEFORE node i+1 (this
+      // transition's "next" step) — falls back to the uniform constant
+      // once the override array runs out, so a partially-specified
+      // array still behaves sensibly.
+      cumulative += stepDurationsMs?.[i - 1] ?? WORKFLOW_STEP_MS
     })
     // No end-of-sequence reset — the last scheduled setActiveNodeId call
     // above (for the final node) is the sequence's last effect. The
     // diagram holds there.
-  }, [clearTimers, workflow.nodes])
+  }, [clearTimers, workflow.nodes, initialHoldMs, stepDurationsMs])
 
   // Single-owner autoplay gating — see the file-level comment above.
   useEffect(() => {
@@ -143,10 +157,10 @@ export function WorkflowDiagram({
     const settleTimer = window.setTimeout(() => {
       setHasEntered(true)
       runSequence()
-    }, WORKFLOW_SETTLE_DELAY_MS)
+    }, workflow.timing?.settleDelayMs ?? WORKFLOW_SETTLE_DELAY_MS)
     timersRef.current.push(settleTimer)
     return () => window.clearTimeout(settleTimer)
-  }, [isActive, isScrolling, reducedMotion, hasEntered, clearTimers, clearResumeTimer, runSequence, workflow.nodes])
+  }, [isActive, isScrolling, reducedMotion, hasEntered, clearTimers, clearResumeTimer, runSequence, workflow.nodes, workflow.timing])
 
   useEffect(() => {
     return () => {
@@ -184,7 +198,7 @@ export function WorkflowDiagram({
   // from the top, same as clicking Replay, but only if the pointer is
   // still clear of every node when the timer actually fires (a fast
   // re-hover of a different node cancels it via clearResumeTimer above).
-  const RESUME_DELAY_MS = 900
+  const RESUME_DELAY_MS = 1800 // doubled alongside the other timing constants above
   const handleContainerPointerLeave = useCallback(() => {
     isHoveringRef.current = false
     clearResumeTimer()
@@ -227,9 +241,22 @@ export function WorkflowDiagram({
           const connectorDimmed = activeConnectorId !== null && !connectorTouchesActive
           return (
             <div className="v2-workflow-item" key={node.id} role="listitem">
+              {/* Systems 04-07 standardization pass, 2026-08-10: the
+                  layer-break connector used to carry a large visible text
+                  label ("HUMAN HANDOFF · NOT SHARED CODE") between two
+                  cards — per direct correction, that competed with the
+                  six-card reading rhythm and the boundary it describes
+                  belongs on the detail page (already stated in prose in
+                  System 04's architectureIntro), not as main-page UI
+                  chrome. The dashed --break connector style stays as the
+                  one subtle visual cue that something changes here;
+                  node.layerBreakLabel itself is kept on the data model
+                  (still a real, true fact) but no longer rendered as text. */}
               {i > 0 && (
                 <div
-                  className={`v2-workflow-connector${connectorDimmed ? ' v2-workflow-connector--dim' : ''}`}
+                  className={`v2-workflow-connector${node.layerBreakLabel ? ' v2-workflow-connector--break' : ''}${
+                    connectorDimmed ? ' v2-workflow-connector--dim' : ''
+                  }`}
                   aria-hidden="true"
                 />
               )}
@@ -245,7 +272,18 @@ export function WorkflowDiagram({
                 <span className="v2-flowNode__port v2-flowNode__port--in" aria-hidden="true" />
                 <span className="v2-flowNode__number">{node.number}</span>
                 <strong className="v2-flowNode__title">{node.title}</strong>
-                {node.tool && <span className="v2-flowNode__tool">{node.tool}</span>}
+                {/* Hierarchy-rebuild pass, 2026-08-10: node.tool (the
+                    professional-function label, e.g. "Normalization")
+                    dropped from the card — a 6-node row was showing this
+                    as a 4th-of-5 simultaneous text role per card, ~30
+                    fragments across the row. Not deleted: the same
+                    string now renders once, in the active-detail panel
+                    below, as that stage's subtitle (see
+                    v2-workflow-detail-tool) — shown for whichever one
+                    stage is actually active, not repeated across all six
+                    cards at once. Card is now 3 roles: number+title /
+                    example / actor. */}
+                {node.example && <span className="v2-flowNode__example">{node.example}</span>}
                 <span className="v2-flowNode__actor">{node.actor}</span>
                 <span className="v2-flowNode__port v2-flowNode__port--out" aria-hidden="true" />
               </button>
@@ -257,17 +295,58 @@ export function WorkflowDiagram({
       <div className="v2-workflow-detail" id={`${workflow.id}-detail`} aria-live="polite">
         {activeStage && (
           <div className="v2-workflow-detail-content" key={activeStage.id}>
-            <span className="v2-workflow-detail-number">
-              {activeStage.number} / {activeStage.title.toUpperCase()}
-            </span>
+            {/* Visual-hierarchy-reset pass, 2026-08-10: Replay moved
+                inline here, next to the active-stage heading, instead of
+                its own bordered horizontal band below Input/Rule/Output
+                — per direct correction: "a clear small secondary
+                control, not another floating metadata line." Same
+                handler, same behavior, just relocated. */}
+            <div className="v2-workflow-detail-headingRow">
+              <span className="v2-workflow-detail-number">
+                {activeStage.number} / {activeStage.title.toUpperCase()}
+              </span>
+              <button type="button" className="v2-workflow-replay" onClick={handleReplay}>
+                REPLAY ↻
+              </button>
+            </div>
+            {/* Professional function label, relocated here from the
+                node card (hierarchy-rebuild pass, 2026-08-10) — see the
+                card JSX comment above. Shown once, for the active stage
+                only. */}
+            {activeStage.tool && <span className="v2-workflow-detail-tool">{activeStage.tool}</span>}
             {activeStage.action && <p className="v2-workflow-detail-body">{activeStage.action}</p>}
+            {/* Three-part professional detail (System 01 V4 correction,
+                2026-08-09) — real Input/Rule(or Decision)/Output data,
+                not just a one-line gloss. Falls back to the plain
+                example line when a stage has none of these (every
+                project besides System 01 today). */}
+            {activeStage.detailInput || activeStage.detailRule || activeStage.detailOutput ? (
+              <dl className="v2-workflow-detail-grid">
+                {activeStage.detailInput && (
+                  <div>
+                    <dt>INPUT</dt>
+                    <dd>{activeStage.detailInput}</dd>
+                  </div>
+                )}
+                {activeStage.detailRule && (
+                  <div>
+                    <dt>{activeStage.detailRuleLabel ?? 'RULE'}</dt>
+                    <dd>{activeStage.detailRule}</dd>
+                  </div>
+                )}
+                {activeStage.detailOutput && (
+                  <div>
+                    <dt>OUTPUT</dt>
+                    <dd>{activeStage.detailOutput}</dd>
+                  </div>
+                )}
+              </dl>
+            ) : (
+              activeStage.example && <p className="v2-workflow-detail-example">{activeStage.example}</p>
+            )}
           </div>
         )}
       </div>
-
-      <button type="button" className="v2-workflow-replay" onClick={handleReplay}>
-        REPLAY WORKFLOW ↻
-      </button>
     </div>
   )
 }

@@ -3,6 +3,9 @@ dist/
 .DS_Store
 *.local
 
+# Local Claude Code tooling config, not project content
+.claude/
+
 # Nested unrelated git repo (github.com/eerrrrr/ERIN_AI_PROJECT) — do not
 # absorb into this repo's history; flagged to the user, not deleted.
 ERIN_AI_PROJECT/

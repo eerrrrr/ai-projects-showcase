@@ -42,7 +42,12 @@
      from --v2-paper (#dcd3cc) for Approach, warming/lightening in
      discrete stages down through Closing. Project chapters 01-07 all
      share ONE settled tone (--v2-surface-project) — reads as one
-     collection, not seven different themes. */
+     collection, not seven different themes.
+     Briefly changed to flat white, then reverted — per direct feedback
+     "white" meant the standalone case-notes page (case-study.css), not
+     the main /ai scroll's section colours. That white override lives
+     scoped to .v2-case-page in case-study.css; these 5 tokens are back
+     to their original warm values, untouched by that change. */
   --v2-surface-approach: #e2d8d1;
   --v2-surface-selected-systems: #e9e2dc;
   --v2-surface-project: #f2ede9;
@@ -54,6 +59,27 @@
   --v2-ink-2: #55503f;
   --v2-ink-3: #8a8270;
   --v2-rule: #ddd0b8;
+
+  /* Typography design tokens — System 01 typography-hierarchy pass,
+     2026-08-09 (Apple HIG hierarchy principles + Goldman Sans data-
+     density legibility + Swiss grid discipline, per direct research).
+     Deliberately NEW tokens, not edits to --v2-ink/-2/-3 above — those
+     are used site-wide (nav, progress rail, scroll cue, every other
+     project's chapters) well beyond this pass's scope; changing their
+     values would ripple into UI this pass was never asked to touch.
+     --v2-text-primary is intentionally the same value as --v2-ink
+     (kept as two names for the two different semantic stories — general
+     "ink" vs this pass's explicit 4-tier hierarchy — not two different
+     colours). */
+  --v2-text-primary: #17140f;
+  --v2-text-secondary: #514b45;
+  --v2-text-tertiary: #786f67;
+  --v2-text-muted: #958b82;
+
+  --type-weight-regular: 400;
+  --type-weight-medium: 500;
+  --type-weight-semibold: 600;
+  --type-weight-bold: 700;
   --v2-rule-strong: #c9b998;
   --v2-accent: #c1613a;
   --v2-accent-soft: #f1e0d3;

@@ -1,6 +1,17 @@
 /* V2 Swiss nav, footer, featured section, overview grid, and full
    case-study page. All scoped under .v2-page. */
 
+/* Per direct feedback: every inner content page is white, not the
+   default cream --v2-paper fallback .v2-page normally sits on — the
+   standalone case-study route (CaseStudyPage.tsx) doesn't go through
+   story-pages.css's per-section id rules (it's one flat page, not a
+   sequence of StoryPage sections), so it needs its own override here.
+   Scoped to :has(.v2-case-page) so nothing else that happens to render
+   inside a bare .v2-page wrapper is affected. */
+.v2-page:has(.v2-case-page) {
+  background: #ffffff;
+}
+
 .skip-link {
   position: absolute;
   left: -999px;
@@ -441,6 +452,340 @@
 }
 .v2-caseRow-prose p:last-child {
   margin-bottom: 0;
+}
+
+/* ===================================================================
+   System 01 two-level storytelling detail page ("System Logic & Proof")
+   — System 01 V2 correction, 2026-08-09. Everything below is scoped to
+   .v2-caseDetail-* / the new sub-components' own classes; the original
+   .v2-caseMasthead/.v2-caseRow rules above are completely untouched and
+   still drive every other project's detail page exactly as before.
+   =================================================================== */
+
+.v2-caseDetail-header {
+  padding-block: var(--v2-space-lg) var(--v2-space-md);
+  border-bottom: 1px solid var(--v2-rule);
+  margin-bottom: var(--v2-space-lg);
+}
+.v2-caseDetail-header h1 {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  font-size: clamp(26px, 3.2vw, 38px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--v2-ink);
+}
+.v2-caseDetail-subtitle {
+  grid-column: 1 / span 8;
+  margin: 10px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 52ch;
+  color: var(--v2-ink-2);
+}
+.v2-caseDetail-proofLine {
+  grid-column: 1 / -1;
+  margin: 12px 0 0;
+  font-family: var(--v2-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--v2-accent);
+}
+
+.v2-caseDetail-section {
+  padding-block: clamp(28px, 4vh, 48px);
+  border-top: 1px solid var(--v2-rule);
+  align-items: start;
+}
+.v2-caseDetail-section:last-of-type {
+  border-bottom: 1px solid var(--v2-rule);
+}
+.v2-caseDetail-sectionLabel {
+  grid-column: 1 / span 3;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--v2-ink-3);
+}
+.v2-caseDetail-sectionBody {
+  grid-column: 4 / span 9;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-sm);
+}
+.v2-caseDetail-lead {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--v2-ink);
+  max-width: 58ch;
+}
+.v2-caseDetail-principle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--v2-ink-2);
+  max-width: 62ch;
+}
+/* Hierarchy-rebuild pass, 2026-08-10: split from .v2-caseDetail-principle
+   (was one shared rule) so this can widen independently. Measured
+   problem: at 62ch this rendered as a 517px block inside a 1061px
+   content grid (48.7% fill) when used as the architecture-section intro
+   — an orphan with no visual relationship to the full-width cards/flow
+   below it. 78ch is a deliberate editorial width, not full-bleed. */
+.v2-caseDetail-note {
+  margin: 0 0 var(--v2-space-md);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--v2-ink-2);
+  max-width: 78ch;
+}
+
+/* Decision model — 4-layer control sequence. */
+.v2-systemLogicConcepts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+}
+.v2-systemLogicConcept {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--v2-rule);
+  border-radius: 3px;
+  background: #ffffff;
+}
+.v2-systemLogicConcept-eyebrow {
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--v2-accent);
+}
+.v2-systemLogicConcept-question {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--v2-ink);
+}
+.v2-systemLogicConcept-states {
+  margin-top: 2px;
+  font-family: var(--v2-font-mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--v2-ink-3);
+}
+@media (max-width: 900px) {
+  .v2-systemLogicConcepts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .v2-systemLogicConcepts {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Real cases — 4 labelled layers per case (DATA / FIT / HUMAN / GUARD). */
+.v2-decisionCases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
+}
+.v2-decisionCase {
+  padding: 16px;
+  border: 1px solid var(--v2-rule);
+  border-radius: 3px;
+  background: var(--v2-accent-soft);
+}
+.v2-decisionCase-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--v2-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--v2-ink-3);
+}
+.v2-decisionCase-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.v2-decisionCase-layer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(23, 20, 15, 0.08);
+}
+.v2-decisionCase-layer:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.v2-decisionCase-layerLabel {
+  font-family: var(--v2-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--v2-ink-3);
+}
+.v2-decisionCase-layerValue {
+  font-family: var(--v2-font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--v2-ink);
+  text-align: right;
+}
+@media (max-width: 720px) {
+  .v2-decisionCases {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* System architecture — real flow diagram, distinct from the main
+   page's conceptual "decision flow". */
+.v2-architectureFlow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-md);
+}
+.v2-architectureFlow-chain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--v2-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+.v2-architectureFlow-chain--main li {
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+.v2-architectureFlow-chain li {
+  color: var(--v2-ink-2);
+}
+.v2-architectureFlow-chain li:not(:last-child)::after {
+  content: '→';
+  margin-left: 8px;
+  color: var(--v2-ink-3);
+}
+.v2-architectureFlow-branches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+.v2-architectureFlow-branch {
+  padding: 12px 14px;
+  border: 1px solid var(--v2-rule);
+  border-radius: 3px;
+}
+.v2-architectureFlow-branchLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--v2-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--v2-ink-3);
+}
+@media (max-width: 720px) {
+  .v2-architectureFlow-branches {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Implementation — short building-block list. */
+.v2-implementationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px clamp(16px, 2vw, 28px);
+}
+.v2-implementationList-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--v2-rule);
+}
+.v2-implementationList-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+.v2-implementationList-body {
+  font-size: 12px;
+  color: var(--v2-ink-3);
+  text-align: right;
+}
+@media (max-width: 620px) {
+  .v2-implementationList {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Full technical notes — collapsed by default (GOV.UK accordion
+   guidance: collapse secondary/reference detail, not core content). */
+.v2-fullTechnicalNotes-toggle {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--v2-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--v2-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.v2-fullTechnicalNotes-toggle:hover,
+.v2-fullTechnicalNotes-toggle:focus-visible {
+  color: var(--v2-ink);
+}
+.v2-fullTechnicalNotes-body {
+  margin-top: var(--v2-space-md);
+  display: flex;
+  flex-direction: column;
+}
+.v2-fullTechnicalNotes-body .v2-caseRow {
+  padding-block: clamp(16px, 2.2vh, 28px);
+}
+
+@media (max-width: 900px) {
+  .v2-caseDetail-subtitle {
+    grid-column: 1 / -1;
+  }
+  .v2-caseDetail-sectionLabel {
+    grid-column: 1 / -1;
+    margin-bottom: 10px;
+  }
+  .v2-caseDetail-sectionBody {
+    grid-column: 1 / -1;
+  }
 }
 
 .v2-caseNav {

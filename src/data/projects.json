@@ -7,43 +7,119 @@
     "tierLabel": "Featured proof",
     "title": "Job Screening Validation Workflow",
     "shortTitle": "Job Screening Validation Workflow",
-    "taglineHtml": "Validation gate for OpenClaw-style task records. OpenClaw was the early experiment; n8n is the verified rebuild.",
-    "valueHtml": "Checks and normalizes OpenClaw-style task records before they reach Notion, and keeps every outcome — including a failed write — visible.",
-    "problemHtml": "Task records from an OpenClaw-style router (or manual entry) arrive in inconsistent shapes — tags as strings instead of arrays, non-ISO dates, oversized text, missing fields — any of which can silently break a Notion write or make it look like it succeeded when it didn't.",
-    "workflowHtml": "I built a real n8n workflow that normalizes incoming records, validates required fields and safety rules, maps them into a schema-safe Notion payload, and routes each one to a review state (READY / NEEDS_REVIEW / BLOCKED) before any write is attempted. A Manual Trigger runs six repeatable test records; a Webhook input is built for a real sender but not yet published or authenticated.",
-    "resultShortHtml": "A live Notion write was attempted and failed safely — the integration didn't yet have permission on the target database — so no fake success was reported; every record's outcome stays visible.",
-    "whatItProvesHtml": "I can build a validation gate that keeps AI/router output honest before it reaches a shared system, and report a failed write honestly instead of hiding it.",
-    "productionSignalHtml": "Real n8n execution &middot; 6 records normalized and validated &middot; schema-safe Notion payload built &middot; live write attempt failed safely, not silently",
-    "tags": ["n8n", "OpenClaw", "Notion", "Human-in-the-loop"],
-    "keyNumber": "6",
-    "keyLabel": "task records processed · 3 review states · 1 write attempt, failed safely",
-    "goalHtml": "<ul><li>Check AI/router output before it reaches Notion.</li><li>Normalize inconsistent field shapes (tags, dates, text length) before anything is judged.</li><li>Separate records into READY, NEEDS_REVIEW and BLOCKED instead of writing everything the same way.</li><li>Keep a human-readable report of what happened, including failures.</li><li>Never report a successful write that didn't actually happen.</li></ul>",
-    "methodHtml": "<ul><li>Start from OpenClaw-style task records — a manual test set, plus a Webhook input built for a real sender.</li><li>Normalize field shapes first: tags, dates, long text, unknown fields.</li><li>Validate required fields and safety rules before mapping anything toward Notion.</li><li>Map into the exact Notion payload shape, then assign a review state.</li><li>Attempt the write only for approved records; report success and failure honestly.</li></ul>",
-    "resultHtml": "<ul><li>Explored the first job-screening logic in OpenClaw.</li><li>Rebuilt it as a verified n8n workflow with normalization, validation and Notion payload mapping.</li><li>Ran the workflow on 6 controlled records: 1 READY, 3 NEEDS_REVIEW, 2 BLOCKED.</li><li>Attempted a live Notion write; it failed safely on a permission error, and that failure stayed visible instead of being hidden.</li><li>Kept every record's outcome — including the failed write — visible in the report.</li></ul>",
-    "failureHandledHtml": "<ul><li>OpenClaw is shown as early exploration, not a finished product.</li><li>Malformed fields (string tags, non-ISO dates, oversized text) are normalized instead of breaking the write.</li><li>The one live Notion write attempt failed on a permission error — the workflow reported that failure rather than a fake success.</li><li>Nothing is silently dropped from the report.</li></ul>",
-    "decisionHtml": "<ul><li>AI/router output is validated and normalized, but not trusted blindly.</li><li>NEEDS_REVIEW and BLOCKED records are not written without a human decision.</li><li>A failed write is reported as a failure, never disguised as success.</li><li>The report supports judgment; it does not replace it.</li></ul>",
-    "limitationHtml": "<ul><li>Uses controlled test records, not a live sender yet.</li><li>The Webhook input is built but not authenticated or published.</li><li>The one live Notion write attempt failed on a permission error — production use still needs that access granted, plus retry, dedupe and an independent error workflow.</li><li>Human review is still required before any write.</li></ul>",
-    "stagesLabel": "Workflow — validate before Notion write, human decides",
+    "taglineHtml": "Turn inconsistent job records into clear, reviewable decisions before anything moves forward.",
+    "valueHtml": "Separates input quality, screening logic, human judgment, and write authorization into independent, auditable states.",
+    "problemHtml": "Job records often arrive with missing fields, inconsistent formats, or unclear requirements. I wanted the workflow to catch those problems before they affected screening or any later action.",
+    "workflowHtml": "Each record is cleaned, checked, and screened against explicit criteria. Validation, screening, and the human decision stay separate. A technically valid record is not automatically treated as a good opportunity.",
+    "resultShortHtml": "Eight controlled cases tested clean input, malformed dates, missing data, unclear language, location conflicts, mandatory Swedish, and spoofed approval fields. All eight produced the expected result.",
+    "whatItProvesHtml": "I can build a validated, human-gated screening system that resists bad data and adversarial input, and prove it with a real regression suite.",
+    "productionSignalHtml": "Real n8n execution &middot; 8/8 deterministic regression tests passed &middot; authority-field spoofing blocked &middot; gated production control path verified",
+    "tags": ["n8n", "Regression testing", "Human review", "Controlled handoff"],
+    "keyNumber": "8 / 8",
+    "keyLabel": "regression cases matched expected outcomes",
+    "goalHtml": "Make job screening predictable without allowing automation to own the final decision.",
+    "methodHtml": "Separate input quality, screening logic, human judgment, and write authorization into independent control states.",
+    "resultHtml": "All eight regression cases produced the expected validation and screening states. The workflow handled clean, malformed, ambiguous, incompatible, and adversarial inputs without allowing sender supplied approval fields to control the decision.",
+    "failureHandledHtml": "Blocked records stop before screening. Sender supplied approval values are ignored. A separate guard checks the verified human decision before anything can move forward.",
+    "decisionHtml": "The workflow prepares the evidence. A person chooses SHORTLIST, HOLD, or SKIP. A strong match cannot bypass that decision.",
+    "limitationHtml": "The system uses separate n8n workflows for testing, production control, and error handling. This keeps test logic, human review, and failure handling from being mixed into one large workflow.",
+    "stagesLabel": "Workflow — clean, check, screen, then a person decides",
     "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Intake trigger", "body": "A Manual Trigger runs six repeatable test records; a Webhook input is built for a real sender but not yet published or authenticated.", "caption": "Two trigger paths feed the same normalization step: manual test fixtures and a not-yet-live Webhook.", "miniNodes": ["Manual test fixtures", "Webhook built, not published", "No auto-run in background"] },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Normalize record", "body": "Incoming records are unwrapped, checked against an allowed-field list, and cleaned into one consistent shape before anything is judged.", "caption": "Tag strings become arrays, unknown fields are dropped, every record gets a correlation ID.", "miniNodes": ["Tags string → array", "Unknown fields removed", "Correlation ID assigned"] },
-      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Validate safety rules", "body": "Required fields, intent, dates, long text and oversized URLs are checked before anything is mapped toward Notion.", "caption": "Malformed dates and oversized text fall back instead of breaking the write; missing required fields are flagged, not guessed.", "miniNodes": ["Required fields checked", "Date / URL / text fallback", "Missing data flagged"] },
-      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Map Notion payload", "body": "Validated records are mapped into the exact property shape Notion's API requires — before any write is attempted.", "caption": "Schema-safe payload preview, built and checked before touching the live database.", "miniNodes": ["Schema-safe mapping", "Payload preview built", "No write yet"] },
-      { "num": 5, "actor": "human", "actorLabel": "Human", "title": "Route review state", "body": "Each record becomes READY, NEEDS_REVIEW or BLOCKED — only READY records are eligible for a write; the rest wait for a human decision.", "caption": "Three review states keep every record visible instead of silently writing or silently dropping it.", "miniNodes": ["READY", "NEEDS_REVIEW", "BLOCKED"] },
-      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Review report / write outcome", "body": "The workflow generates a human-readable report; a real write attempt is reported honestly, including when it fails.", "caption": "One live write attempt failed on a Notion permission error — the workflow reported that failure instead of a fake success.", "miniNodes": ["Markdown report", "Real write attempted", "Failure reported, not hidden"] }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Receive", "body": "Accept a structured job record.", "technicalLabel": "Input", "example": "title · location · tags · deadline", "detailInput": "title · location · tags · deadline", "detailRule": "accept via manual trigger or webhook", "detailOutput": "structured record ready for cleaning", "miniNodes": ["Structured job data", "Controlled input", "Ready for screening"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Clean", "body": "Normalize fields into one consistent shape.", "technicalLabel": "Normalization", "example": "tags text → array", "detailInput": "string · array · date", "detailRule": "tags text → array", "detailOutput": "normalized job record", "miniNodes": ["Clean field shapes", "Authority fields removed", "One consistent format"] },
+      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Check", "body": "Validate required fields and ambiguous requirements.", "technicalLabel": "Validation", "example": "missing title → blocked", "detailInput": "title · deadline · requirements", "detailRule": "missing title → blocked", "detailOutput": "READY · NEEDS REVIEW · BLOCKED", "miniNodes": ["Required fields checked", "Dates and URLs checked", "Unsupported values flagged"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Screen", "body": "Evaluate the role against explicit fit criteria.", "technicalLabel": "Job fit", "example": "unclear language → review", "detailInput": "location · work mode · language requirement", "detailRule": "unclear language → human review", "detailOutput": "STRONG MATCH · POSSIBLE MATCH · LOW MATCH", "miniNodes": ["Location fit", "Work mode fit", "Language requirement fit"] },
+      { "num": 5, "actor": "human", "actorLabel": "Human", "title": "Decide", "body": "A person chooses SHORTLIST, HOLD or SKIP.", "technicalLabel": "Human decision", "example": "SHORTLIST · HOLD · SKIP", "detailInput": "validated record + fit result", "detailRuleLabel": "DECISION", "detailRule": "SHORTLIST · HOLD · SKIP", "detailOutput": "verified human decision", "miniNodes": ["SHORTLIST", "HOLD", "SKIP"] },
+      { "num": 6, "actor": "control", "actorLabel": "Control", "title": "Guard", "body": "Verify the human decision before any handoff is authorized.", "technicalLabel": "Authorization", "example": "spoofed approval → ignored", "detailInput": "human decision + sender payload", "detailRule": "spoofed approval → ignored", "detailOutput": "authorized or stopped", "miniNodes": ["Decision verified", "Write guard checked", "Controlled outcome recorded"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
-      "Normalizes inconsistent field shapes before validation.",
-      "Reports a failed write honestly instead of a fake success."
+      "Normalizes inconsistent records before judging them.",
+      "Separates human decision from automated screening so a high score can't bypass review."
     ],
-    "valueLine": "OpenClaw-style intake → n8n validation → Notion-safe review handoff.",
-    "overviewChips": ["n8n", "Notion validation gate", "Safe failure"],
-    "miniRoadmap": ["Intake", "Normalize + validate", "Review state", "Notion handoff"],
-    "proofChips": ["n8n", "OpenClaw-style input", "Claude Code", "Notion API", "Safe failure"],
-    "finalRoadmap": "Task record → normalize → validate → Notion payload → review state → report / write outcome",
-    "finalTakeaway": "Check first. Normalize before judging. Report failure honestly."
+    "valueLine": "An n8n workflow that cleans inconsistent job records, validates data quality and role fit, then routes uncertain cases for human review before handoff.",
+    "systemControlStrip": [
+      { "eyebrow": "TEST", "title": "Test Harness" },
+      { "eyebrow": "PRODUCTION", "title": "Gated Path", "detail": "Human decision" },
+      { "eyebrow": "FAILURE", "title": "Error Handler", "detail": "Incident context" }
+    ],
+    "controlSummaryLine": "Deterministic test harness · human decision gate · structured error handling.",
+    "builtWithLabel": "n8n Code · Wait Form · Pre-write Guard · Error Trigger",
+    "workflowFieldLabel": "CONTROLLED WORKFLOW",
+    "overviewChips": ["n8n", "Regression tested", "Human review"],
+    "miniRoadmap": ["Receive", "Clean", "Check", "Screen", "Decide", "Guard"],
+    "proofChips": ["n8n", "8/8 tested", "Human review", "Controlled handoff"],
+    "finalRoadmap": "Receive → clean → check → screen → decide → guard",
+    "finalTakeaway": "The workflow does the repetitive checking. The person keeps the decision.",
+    "humanDecisionLabel": "HUMAN DECISION · SHORTLIST · HOLD · SKIP",
+    "architectureCards": [
+      { "eyebrow": "TEST", "title": "Deterministic Test Harness", "body": "Runs controlled cases without an external write path." },
+      { "eyebrow": "CONTROL", "title": "Gated Production Path", "body": "Waits for a human decision before authorization." },
+      { "eyebrow": "FAILURE", "title": "Structured Error Handler", "body": "Captures execution and error context when the workflow fails." }
+    ],
+    "decisionCases": [
+      { "eyebrow": "CLEAN ROLE", "lines": ["READY", "STRONG MATCH", "SHORTLIST", "AUTHORIZED"] },
+      { "eyebrow": "UNCLEAR LANGUAGE", "lines": ["NEEDS REVIEW", "POSSIBLE MATCH", "HOLD", "NOT AUTHORIZED"] },
+      { "eyebrow": "MISSING TITLE", "lines": ["BLOCKED", "NOT EVALUATED", "NOT REACHED", "NOT AUTHORIZED"] }
+    ],
+    "testMatrix": [
+      { "caseId": "T01", "input": "Clean strong fit role", "validation": "READY", "screening": "STRONG MATCH", "result": "PASS" },
+      { "caseId": "T02", "input": "String input normalization", "validation": "READY", "screening": "STRONG MATCH", "result": "PASS" },
+      { "caseId": "T03", "input": "Invalid deadline", "validation": "NEEDS REVIEW", "screening": "STRONG MATCH", "result": "PASS" },
+      { "caseId": "T04", "input": "Ambiguous language", "validation": "NEEDS REVIEW", "screening": "POSSIBLE MATCH", "result": "PASS" },
+      { "caseId": "T05", "input": "Missing title", "validation": "BLOCKED", "screening": "NOT EVALUATED", "result": "PASS" },
+      { "caseId": "T06", "input": "Hong Kong onsite role", "validation": "READY", "screening": "LOW MATCH", "result": "PASS" },
+      { "caseId": "T07", "input": "Mandatory Swedish", "validation": "READY", "screening": "LOW MATCH", "result": "PASS" },
+      { "caseId": "T08", "input": "Spoofed approval fields", "validation": "READY", "screening": "STRONG MATCH", "result": "PASS" }
+    ],
+    "evidenceLabelOverrides": {
+      "Problem": "WHY IT EXISTS",
+      "Implementation": "HOW IT WORKS",
+      "Human decision": "HUMAN DECISION",
+      "Result": "PROOF",
+      "Failure handled": "CONTROL",
+      "Limitations": "IMPLEMENTATION"
+    },
+    "detailCtaLabel": "View system logic & proof →",
+    "detailSubtitle": "How validation, screening and human approval stay separate before any action moves forward.",
+    "detailProofLine": "8 / 8 regression cases matched expected outcomes",
+    "whyIntro": "Job records can mix incomplete data, unclear requirements and genuine fit signals. If those are collapsed into one score, bad input can look like a confident decision.",
+    "systemLogicIntro": "This workflow keeps four questions separate.",
+    "systemLogicConcepts": [
+      { "eyebrow": "DATA INTEGRITY", "question": "Can the record be trusted?", "states": "READY · NEEDS REVIEW · BLOCKED" },
+      { "eyebrow": "JOB FIT", "question": "Is the opportunity worth considering?", "states": "STRONG MATCH · POSSIBLE MATCH · LOW MATCH · NOT EVALUATED" },
+      { "eyebrow": "HUMAN DECISION", "question": "What should happen next?", "states": "SHORTLIST · HOLD · SKIP" },
+      { "eyebrow": "AUTHORIZATION", "question": "Can that decision move forward?", "states": "AUTHORIZED · NOT AUTHORIZED" }
+    ],
+    "systemLogicPrinciple": "A record can be technically valid and still be a poor fit. A strong fit still needs a human decision, and a human decision still needs authorization before it can move forward. Incoming records cannot authorize themselves. Sender supplied approval fields are ignored, and only a verified human decision can pass the final guard.",
+    "architectureIntro": "Testing, production control and failure handling are separated so test data cannot reach an external write path and workflow errors remain visible. The deterministic test harness has no external write path, so regression testing cannot accidentally trigger a production action.",
+    "architectureFlow": {
+      "main": ["Job record", "Normalize", "Validate", "Screen", "Human decision", "Guard", "Controlled handoff"],
+      "test": ["Deterministic Test Harness", "8 controlled cases"],
+      "failure": ["Error Trigger", "Structured Incident"]
+    },
+    "testEvidencePreview": [
+      { "eyebrow": "01 · CLEAN STRONG-FIT ROLE", "lines": ["VALIDATION READY", "SCREENING STRONG MATCH"] },
+      { "eyebrow": "02 · INVALID DEADLINE", "lines": ["VALIDATION NEEDS REVIEW", "BUSINESS FIT PRESERVED"] },
+      { "eyebrow": "03 · MANDATORY SWEDISH", "lines": ["VALIDATION READY", "SCREENING LOW MATCH"] },
+      { "eyebrow": "04 · SPOOFED APPROVAL FIELDS", "lines": ["AUTHORIZATION INPUT IGNORED", "SCREENING STRONG MATCH"] }
+    ],
+    "implementationDetails": [
+      { "title": "n8n", "body": "Orchestration" },
+      { "title": "Code nodes", "body": "Normalization, validation and screening rules" },
+      { "title": "Wait form", "body": "Human decision" },
+      { "title": "Guard", "body": "Authorization" },
+      { "title": "Error Trigger", "body": "Failure context" }
+    ],
+    "currentBoundary": "Validation, screening, human review and authorization control are verified. The current production path stops before an external write is configured.",
+    "knownDependencies": [
+      "Persistent Data Table idempotency registry",
+      "Verified current Notion destination schema and credential",
+      "Real Notion page create and returned page ID / URL verification",
+      "Authenticated production webhook",
+      "Persisted incident destination and controlled failure proof"
+    ]
   },
   {
     "id": "investment-research-system",
@@ -53,41 +129,97 @@
     "tierLabel": "Featured proof",
     "title": "Investment Reasoning Learning Database",
     "shortTitle": "Investment Reasoning Learning Database",
-    "taglineHtml": "Source-first database for learning investment reasoning through evidence, risk and invalidation.",
-    "valueHtml": "Separates facts, assumptions, missing data and risk before any human decision.",
-    "problemHtml": "Expert investment write-ups mix facts, assumptions and conclusions together, making it hard to learn the reasoning behind them.",
-    "workflowHtml": "I built a source-first database that separates evidence from interpretation, then extracts the gates, assumptions, risks and invalidation logic behind each case.",
-    "resultShortHtml": "This is not a stock-picking system — it turns learning into reviewable criteria, with human judgment owning the final call.",
-    "whatItProvesHtml": "I can learn expert reasoning structure instead of copying final opinions.",
-    "productionSignalHtml": "Source-first database &middot; evidence gates &middot; assumptions / risks / invalidation extracted &middot; reusable skill logic",
-    "tags": ["Investment learning", "Source-first", "Reasoning structure", "Skill database"],
-    "keyNumber": "~515,000",
-    "keyLabel": "traceable facts · 113 sources · 13 written research skills",
-    "goalHtml": "<ul><li>Learn how investment reasoning works, not only what conclusion someone reaches.</li><li>Break expert examples into evidence, assumptions, gates, risks and invalidation.</li><li>Convert repeated reasoning patterns into reusable review logic.</li><li>Avoid copying expert opinions as automatic answers.</li><li>Build a source-first learning database.</li></ul>",
-    "methodHtml": "<ul><li>Start from source material: filings, articles, interviews, notes and discussions.</li><li>Separate facts from interpretation and hypothesis.</li><li>Extract the decision structure behind the reasoning.</li><li>Identify review gates: evidence quality, risk, valuation, data gaps and invalidation.</li><li>Human review decides whether a pattern becomes reusable knowledge.</li></ul>",
-    "resultHtml": "<ul><li>Built a large source-first research and learning database.</li><li>Structured professional reasoning into reusable learning material.</li><li>Created review gates for evidence, assumptions, risk and invalidation.</li><li>Used flagged mistakes as candidates for future skill patches.</li><li>Kept Notion as a view layer, not the source of truth.</li></ul>",
-    "failureHandledHtml": "<ul><li>Prevents copying someone else&rsquo;s conclusion without understanding the logic.</li><li>Prevents expert confidence from becoming automatic action.</li><li>Flags missing data, weak comparison and overconfident conclusions.</li><li>Keeps human review before any rule is promoted.</li></ul>",
-    "decisionHtml": "<ul><li>This is not a stock-picking system.</li><li>It does not give investment recommendations.</li><li>It extracts professional reasoning structure.</li><li>It turns learning into review criteria.</li><li>Human judgment owns the final interpretation.</li></ul>",
-    "limitationHtml": "<ul><li>Investment logic may not transfer automatically to other domains.</li><li>Source quality still needs human judgment.</li><li>A large database does not equal correctness.</li><li>The skill-evolution loop still needs human review.</li></ul>",
-    "stagesLabel": "Workflow — extract reasoning, not answers",
-    "stageCountLabel": "4 stages",
+    "taglineHtml": "A source-graded research system that separates verified evidence from opinion, and keeps every promotion behind a human decision.",
+    "valueHtml": "Separates evidence, claims and hypotheses into independently gradable states, then requires a human to promote one before it counts as verified.",
+    "problemHtml": "Investment write-ups often mix verified facts with interpretation and confident-sounding conclusions. That makes it hard to tell how much of the reasoning is actually supported by evidence.",
+    "workflowHtml": "Each source is graded, then structured into facts and claims. A rule-based quality gate checks it before it can be treated as research. A hypothesis can only be promoted by a human, never automatically.",
+    "resultShortHtml": "113 sources and 515,570 XBRL facts are graded and structured this way. The NO MONEY MODE safety test suite (12 assertions) was re-run live during verification and passed all 12.",
+    "whatItProvesHtml": "I can build a source-graded research system that keeps evidence and conclusions structurally separate, with a real, re-runnable safety boundary against ever executing a trade.",
+    "productionSignalHtml": "31-table SQLite schema &middot; 515,570 parsed XBRL facts &middot; NO MONEY MODE test suite re-verified live &middot; human-only hypothesis promotion",
+    "tags": ["SQLite", "Evidence grading", "Human review", "NO MONEY MODE"],
+    "keyNumber": "515,570",
+    "keyLabel": "XBRL facts · 113 sources · 14 skill specifications",
+    "goalHtml": "<ul><li>Keep verified evidence structurally separate from interpretation and conclusion.</li><li>Grade every source by evidence tier before it can support a claim.</li><li>Extract claims and hypotheses from structured filing data, not from opinion.</li><li>Require a human decision before any hypothesis counts as verified.</li><li>Never let the system place, size or suggest a trade.</li></ul>",
+    "methodHtml": "<ul><li>Start from a real source: an SEC filing, fetched and cached.</li><li>Grade the source by evidence tier (High/Low).</li><li>Parse the filing into structured XBRL facts and extracted claims.</li><li>Run a draft note through a deterministic, rule-based quality gate before it counts as research.</li><li>A human, never code, promotes a hypothesis from needs_check to source_attached to verified.</li></ul>",
+    "resultHtml": "<ul><li>113 sources and 515,570 XBRL facts graded and structured across 25 tickers.</li><li>203 claims extracted, 17 of them high-evidence.</li><li>270 fundamental-screen rows across 27 tickers &times; 10 metrics.</li><li>NO MONEY MODE re-verified live: 12/12 assertions passed, zero broker SDK imports anywhere in the codebase.</li><li>Every hypothesis promotion is a manual, findable human action.</li></ul>",
+    "failureHandledHtml": "<ul><li>A quality-gate report purpose-built to contain unsafe action-bias language (&ldquo;buy at&rdquo;) is hard-REJECTed before any fact-check occurs.</li><li>22 broken filing-section extractions were caught by the system&rsquo;s own dashboard and fixed the same version.</li><li>The quality-gate template once tripped its own forbidden-phrase scanner on &ldquo;target price&rdquo;. It was reworded the same day.</li><li>A hypothesis with mechanically-eligible but insufficient evidence was refused promotion, and stayed refused for months until a human did the extra work.</li></ul>",
+    "decisionHtml": "<ul><li>No hypothesis is promoted by code. Only a manual SQL update, run by a person, can do that.</li><li>The clearest example: a hypothesis judged &ldquo;needs more data&rdquo; in May stayed that way for months, until a human did the extra reading and promoted it by hand.</li><li>The system does not recommend, size or time a trade. NO MONEY MODE is a permanent boundary, not a setting.</li></ul>",
+    "limitationHtml": "<ul><li>Options and live market-data tables exist in the schema but hold no real data yet. That capability is not implemented.</li><li>Six supporting test suites (outside the core NO MONEY MODE suite) were not re-run in the latest verification pass.</li><li>A large, well-graded database does not by itself guarantee a correct conclusion. Grading measures evidence quality, not truth.</li></ul>",
+    "stagesLabel": "Workflow — grade evidence, gate conclusions, human-only promotion",
+    "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Source inbox", "body": "Collect source material before extracting lessons or patterns.", "image": "/case-media/investment-learning-system/stage-1-source-inbox.png", "caption": "Source material entering the research database.", "miniNodes": ["Filings, articles, interviews", "Notes and discussions", "Source material first"] },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Evidence tiering", "body": "Separate evidence from interpretation, opinion and missing information.", "image": "/case-media/investment-learning-system/stage-2-evidence-tiering.png", "caption": "Evidence-tier grading applied to a source.", "miniNodes": ["Separate evidence from opinion", "Flag missing information", "Evidence-tier grading"] },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Reasoning extraction", "body": "Extract gates, assumptions, risks and invalidation logic, not final calls.", "image": "/case-media/investment-learning-system/stage-3-reasoning-extraction.png", "caption": "Distillation output: structure, not conclusion.", "miniNodes": ["Extract gates and assumptions", "Extract risks and invalidation logic", "Not final calls or answers"] },
-      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Skill card review", "body": "Human review decides whether a repeated pattern becomes reusable skill logic.", "image": "/case-media/investment-learning-system/stage-4-skill-card-review.png", "caption": "A proposed skill patch awaiting human review.", "miniNodes": ["Human reviews the pattern", "Decides if it becomes a skill", "Reusable, not automatic"] }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Capture", "body": "Fetch and cache a real source before anything is graded.", "technicalLabel": "Source ingest", "example": "SEC EDGAR filing → cached locally", "detailInput": "SEC filing URL / CIK", "detailRule": "cache_source.py fetches and stores the filing locally", "detailOutput": "cached raw filing, ready for grading", "miniNodes": ["SEC EDGAR filing", "Cached locally", "Ready for grading"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Grade", "body": "Route and grade the source by evidence tier.", "technicalLabel": "Evidence tier", "example": "source → High/Low evidence tier", "detailInput": "cached source", "detailRule": "routed and graded by evidence tier", "detailOutput": "113 sources graded — 106 High · 7 Low", "miniNodes": ["Evidence tier assigned", "High or Low", "113 sources graded"] },
+      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Structure", "body": "Parse filing text into structured XBRL facts and extracted claims.", "technicalLabel": "XBRL + claims", "example": "filing text → XBRL facts + claims", "detailInput": "graded filing text", "detailRule": "parse XBRL company facts, extract filing sections, derive claims", "detailOutput": "515,570 XBRL facts · 439 filing sections · 203 claims", "miniNodes": ["XBRL facts parsed", "Filing sections extracted", "Claims derived"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Gate", "body": "Check a draft note against deterministic quality rules before it counts as research.", "technicalLabel": "Rule-based gate", "example": "\"buy at\" phrasing → REJECT", "detailInput": "draft research note", "detailRule": "deterministic phrase/structure scan, zero LLM calls", "detailOutput": "REJECT · INSUFFICIENT · RESEARCH_READY_WAIT · WATCH_ONLY · PASS_FOR_REVIEW", "miniNodes": ["Rule-based scan", "No LLM calls", "5 possible states"] },
+      { "num": 5, "actor": "human", "actorLabel": "Human", "title": "Review", "body": "A person decides whether a hypothesis is promoted. Promotion is never automatic.", "technicalLabel": "Human promotion", "example": "needs_check → source_attached (manual SQL only)", "detailInput": "claims and evidence linked to a hypothesis", "detailRuleLabel": "DECISION", "detailRule": "manual SQL UPDATE only — never automated", "detailOutput": "verified human decision on hypothesis status", "miniNodes": ["needs_check", "source_attached", "verified"] },
+      { "num": 6, "actor": "sys", "actorLabel": "Script", "title": "Screen", "body": "Run the 10-metric fundamental screen across the ticker universe.", "technicalLabel": "Fundamental screen", "example": "27 tickers × 10 metrics", "detailInput": "graded sources + reviewed hypotheses", "detailRule": "10-metric fundamental screen run across the ticker universe", "detailOutput": "270 screening rows (27 tickers × 10 metrics)", "miniNodes": ["10-metric screen", "27 tickers", "270 rows"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
-      "Distils expert process without copying final opinions.",
-      "Turns repeated reasoning patterns into reviewed skill logic."
+      "Keeps evidence and conclusion structurally separate instead of letting a well-written note stand in for a well-supported one.",
+      "Requires an explicit, findable human action before any pattern is promoted or trusted."
     ],
-    "valueLine": "Learn reasoning structure, not final opinions.",
-    "overviewChips": ["Python", "SQLite", "Source-first"],
-    "miniRoadmap": ["Sources", "Evidence", "Reasoning", "Skill review"],
-    "proofChips": ["Source-first", "Risk logic", "Human-gated"],
-    "finalRoadmap": "Source → evidence → reasoning pattern → human-reviewed skill logic",
-    "finalTakeaway": "Learn reasoning structure, not final opinions."
+    "valueLine": "A source-graded research system that separates verified evidence from opinion, then requires a human decision before any hypothesis is promoted.",
+    "overviewChips": ["Python", "SQLite", "NO MONEY MODE"],
+    "miniRoadmap": ["Capture", "Grade", "Structure", "Gate", "Review", "Screen"],
+    "proofChips": ["Evidence-graded", "Human-gated", "NO MONEY MODE"],
+    "finalRoadmap": "Capture → grade → structure → gate → human review → screen",
+    "finalTakeaway": "Evidence and conclusion stay structurally separate. A human owns every promotion.",
+    "systemControlStrip": [
+      { "eyebrow": "TEST", "title": "Safety Suite" },
+      { "eyebrow": "EVIDENCE", "title": "113 Sources", "detail": "515K+ XBRL facts" },
+      { "eyebrow": "CONTROL", "title": "Human Promotion", "detail": "Manual SQL only" }
+    ],
+    "controlSummaryLine": "Safety suite re-verified live · 113 graded sources · human-only promotion.",
+    "builtWithLabel": "Python · SQLite (31 tables) · n8n · FastAPI",
+    "workflowFieldLabel": "CONTROLLED WORKFLOW",
+    "detailCtaLabel": "View system logic & proof →",
+    "detailSubtitle": "How evidence, claims and hypotheses stay independently graded before a human promotes anything.",
+    "detailProofLine": "NO MONEY MODE safety suite — 12 / 12 assertions, re-verified live",
+    "whyIntro": "Investment write-ups routinely mix verified facts with interpretation and confident-sounding conclusions. This system keeps evidence and conclusion structurally separate, so a well-written note can't stand in for a well-supported one.",
+    "systemLogicIntro": "Good paperwork is not the same as a good conclusion. This system checks evidence, claims and hypotheses separately before either one can be trusted.",
+    "systemLogicConcepts": [
+      { "eyebrow": "EVIDENCE TIER", "question": "Is the source trustworthy?", "states": "HIGH · LOW" },
+      { "eyebrow": "CLAIM CONFIDENCE", "question": "Is the claim well-supported?", "states": "HIGH-EVIDENCE · LOW-EVIDENCE" },
+      { "eyebrow": "NOTE QUALITY", "question": "Is this note fact-based or opinion?", "states": "REJECT · WATCH_ONLY · PASS_FOR_REVIEW" },
+      { "eyebrow": "HYPOTHESIS STATUS", "question": "Has this been promoted by a human?", "states": "NEEDS_CHECK · SOURCE_ATTACHED · VERIFIED" }
+    ],
+    "systemLogicPrinciple": "Confidence in the paperwork is not confidence in the conclusion. The two are never allowed to merge without an explicit human step. A claim's confidence is capped at its source's own evidence tier. It can never inherit more certainty than the paperwork actually supports.",
+    "decisionCases": [
+      { "eyebrow": "WDC — UNSAFE NOTE", "lines": ["HIGH", "LOW-EVIDENCE", "REJECT", "NOT REACHED"] },
+      { "eyebrow": "WDC — CLEAN NOTE", "lines": ["HIGH", "independently verified", "PASS_FOR_REVIEW", "eligible for review"] },
+      { "eyebrow": "VRT — HYPOTHESIS #2", "lines": ["HIGH (17 linked filing sections)", "supporting, not sufficient", "N/A — audit, not a note", "NEEDS_CHECK → SOURCE_ATTACHED, months later, by hand"] },
+      { "eyebrow": "AVERAGING-DOWN 30-SECOND CARD", "lines": ["N/A — personal practice tool, not a graded source", "N/A — behavioural, not a claim", "N/A — no note involved", "a forced 10-question pause before adding to a losing position, 100% human-applied"] }
+    ],
+    "architectureIntro": "Only the SQLite evidence engine has a real automated backbone. The mentor-reasoning and personal-practice layers are markdown-only and human-applied, by design. They are real and professionally meaningful, but they are not pipeline stages.",
+    "architectureCards": [
+      { "eyebrow": "EVIDENCE", "title": "SQLite Evidence Engine", "body": "31-table schema; sources, claims, hypotheses and XBRL facts graded and linked. Frozen at V0.6." },
+      { "eyebrow": "CONTROL", "title": "Human-Only Promotion", "body": "Every hypothesis promotion is a manual SQL UPDATE. No code path promotes automatically." },
+      { "eyebrow": "SAFETY", "title": "NO MONEY MODE", "body": "Zero broker SDK imports across the codebase, enforced at 3 independent layers, re-verified live." }
+    ],
+    "architectureFlow": {
+      "main": ["Source captured", "Graded by evidence tier", "Structured into XBRL facts and claims", "Quality-gated before treated as research", "Human promotes a hypothesis", "Screened across the ticker universe"],
+      "test": ["NO MONEY MODE suite", "12 / 12 assertions, executed live"],
+      "failure": ["22 broken V0.4 filing sections → fixed same version (V0.4.1)", "Quality-gate scanner self-tripped on \"target price\" → reworded same day"]
+    },
+    "testEvidencePreview": [
+      { "eyebrow": "NO MONEY MODE SUITE", "lines": ["12 / 12 assertions passed", "Executed live during verification", "Zero broker SDK imports across scripts/"] },
+      { "eyebrow": "QUALITY-GATE CLI", "lines": ["2 real report files read in full", "REJECT case: \"buy at\" phrasing", "PASS_FOR_REVIEW case: same note, rewritten"] },
+      { "eyebrow": "LIVE STATUS DASHBOARD", "lines": ["13-section report, executed live", "Cross-matched exactly against manual SQL", "Sources, claims, hypotheses all reconciled"] }
+    ],
+    "implementationDetails": [
+      { "title": "Python", "body": "SEC EDGAR fetcher, XBRL parser, filing-section extractor, fundamental screen, rule-based quality gate, live status dashboard, safety test suite." },
+      { "title": "SQLite", "body": "31-table schema, 413MB — system of record for sources, claims, hypotheses and screening results." },
+      { "title": "n8n + FastAPI", "body": "Evidence-review decision-gate workflow bridged to the Python scripts. Real execution verified twice." }
+    ],
+    "currentBoundary": "Evidence grading, claim extraction and the note-quality gate are verified and re-run live. Options and live market-data tables exist in the schema but hold no real data yet — that capability is not implemented.",
+    "knownDependencies": [
+      "Exact date of the VRT hypothesis #2 promotion (no updated_at column exists)",
+      "6 non-NO-MONEY-MODE test suites' current pass/fail status (not re-run this verification pass)",
+      "Live current freshness of the 161-page Notion IFZ corpus",
+      "Duplicate sources rows (12/17) — bug vs. intentional, unresolved"
+    ]
   },
   {
     "id": "moss-content-factory",
@@ -97,41 +229,95 @@
     "tierLabel": "Featured proof",
     "title": "Source-to-Figma Data Visualization Pipeline",
     "shortTitle": "Source-to-Figma Data Visualization Pipeline",
-    "taglineHtml": "Collected sources &rarr; clear angle &rarr; structured content &rarr; Figma-ready visual output.",
-    "valueHtml": "Keeps research, drafting and visual layout connected through structured content and human review.",
-    "problemHtml": "Research, drafting and visual layout are usually disconnected, so content work has to be redone by hand each time.",
-    "workflowHtml": "I built a pipeline that collects sources, finds the angle, structures the evidence into content blocks, then hands off structured content directly into Figma.",
-    "resultShortHtml": "188 logged pipeline runs later, human review still gates every piece before it's approved or posted.",
-    "whatItProvesHtml": "I can connect source collection, analysis and visual communication.",
-    "productionSignalHtml": "Source material &rarr; angle finding &rarr; structured content blocks &rarr; Figma-ready output &middot; human approval before publish",
-    "tags": ["Source collection", "Data visualization", "Figma handoff", "Human-in-the-loop"],
-    "keyNumber": "188",
-    "keyLabel": "logged pipeline records · 50-topic batch runs · 2.5 months of operation",
-    "goalHtml": "<ul><li>Turn collected sources into readable visual communication.</li><li>Connect research, analysis, content structure and visual output.</li><li>Avoid AI-invented facts.</li><li>Make repeated content work easier to review and maintain.</li><li>Create Figma-ready material from source-backed content.</li></ul>",
-    "methodHtml": "<ul><li>Start from source material, not blank prompting.</li><li>Find the angle before drafting.</li><li>Structure evidence into content blocks.</li><li>Use AI to organise and draft, not to invent.</li><li>Use Figma as the visual handoff layer.</li></ul>",
-    "resultHtml": "<ul><li>Built a repeated content workflow from source collection to visual output: <span class=\"num\">188</span> pipeline scripts.</li><li>Connected notes, references, angle finding, AI drafting and design handoff.</li><li>Prepared content for Figma-ready visual structure.</li><li>Kept human review before publication.</li></ul>",
-    "failureHandledHtml": "<ul><li>Source comes before caption.</li><li>Weak evidence blocks strong visual claims.</li><li>Visual polish cannot hide missing sources.</li><li>Human review checks meaning, fact, caption and publication.</li></ul>",
-    "decisionHtml": "<ul><li>AI helps structure and draft.</li><li>Human approves the final meaning.</li><li>Figma is the output layer, not the source of truth.</li><li>The workflow supports communication; it does not replace editorial responsibility.</li></ul>",
-    "limitationHtml": "<ul><li>Some source evaluation remains manual.</li><li>Visual quality still depends on design judgment.</li><li>The system supports content production, not fully automated publishing.</li><li>More real screenshots should be added as proof captures.</li></ul>",
-    "stagesLabel": "Workflow — source to angle to visual output",
-    "stageCountLabel": "4 stages",
+    "taglineHtml": "Every caption, voiceover and carousel spec renders from one observed-fact Kernel. AI organizes. It never invents.",
+    "valueHtml": "Renders every output from a single observed-fact Kernel, gates AI-tone writing against an explicit reject list, and requires human approval before anything is built in Figma.",
+    "problemHtml": "AI-written captions drift toward invented cultural meaning and scene-setting that never happened. This system forces every output back to one real, observed Kernel.",
+    "workflowHtml": "A source is captured, then rendered from its Content Kernel into caption, voiceover and Figma-text formats. It's imported to Notion under a Code join-key, then held for human-only approval before a Figma spec or render is ever produced.",
+    "resultShortHtml": "184 real pipeline scripts, 12 content systems across 6 countries and a 5-layer QA gate make up the system. Approved/Posted status stays human-only throughout.",
+    "whatItProvesHtml": "I can build a content pipeline that keeps AI strictly in an organizing role, with a checkable reject list and a human-only approval gate, not just a working export to Figma.",
+    "productionSignalHtml": "184 real pipeline scripts &middot; 12 content systems &times; 6 countries &middot; 5-layer QA gate &middot; human-only approval",
+    "tags": ["Content Kernel", "Notion", "Figma (MCP)", "Human review"],
+    "keyNumber": "184",
+    "keyLabel": "pipeline scripts · 12 content systems · 6 countries",
+    "goalHtml": "<ul><li>Keep every output traceable to one real, observed Kernel.</li><li>Restrict AI to organizing and trimming, never inventing cultural meaning.</li><li>Catch AI-tone writing failures with an explicit, checkable reject list.</li><li>Keep Approved and Posted status human-only.</li><li>Use Figma as the visual handoff layer, not the source of truth.</li></ul>",
+    "methodHtml": "<ul><li>Start from a real source, captured into the inbox.</li><li>Write the Content Kernel first: Topic, Observed, Core idea, Tone.</li><li>Render the Kernel into caption, voiceover and Figma-text formats.</li><li>Import to Notion under a Code join-key, validated at import.</li><li>A human reads, edits, and sets Approved. The agent never sets this.</li></ul>",
+    "resultHtml": "<ul><li>184 real pipeline scripts (62 active, 122 historical) power the live system.</li><li>12 content systems &times; 6 countries, joined by one Code key across Notion, Figma and export folders.</li><li>14 completed Figma specs built and rendered.</li><li>A real end-to-end proof (Boon Room) surfaced and fixed 5 latent bugs in sequence.</li><li>Approved / Posted status remain human-only throughout.</li></ul>",
+    "failureHandledHtml": "<ul><li>An unsafe AI-tone sentence pattern is hard-rejected and sent back to the Kernel, not patched.</li><li>A field value not in Notion's allowed options is left blank and logged, never guessed.</li><li>A food-row caption still overflowed at 64pt with only 8 characters. The line-break rule was tightened the same day.</li><li>5 latent bugs were found and fixed in sequence during one real full-coverage pass.</li></ul>",
+    "decisionHtml": "<ul><li>AI renders the Kernel into formats. It does not decide what the Kernel means.</li><li>Draft Generated and Needs Human Polish are the only agent-settable statuses.</li><li>Approved and Posted are set by a human, never by code.</li><li>A Figma spec must not invent facts beyond what a human already approved in Notion.</li></ul>",
+    "limitationHtml": "<ul><li>Whether the system's own br-to-newline conversion always renders correctly in the Notion UI is still an open, disclosed verification gap.</li><li>An earlier generation of this pipeline (different field names) still exists in the same repository, superseded but not deleted.</li><li>The current unique-topic count in the live Notion database was not re-verified this pass.</li></ul>",
+    "stagesLabel": "Workflow — Kernel first, human-only approval",
+    "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Source collection", "body": "Collect notes, images and references from reviewed sources.", "image": "/case-media/social-media-pipeline/stage-1-source-collection.png", "caption": "Tiered source material entering the pipeline.", "miniNodes": ["Notes, images, references", "Reviewed sources only", "No invented facts"] },
-      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Angle finding", "body": "Identify the main point before generating content or layout.", "image": "/case-media/social-media-pipeline/stage-2-angle-finding.png", "caption": "AI draft with a clear angle, before human review.", "miniNodes": ["Find the angle first", "Before content or layout", "AI drafts, doesn't invent"] },
-      { "num": 3, "actor": "human", "actorLabel": "Human", "title": "Content structure", "body": "Turn evidence into captions, content blocks and visual text.", "image": "/case-media/social-media-pipeline/stage-3-content-structure.png", "caption": "Human review gate before anything is approved.", "miniNodes": ["Evidence into captions", "Structured content blocks", "Human review gate"] },
-      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Figma-ready output", "body": "Prepare structured content for Figma layout and final human review.", "image": "/case-media/social-media-pipeline/stage-4-figma-output.png", "caption": "Final Figma-ready visual output.", "miniNodes": ["Figma-ready layout", "Final human review", "Approved before publish"] }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Capture", "body": "Real source material enters the inbox before anything is drafted.", "technicalLabel": "Source intake", "example": "topic file → inbox/", "detailInput": "real source material", "detailRule": "dropped into inbox/, no fabricated content accepted", "detailOutput": "queued content draft", "miniNodes": ["Real source only", "Queued in inbox", "No fabricated content"] },
+      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Draft", "body": "The Content Kernel renders into caption, voiceover and Figma-text formats.", "technicalLabel": "Kernel render", "example": "Kernel → caption + voiceover + Figma text", "detailInput": "Content Kernel (Topic / Observed / Core idea / Tone)", "detailRule": "AI organizes and trims only — reject-list blocks invented meaning", "detailOutput": "caption + voiceover script + Figma text", "miniNodes": ["Kernel first", "AI organizes, doesn't invent", "Reject-list enforced"] },
+      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Import", "body": "The validated draft is written to Notion under a Code join-key.", "technicalLabel": "Notion import", "example": "draft → Code (NN-XX-CC) row", "detailInput": "validated content draft", "detailRule": "dry-run validated, then written under a Code join-key", "detailOutput": "Notion row, Status = Draft Generated", "miniNodes": ["Dry-run validated", "Code join-key assigned", "Status: Draft Generated"] },
+      { "num": 4, "actor": "human", "actorLabel": "Human", "title": "Review", "body": "A person reads, edits and sets Approved. The agent never sets this.", "technicalLabel": "Human approval", "example": "Draft Generated → Approved (human only)", "detailInput": "Notion row", "detailRuleLabel": "DECISION", "detailRule": "human reads, edits, sets Approved — agent never sets this", "detailOutput": "Status = Approved", "miniNodes": ["Human reads and edits", "Approved: human only", "Agent cannot set this"] },
+      { "num": 5, "actor": "ai", "actorLabel": "AI", "title": "Spec", "body": "Approved content becomes a Figma text spec. It never invents beyond it.", "technicalLabel": "Figma spec", "example": "Approved row → Figma text spec", "detailInput": "Approved Notion content only", "detailRule": "must not invent facts, must not infer from caption alone", "detailOutput": "SYS_/TXT_/IMG_-mapped text spec", "miniNodes": ["Approved content only", "No new facts", "SYS_/TXT_/IMG_ mapped"] },
+      { "num": 6, "actor": "sys", "actorLabel": "Script", "title": "Render", "body": "The Figma carousel is built and checked against the QA checklist.", "technicalLabel": "Render + QA", "example": "spec → carousel + screenshot", "detailInput": "Figma text spec", "detailRule": "frame-scoped text injection, layer/overflow QA checklist", "detailOutput": "rendered carousel + QA screenshot", "miniNodes": ["Frame-scoped injection", "Layer/overflow checked", "Screenshot QA"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
-      "Turns reviewed source material into visual output without losing evidence.",
-      "Connects database content to Figma-ready communication materials."
+      "Keeps AI strictly in an organizing role — every output traces back to one observed Kernel.",
+      "Requires an explicit human approval before anything is built in Figma."
     ],
-    "valueLine": "Turn reviewed sources into visual communication.",
-    "overviewChips": ["Notion", "Figma handoff", "Human review"],
-    "miniRoadmap": ["Sources", "Angle", "Content blocks", "Figma output"],
-    "proofChips": ["Source-backed", "Figma output", "Human approval"],
-    "finalRoadmap": "Source → angle → content blocks → Figma output → human review",
-    "finalTakeaway": "Source evidence becomes visual communication."
+    "valueLine": "Every output renders from one observed Kernel. AI organizes, never invents. Nothing is built without human approval.",
+    "overviewChips": ["Python", "Notion", "Figma (MCP)"],
+    "miniRoadmap": ["Capture", "Draft", "Import", "Review", "Spec", "Render"],
+    "proofChips": ["Kernel-first", "Human-gated", "5-layer QA"],
+    "finalRoadmap": "Capture → draft → import → human review → spec → render",
+    "finalTakeaway": "AI organizes the Kernel. A human decides what ships.",
+    "systemControlStrip": [
+      { "eyebrow": "DISCIPLINE", "title": "Content Kernel" },
+      { "eyebrow": "CONTROL", "title": "Human-Only Approval" },
+      { "eyebrow": "QA", "title": "5-Layer Gate" }
+    ],
+    "controlSummaryLine": "Content Kernel discipline · human-only approval · 5-layer QA gate.",
+    "builtWithLabel": "Python · Notion · Figma (MCP)",
+    "workflowFieldLabel": "CONTROLLED WORKFLOW",
+    "detailCtaLabel": "View system logic & proof →",
+    "detailSubtitle": "How a Kernel stays observed fact, a reject list stays enforced, and approval stays human-only.",
+    "detailProofLine": "184 real pipeline scripts · 5-layer QA gate · human-only approval",
+    "whyIntro": "AI-written captions drift toward invented cultural meaning and scene-setting that never happened. This system forces every output back to one real, observed Kernel. AI organizes. It never invents.",
+    "systemLogicIntro": "A polished caption is not the same as an observed fact. This system checks that before anything gets approved.",
+    "systemLogicConcepts": [
+      { "eyebrow": "SOURCE INTEGRITY", "question": "Is this a real observed fact?", "states": "OBSERVED · NOT IN KERNEL" },
+      { "eyebrow": "WRITING DISCIPLINE", "question": "Does it pass the reject list?", "states": "PASS · REJECT" },
+      { "eyebrow": "APPROVAL STATUS", "question": "Has a human approved this row?", "states": "DRAFT GENERATED · NEEDS POLISH · APPROVED" },
+      { "eyebrow": "SPEC FIDELITY", "question": "Does the spec add anything the row didn't say?", "states": "TRACEABLE · NOT ALLOWED" }
+    ],
+    "systemLogicPrinciple": "AI is restricted to organizing and trimming. It never invents cultural meaning, summaries, or scenes that weren't actually observed.",
+    "decisionCases": [
+      { "eyebrow": "BOON ROOM — FIRST IMPORT", "lines": ["OBSERVED (11 metadata fields)", "PASS", "NEEDS HUMAN POLISH", "N/A — pre-spec stage"] },
+      { "eyebrow": "BOON ROOM — FULL COVERAGE PATCH", "lines": ["5 blank fields correctly left blank, not invented", "unchanged, still populated", "still NEEDS HUMAN POLISH", "Country skipped — value not in Notion's option list"] },
+      { "eyebrow": "RUNEBERGINTORTTU — TYPOGRAPHY FIX", "lines": ["OBSERVED, 8-character phrase", "PASS", "N/A — typography fix, not a content approval", "rule tightened after real 64pt overflow — line-break now mandatory for food-row highlights"] }
+    ],
+    "architectureIntro": "Two generations of this pipeline exist in the same repository. The current Code/SYS_/TXT_/IMG_ architecture supersedes an earlier collection_id/style_id generation. Both are real. Only the current one is presented as the live system.",
+    "architectureCards": [
+      { "eyebrow": "DISCIPLINE", "title": "Content Kernel Pipeline", "body": "Every output is rendered from one observed-fact Kernel. AI organizes. It never invents cultural meaning." },
+      { "eyebrow": "CONTROL", "title": "Human-Only Approval", "body": "Draft Generated and Needs Human Polish are the only agent-settable statuses. Approved and Posted are human-only." },
+      { "eyebrow": "QA", "title": "5-Layer Gate", "body": "Content, Notion, Figma-spec, Figma-render and queue/log gates make up the QA chain. Each catches a different class of failure before it ships." }
+    ],
+    "architectureFlow": {
+      "main": ["Real source captured", "Content Kernel rendered to draft formats", "Imported to Notion under a Code", "Human reviews and approves", "Approved content becomes a Figma spec", "Rendered and QA'd"],
+      "test": ["5-layer QA gate", "Content → Notion → Figma-spec → Figma-render → Queue/log"],
+      "failure": ["5 latent bugs found in sequence during one real full-coverage pass, fixed same session", "Food-row typography rule tightened after a real 64pt overflow"]
+    },
+    "testEvidencePreview": [
+      { "eyebrow": "5-LAYER QA GATE", "lines": ["Content → Notion → Spec → Render → Queue/log", "Each layer catches a different failure class", "Documented gate-by-gate failure-mode table"] },
+      { "eyebrow": "BOON ROOM END-TO-END PROOF", "lines": ["Full pipeline chain run on a real topic", "5 latent bugs found and fixed in sequence", "Two passes: initial write + full-field-coverage patch"] },
+      { "eyebrow": "FOOD TYPOGRAPHY RULE", "lines": ["Rule tightened after a real render broke", "8-character phrase still wrapped at 64pt", "Line-break now mandatory for food-row highlights"] }
+    ],
+    "implementationDetails": [
+      { "title": "Python", "body": "184 pipeline scripts (62 active) — import, validate, split source packages, generate live-status reports." },
+      { "title": "Notion", "body": "Source Inbox + Reference Base databases — Code is the join key across Notion, Figma and export folders." },
+      { "title": "Figma (MCP)", "body": "SYS_/TXT_/IMG_-prefixed layer taxonomy, frame-scoped text injection, per-country rail assets." }
+    ],
+    "currentBoundary": "The Content-Kernel writing discipline and the Code-based Figma layer taxonomy are the current, most recently updated architecture. An earlier collection_id/style_id generation is real and was proven end-to-end, but is superseded.",
+    "knownDependencies": [
+      "Exact current unique-topic count in the live Notion Source Inbox (not re-verified this pass)",
+      "Whether the br-to-literal-newline conversion always renders correctly in the Notion UI (flagged non-blocking, unresolved in the project's own docs)",
+      "Whether the earlier collection_id/style_id generation should be retired from the repo or kept as historical record"
+    ]
   },
   {
     "id": "evidence-review-decision-gate",
@@ -141,41 +327,95 @@
     "tierLabel": "Featured proof",
     "title": "AI Output Review &amp; Debug Memory System",
     "shortTitle": "AI Output Review & Debug Memory System",
-    "taglineHtml": "Checks AI output, captures mistakes and turns recurring issues into reusable review rules.",
-    "valueHtml": "Turns AI mistakes and unclear outputs into reusable review rules.",
-    "problemHtml": "Confident-sounding AI output can hide missing evidence or overstated claims.",
-    "workflowHtml": "I built a two-layer check — a rule-based gate plus an independent phrase scan — that reviews AI output before it's trusted, and logs what it finds.",
-    "resultShortHtml": "An unsafe note was rejected, a clean one passed, and a real scanner bug was found, fixed and logged as a reusable lesson.",
-    "whatItProvesHtml": "I can test AI output before trusting it, and turn bugs or unclear answers into reusable workflow improvements.",
-    "productionSignalHtml": "Unsafe output rejected &middot; clean output passed &middot; scanner bug found and fixed &middot; mistake logged for future reuse",
-    "tags": ["AI review", "Debugging", "Mistake log", "Quality gate", "Reusable rules"],
-    "keyNumber": "2",
-    "keyLabel": "independent safety layers · 1 real bug found and fixed",
-    "goalHtml": "<ul><li>Stop AI output from being trusted too quickly.</li><li>Separate facts, assumptions, missing information and unsupported claims.</li><li>Catch overconfident or action-biased wording.</li><li>Record bugs and unclear outputs as reusable learning.</li><li>Improve future workflows through reviewed experience.</li></ul>",
-    "methodHtml": "<ul><li>Start from rough AI output, workflow notes, bugs or unclear answers.</li><li>Extract the claim structure before judging the answer.</li><li>Check whether claims are supported by source material.</li><li>Run a second scan for risky wording or overclaiming.</li><li>Save the lesson into debug memory for future review.</li></ul>",
-    "resultHtml": "<ul><li>Built an AI output review / decision-gate workflow.</li><li>Unsafe output was rejected.</li><li>Clean output passed.</li><li>A real scanner bug was found and fixed.</li><li>The bug was recorded as a reusable system lesson.</li></ul>",
-    "failureHandledHtml": "<ul><li>Prevents confident AI output from becoming trusted output.</li><li>Flags missing evidence and unsupported claims.</li><li>Catches action-biased wording before reuse.</li><li>Keeps human interpretation separate from AI classification.</li><li>Treats bugs as material for system improvement.</li></ul>",
-    "decisionHtml": "<ul><li>AI can classify, extract and flag risk.</li><li>AI does not decide what the evidence means.</li><li>Human review owns interpretation.</li><li>Bugs are not hidden; they become rule candidates.</li><li>The system learns through reviewed experience, not automatic self-modification.</li></ul>",
-    "limitationHtml": "<ul><li>This is a human-reviewed learning loop, not a fully autonomous self-learning agent.</li><li>Rule-based checks can miss differently worded unsafe claims.</li><li>Human review is still required.</li><li>More real cases and proof captures should be added over time.</li></ul>",
-    "stagesLabel": "Workflow — check AI output, then log the lesson",
-    "stageCountLabel": "4 stages",
+    "taglineHtml": "Two independent checks review AI output before it's trusted. Whatever they catch becomes a reusable, human-approved record.",
+    "valueHtml": "A rule-based gate and a separately-implemented phrase scanner independently review AI output, so one weak layer never has to catch everything alone.",
+    "problemHtml": "Confident-sounding AI output can hide missing evidence or overstated claims. A single check can miss a failure class that a second, independent check would catch.",
+    "workflowHtml": "A rule-based gate separates facts from interpretation and flags weak evidence. A second, independently-implemented scanner checks again, even after the first gate passes. A human decides whether what's caught becomes a permanent record.",
+    "resultShortHtml": "Two independent layers were verified real in n8n twice. The Debug Memory system this feeds into has captured 107 real records.",
+    "whatItProvesHtml": "I can build a two-layer review gate with genuinely separate implementations, verify it end-to-end in real n8n, and turn what it catches into a structured, reusable record rather than a one-off fix.",
+    "productionSignalHtml": "2 independent safety layers &middot; real n8n execution verified twice &middot; 107 real records captured &middot; human-only rule promotion",
+    "tags": ["Rule-based gate", "Independent scan", "Debug Memory", "Human review"],
+    "keyNumber": "107",
+    "keyLabel": "records captured · 2 independent safety layers",
+    "goalHtml": "<ul><li>Stop AI output from being trusted too quickly.</li><li>Separate facts, assumptions, missing information and unsupported claims.</li><li>Catch overconfident or action-biased wording with two genuinely separate checks.</li><li>Record bugs and unclear outputs as reusable learning.</li><li>Keep rule-promotion decisions human-only.</li></ul>",
+    "methodHtml": "<ul><li>Start from rough AI output, a debug note, or an unclear answer.</li><li>Run a rule-based gate that separates facts from interpretation.</li><li>Run a second, independently-implemented scan. It's belt-and-braces, not duplicated effort.</li><li>A human decides whether the finding becomes a reusable lesson.</li><li>An AI extraction agent structures the lesson into one strict record. It never invents fields.</li></ul>",
+    "resultHtml": "<ul><li>Built a two-layer AI output review gate with genuinely separate implementations.</li><li>A biased note was rejected by both layers independently. A clean note passed.</li><li>A real self-tripping bug (the report template's own copy) was found and fixed the same session.</li><li>Verified real execution in n8n twice, including correctly reasoning through an execution status of \"error\" as the designed refusal, not a bug.</li><li>107 real records captured in the Debug Memory system this feeds into.</li></ul>",
+    "failureHandledHtml": "<ul><li>Prevents confident AI output from becoming trusted output.</li><li>Flags missing evidence and unsupported claims.</li><li>A second, independent scan catches what the first gate might miss.</li><li>The report template itself once contained a forbidden phrase and self-tripped its own scanner. It was found and fixed the same day.</li><li>Keeps human interpretation separate from AI classification throughout.</li></ul>",
+    "decisionHtml": "<ul><li>AI can classify, extract and flag risk.</li><li>AI does not decide what the evidence means.</li><li>Human review owns interpretation, and owns whether a finding is promoted to a reusable rule.</li><li>Bugs are not hidden. They become rule candidates.</li><li>The system learns through reviewed experience, not automatic self-modification.</li></ul>",
+    "limitationHtml": "<ul><li>This is a human-reviewed learning loop, not a fully autonomous self-learning agent.</li><li>Rule-based checks can miss differently worded unsafe claims.</li><li>The review gate and the Debug Memory ingestion are two separate real codebases, connected by a human moving a finding across, not by a shared code path.</li><li>107 is the current record count, not a verified lifetime total.</li></ul>",
+    "stagesLabel": "Workflow — two-layer gate, then a human-approved record",
+    "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Structured extraction", "body": "Split rough AI output into facts, assumptions, missing information and claims.", "image": "/case-media/ai-mistake-review-gate/stage-1-structured-extraction.png", "caption": "Facts, interpretation and missing data split apart.", "miniNodes": ["Facts vs assumptions", "Missing information flagged", "Claims separated out"] },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Evidence and consistency check", "body": "Check source support, missing information and overstated certainty.", "image": "/case-media/ai-mistake-review-gate/stage-2-rule-based-gate.png", "caption": "Missing evidence and unsupported claims flagged.", "miniNodes": ["Check source support", "Flag missing information", "Catch overstated certainty"] },
-      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Independent phrase scan", "body": "Run a second check to catch unsafe wording, action bias or unsupported conclusions.", "image": "/case-media/ai-mistake-review-gate/stage-3-phrase-scan.png", "caption": "A second, separate scan of the rendered report text.", "miniNodes": ["Second, independent check", "Catch unsafe wording", "Catch action bias"] },
-      { "num": 4, "actor": "out", "actorLabel": "Output", "title": "Debug memory update", "body": "Record the bug, lesson and what to avoid next time so the mistake becomes reusable.", "image": "/case-media/ai-mistake-review-gate/stage-4-decision-report.png", "caption": "REJECT or PASS_FOR_REVIEW, with reasons.", "miniNodes": ["Log the bug and lesson", "Record what to avoid", "Becomes a future check"] }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Capture", "body": "A rough note or debug log enters the pipeline for review.", "technicalLabel": "Input intake", "example": "rough note or debug log → pipeline", "detailInput": "raw research note or debug .txt/.md file", "detailRule": "dropped in for review — no pre-filtering", "detailOutput": "queued for the rule-based gate", "miniNodes": ["Raw note or log", "No pre-filtering", "Queued for review"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Gate", "body": "A rule-based gate separates facts from interpretation and flags weak evidence.", "technicalLabel": "Rule-based gate", "example": "\"buy at\" phrasing → REJECT", "detailInput": "raw note text", "detailRule": "separates facts from interpretation, flags missing/weak evidence", "detailOutput": "research_state: REJECT or continues", "miniNodes": ["Facts vs interpretation", "Missing evidence flagged", "REJECT or continues"] },
+      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Scan", "body": "A second, independently-implemented scanner checks again.", "technicalLabel": "Independent scan", "example": "forbidden-phrase scan → HTTP 400", "detailInput": "same note, independently", "detailRule": "second, separate forbidden-phrase scanner — belt-and-braces, not duplicated effort", "detailOutput": "blocks the write even if the first gate missed it", "miniNodes": ["Separately implemented", "Checks again", "Blocks even if gate missed it"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Verdict", "body": "A structured report is produced. Human review is never optional.", "technicalLabel": "Verdict", "example": "REJECT · PASS_FOR_REVIEW", "detailInput": "gate + scan results", "detailRule": "human_review_required is hardcoded true on every report", "detailOutput": "structured quality-gate report", "miniNodes": ["REJECT · PASS_FOR_REVIEW", "human_review_required: true", "Structured report"] },
+      { "num": 5, "actor": "human", "actorLabel": "Human", "title": "Review", "body": "A person decides whether this finding becomes a reusable lesson.", "technicalLabel": "Human review", "example": "report read → lesson identified", "detailInput": "quality-gate report", "detailRuleLabel": "DECISION", "detailRule": "a person decides whether this becomes a reusable lesson", "detailOutput": "debug note ready for Debug Memory", "miniNodes": ["Person reads the report", "Decides: reusable or not", "Ready for Debug Memory"] },
+      { "num": 6, "actor": "ai", "actorLabel": "AI", "title": "Record", "body": "An AI extraction agent structures the lesson into one strict record.", "technicalLabel": "Structured extraction", "example": "raw note → strict JSON record", "detailInput": "human-reviewed debug note", "detailRule": "AI extracts only — \"do not invent information\"", "detailOutput": "Notion record written; done/debug or failed/debug + error.log", "layerBreakLabel": "HUMAN HANDOFF · NOT SHARED CODE", "miniNodes": ["Strict JSON extraction", "No invented fields", "Written to Notion"] }
     ],
     "transferHeading": "Transfer",
     "transferItems": [
-      "Separates verified information from AI interpretation before reuse.",
-      "Uses two checks so one weak gate does not decide alone."
+      "Uses two genuinely separate checks so one weak gate does not decide alone.",
+      "Turns a caught failure into a structured, human-approved reusable record instead of a one-off fix."
     ],
-    "valueLine": "Check AI output before reuse.",
-    "overviewChips": ["Rule-based gate", "Phrase scan", "Debug memory"],
-    "miniRoadmap": ["AI output", "Evidence check", "Risk scan", "Debug memory"],
-    "proofChips": ["2 safety layers", "Bug fixed", "Reusable checks"],
-    "finalRoadmap": "AI output → evidence check → risk scan → debug memory → reusable rule",
-    "finalTakeaway": "Mistakes become reusable review rules."
+    "valueLine": "Two independent checks review AI output before it's trusted. What they catch becomes a human-approved, reusable record.",
+    "overviewChips": ["Python", "FastAPI", "n8n"],
+    "miniRoadmap": ["Capture", "Gate", "Scan", "Verdict", "Review", "Record"],
+    "proofChips": ["2 safety layers", "n8n-verified", "107 records"],
+    "finalRoadmap": "Capture → gate → scan → verdict → human review → record",
+    "finalTakeaway": "Two independent checks catch it. A human decides what's worth remembering.",
+    "systemControlStrip": [
+      { "eyebrow": "LAYERS", "title": "2 Independent Checks" },
+      { "eyebrow": "CONTROL", "title": "Human-Only Promotion" },
+      { "eyebrow": "MEMORY", "title": "107 Records Captured" }
+    ],
+    "controlSummaryLine": "2 independent safety layers · human-only promotion · 107 records captured.",
+    "builtWithLabel": "Python · FastAPI · n8n · Notion",
+    "workflowFieldLabel": "TWO CONNECTED LAYERS",
+    "detailCtaLabel": "View system logic & proof →",
+    "detailSubtitle": "Two independent codebases, connected by a human decision, not shared code. See how each layer stays separate, and how a finding becomes a human-approved record.",
+    "detailProofLine": "2 independent layers · real n8n execution verified twice · 107 real records",
+    "whyIntro": "Confident-sounding AI output can hide missing evidence or overstated claims. One check can miss a failure class a second, genuinely separate check would catch.",
+    "systemLogicIntro": "One check passing is not the same as two independent checks agreeing. This system keeps both, and keeps a person deciding what's worth remembering.",
+    "systemLogicConcepts": [
+      { "eyebrow": "CONTENT INTEGRITY", "question": "Does the rule-based gate pass it?", "states": "REJECT · CONTINUES" },
+      { "eyebrow": "INDEPENDENT SCAN", "question": "Does the separate scanner also pass it?", "states": "BLOCKED · CLEAR" },
+      { "eyebrow": "REVIEW STATUS", "question": "Has a human reviewed the verdict?", "states": "PENDING · REVIEWED" },
+      { "eyebrow": "RECORD STATUS", "question": "Was it captured as a reusable record?", "states": "DONE · FAILED (LOGGED)" }
+    ],
+    "systemLogicPrinciple": "Two independently-implemented checks catch different failure classes, so one weak layer never has to catch everything alone.",
+    "decisionCases": [
+      { "eyebrow": "WDC — BIASED NOTE", "lines": ["REJECT (\"buy at\" phrasing)", "BLOCKED (HTTP 400, separately)", "N/A — blocked before review", "demonstration, not a real incident"] },
+      { "eyebrow": "WDC — CLEAN NOTE", "lines": ["CONTINUES", "CLEAR", "PASS_FOR_REVIEW, human_review_required still true", "demonstration pair, contrast case"] },
+      { "eyebrow": "\"TARGET PRICE\" SELF-TRIP BUG", "lines": ["N/A — bug was in the report template itself", "BLOCKED every report, regardless of input", "human caught it, reworded same day", "DONE — captured as a reusable lesson"] }
+    ],
+    "architectureIntro": "The review gate and the Debug Memory ingestion are two separate, independently-runnable real codebases, connected by a human moving a finding across, not by a shared code path. Stated honestly, not implied as one monolith.",
+    "architectureCards": [
+      { "eyebrow": "LAYERS", "title": "2 Independent Checks", "body": "A rule-based gate and a separately-implemented forbidden-phrase scanner work together. It's belt-and-braces, not duplicated effort." },
+      { "eyebrow": "CONTROL", "title": "Human-Only Promotion", "body": "human_review_required is hardcoded true on every report. Whether a finding becomes a rule is a human decision." },
+      { "eyebrow": "MEMORY", "title": "Structured Extraction", "body": "An AI agent extracts one strict record per finding. \"Do not invent information\" is a hard rule, not a suggestion." }
+    ],
+    "architectureFlow": {
+      "main": ["Note captured", "Rule-based gate checked", "Independent scan checked again", "Verdict produced, human review required", "Human decides what's reusable", "AI structures the record"],
+      "test": ["Real n8n execution verified twice", "2026-07-20 API bridge · 2026-08-02 real n8n CLI"],
+      "failure": ["Report template self-tripped its own scanner on \"target price\" → reworded same day", "n8n CLI timeout-then-retry flakiness — disclosed, not hidden"]
+    },
+    "testEvidencePreview": [
+      { "eyebrow": "TWO INDEPENDENT LAYERS", "lines": ["Rule-based gate + separate phrase scanner", "Biased note caught by both, independently", "Clean note passed both"] },
+      { "eyebrow": "REAL N8N EXECUTION, TWICE", "lines": ["2026-07-20: API bridge, curl-verified", "2026-08-02: real n8n CLI import + execute", "\"error\" status correctly reasoned as the designed refusal"] },
+      { "eyebrow": "DEBUG MEMORY, REAL RECORDS", "lines": ["107 records in done/debug", "Strict schema, no invented fields", "Failures logged, never silently dropped"] }
+    ],
+    "implementationDetails": [
+      { "title": "Python", "body": "Rule-based quality gate — offline-first, no API key needed, runs from the command line." },
+      { "title": "FastAPI", "body": "Independent forbidden-phrase scanner, exposed as its own endpoint — deliberately separate from the gate's logic." },
+      { "title": "n8n + Notion", "body": "Orchestration layer (n8n) with no business logic of its own; Notion is the system of record for Debug Memory." }
+    ],
+    "currentBoundary": "The review gate and the Debug Memory ingestion are both real and independently verified. No code path currently connects them automatically — a human carries a finding from one into the other.",
+    "knownDependencies": [
+      "Whether Half A (review gate) and Half B (Debug Memory) should eventually be wired together by an actual code path",
+      "Lifetime total of Debug Memory records processed (only current done/ count was verified this pass)",
+      "n8n CLI timeout-then-retry behavior — known, disclosed, not yet root-caused"
+    ]
   },
   {
     "id": "method-of-loci",
@@ -183,8 +423,14 @@
     "total": 7,
     "tier": 2,
     "tierLabel": "Supporting system",
-    "title": "Method of Loci — automated document-ingestion pipeline",
-    "taglineHtml": "Turns saved social-media archives into a searchable, offline knowledge base.",
+    "title": "Method of Loci",
+    "taglineHtml": "Turns saved social-media archives into a searchable, offline knowledge base that runs unattended.",
+    "valueHtml": "Every fact is written to SQLite before anything reaches Notion, so the optional UI layer can be rebuilt from the local database at any time.",
+    "problemHtml": "Saved social-media archives pile up unsearched, tied to whichever app or account originally hosted them.",
+    "workflowHtml": "A scheduled Python pipeline imports, deduplicates, normalizes and extracts each item locally, then optionally syncs to Notion. SQLite stays the single source of truth throughout.",
+    "resultShortHtml": "175 posts, 748 media assets and 860 AI extracts processed over roughly 3.5 months, entirely unattended. All four figures were re-verified directly against the live database.",
+    "whatItProvesHtml": "I can build an unattended pipeline that keeps a local database as the real source of truth, with an external service (Notion) kept strictly optional and rebuildable.",
+    "productionSignalHtml": "175 posts &middot; 748 media assets &middot; 860 AI extracts &middot; 162 Notion syncs &middot; verified live against the database",
     "tags": ["Document ingestion", "AI extraction", "Scheduled automation", "Python · Gemini · SQLite"],
     "overviewChips": ["Python", "Gemini AI", "SQLite"],
     "keyNumber": "860",
@@ -192,20 +438,61 @@
     "goalHtml": "Turn saved social-media archives into a <strong>searchable, offline knowledge base</strong>.",
     "methodHtml": "A scheduled Python pipeline imports, normalizes, AI-extracts, syncs and stores each item with status tracking.",
     "resultHtml": "Processed <span class=\"num\">175</span> posts, <span class=\"num\">748</span> media assets, <span class=\"num\">860</span> AI extracts and <span class=\"num\">162</span> Notion syncs.",
+    "failureHandledHtml": "<ul><li>Already-seen zips and files are SHA-256 deduplicated and skipped, not re-processed.</li><li>A real docstring-vs-implementation disagreement in the config loader was found by reading the code directly, not assumed from the comment.</li><li>A stored-but-empty Notion page ID is a documented risk (can silently create a duplicate page) with a direct SQL check to catch it.</li><li>Each pipeline step is wrapped independently. One step failing does not abort the rest of the run.</li></ul>",
+    "limitationHtml": "<ul><li>There is no in-line human-approval gate. The human's role is reviewing the synced output afterward, not gating each record before it's written.</li><li>139 pending normalize jobs exist in the live queue at audit time. That's a real, unreviewed backlog, not investigated further this pass.</li><li>\"0 failed jobs\" reflects the current snapshot, not a lifetime failure-free claim.</li></ul>",
     "stagesLabel": "Workflow — runs unattended at login",
     "stageCountLabel": "5 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "ZIP inbox", "body": "Export archives enter a watched folder.", "miniNodes": ["Watched folder", "Export archive arrives"] },
-      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Import + normalize", "body": "Files are unpacked, renamed and registered.", "miniNodes": ["Unpacked", "Renamed", "Registered"] },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "AI extraction", "body": "Gemini writes searchable image and video descriptions.", "miniNodes": ["Gemini AI", "Image descriptions", "Video descriptions"] },
-      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Sync to Notion", "body": "Each post carries a pipeline status.", "miniNodes": ["Synced to Notion", "Pipeline status tracked"] },
-      { "num": 5, "actor": "out", "actorLabel": "Output", "title": "Searchable database", "body": "SQLite remains the offline source of truth.", "miniNodes": ["SQLite database", "Offline source of truth"] }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Import (zip)", "body": "Zip archives are hashed and ingested. Already-seen ones are skipped.", "technicalLabel": "Zip ingest", "example": "SHA-256 hash → skip if already seen", "detailInput": "zip archives in inbox_zips/", "detailRule": "SHA-256 hashed, already-seen zips skipped", "detailOutput": "1 post row + 1 normalize job per detected post", "miniNodes": ["SHA-256 hashed", "Already-seen skipped", "1 post + 1 job created"] },
+      { "num": 2, "actor": "sys", "actorLabel": "Script", "title": "Import (manual)", "body": "Manually dropped files are grouped by stem and deduplicated.", "technicalLabel": "Manual ingest", "example": "stem-grouped files → post row", "detailInput": "files in inbox_manual/", "detailRule": "grouped by stem, SHA-256 deduplicated, supports text-only posts", "detailOutput": "queued posts, same schema as zip import", "miniNodes": ["Stem-grouped", "SHA-256 deduplicated", "Text-only posts supported"] },
+      { "num": 3, "actor": "sys", "actorLabel": "Script", "title": "Normalize", "body": "Filenames are slugified and media assets are registered.", "technicalLabel": "Asset normalize", "example": "filename → slugified, copied to normalized/", "detailInput": "pending posts' media files", "detailRule": "filenames slugified, copied to normalized/", "detailOutput": "media_assets row + extract job per file", "miniNodes": ["Slugified filenames", "Copied to normalized/", "Extract job created"] },
+      { "num": 4, "actor": "ai", "actorLabel": "AI", "title": "Extract", "body": "Local extraction always runs. Gemini AI extraction is opt-in.", "technicalLabel": "AI + local extract", "example": "LocalExtractor always · GeminiExtractor if AI_ENABLED", "detailInput": "unprocessed media assets", "detailRule": "LocalExtractor always runs; GeminiExtractor only if AI_ENABLED=true", "detailOutput": "extracts row + short_summary + detailed_content", "miniNodes": ["LocalExtractor always runs", "GeminiExtractor opt-in", "Summary + content written"] },
+      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Sync", "body": "The extracted posts are written to Notion for review. SQLite remains the source of truth.", "technicalLabel": "Notion sync", "example": "extracted post → Notion page upsert", "detailInput": "posts with import_status='extracted'", "detailRule": "write or update the Notion page", "detailOutput": "notion_sync_log row", "miniNodes": ["Notion page upserted", "Never the source of truth", "Rebuildable from SQLite"] }
     ],
-    "valueLine": "Scheduled Python pipeline that turns saved archives into a searchable, offline knowledge base.",
-    "miniRoadmap": ["Inbox", "Import", "AI extract", "Sync", "Database"],
+    "valueLine": "A scheduled pipeline that turns saved archives into a searchable, offline knowledge base. The database keeps the original record. Notion is just for browsing it.",
+    "miniRoadmap": ["Zip import", "Manual import", "Normalize", "Extract", "Sync"],
     "proofChips": ["860 AI extracts", "175 posts", "3.5 months hands-off"],
-    "finalRoadmap": "ZIP inbox → import + normalize → AI extraction → sync to Notion → searchable database",
-    "finalTakeaway": "Runs unattended. SQLite stays the source of truth."
+    "finalRoadmap": "Import (zip) → import (manual) → normalize → extract → sync",
+    "finalTakeaway": "Runs unattended. SQLite stays the source of truth.",
+    "detailCtaLabel": "View system logic & proof →",
+    "workflowFieldLabel": "AUTOMATED PIPELINE",
+    "systemControlStrip": [
+      { "eyebrow": "STORAGE", "title": "SQLite Source of Truth" },
+      { "eyebrow": "SYNC", "title": "Notion, Optional" },
+      { "eyebrow": "SCHEDULE", "title": "Unattended at Login" }
+    ],
+    "controlSummaryLine": "175 posts · 748 assets · 860 AI extracts · SQLite stays the source of truth.",
+    "detailSubtitle": "A scheduled pipeline that keeps SQLite as the only source of truth, with Notion as an optional, rebuildable window onto it.",
+    "detailProofLine": "860 AI extracts · 175 posts · 748 assets · 3.5 months unattended",
+    "whyIntro": "Saved posts and screenshots pile up faster than they get organized. Left alone, they stay unsearchable the moment the original app or account is gone.",
+    "systemLogicIntro": "This pipeline runs on a schedule, not on a person remembering to check it. Every step writes to one local database first.",
+    "systemLogicSectionLabel": "AUTOMATION RULES",
+    "systemLogicConcepts": [
+      { "eyebrow": "DEDUPLICATION", "question": "Is this already in the archive?", "states": "SHA-256 hashed · already-seen → skipped" },
+      { "eyebrow": "EXTRACTION", "question": "How is each item read?", "states": "LocalExtractor always · GeminiExtractor opt-in" },
+      { "eyebrow": "SOURCE OF TRUTH", "question": "Where does the real record live?", "states": "SQLite always · Notion optional, rebuildable" },
+      { "eyebrow": "FAILURE ISOLATION", "question": "What happens when one step fails?", "states": "Wrapped independently · one failure doesn't abort the run" }
+    ],
+    "systemLogicPrinciple": "SQLite is written first, every time. Notion exists to browse the archive, not to hold it — the local database can rebuild it from scratch.",
+    "architectureIntro": "Import, normalization, extraction and sync each run as their own step. The database is the only part any of them has to agree on.",
+    "architectureCards": [
+      { "eyebrow": "STORAGE", "title": "SQLite Source of Truth", "body": "Every post, asset and extract is written locally first. Notion is a browsing layer, not the record." },
+      { "eyebrow": "DEDUPLICATION", "title": "Hash Before Import", "body": "Zips and manual files are SHA-256 hashed. Already-seen items are skipped, not reprocessed." },
+      { "eyebrow": "SCHEDULE", "title": "Unattended at Login", "body": "The pipeline runs on a schedule. No step waits for a person to trigger it." }
+    ],
+    "testEvidenceSectionLabel": "REAL OUTPUT",
+    "testEvidencePreview": [
+      { "eyebrow": "ZIP IMPORT", "lines": ["SHA-256 hashed on arrival", "Already-seen zips skipped", "1 post + 1 normalize job per detected post"] },
+      { "eyebrow": "AI EXTRACTION", "lines": ["LocalExtractor always runs", "GeminiExtractor opt-in (AI_ENABLED)", "860 extracts written to date"] },
+      { "eyebrow": "NOTION SYNC", "lines": ["162 pages upserted", "SQLite stays authoritative", "Rebuildable from the database alone"] }
+    ],
+    "implementationDetails": [
+      { "title": "Python", "body": "Scheduled import, dedup, normalize and extract pipeline, run unattended." },
+      { "title": "SQLite", "body": "Source of truth for every post, asset and extract." },
+      { "title": "Gemini AI", "body": "Opt-in extraction layer — LocalExtractor always runs first." },
+      { "title": "Notion", "body": "Optional sync target for browsing, rebuildable from SQLite at any time." }
+    ],
+    "currentBoundary": "There is no in-line human-approval gate. A person reviews the synced output afterward, not before it's written."
   },
   {
     "id": "video-pipeline",
@@ -213,30 +500,72 @@
     "total": 7,
     "tier": 3,
     "tierLabel": "Learning lab",
-    "title": "AI-Assisted Video Pipeline — &ldquo;decide before render&rdquo;",
-    "taglineHtml": "Plan-before-render editing pipeline for phone footage &rarr; publishable vertical reels.",
+    "title": "AI-Assisted Video Pipeline",
+    "taglineHtml": "A plan-before-render pipeline that turns phone footage into publishable vertical reels.",
+    "problemHtml": "Re-rendering to fix bad footage wastes real time and compute. Deciding what to keep before rendering is cheaper than rendering repeatedly.",
+    "workflowHtml": "Footage is triaged and planned first, at low resolution. A person approves the plan. Only then does the pipeline spend compute on a full render.",
+    "resultShortHtml": "Two completed productions, each with a real, enforced approval gate before any full render.",
+    "failureHandledHtml": "A subtitle filter once failed silently, dropping captions with no error. A privacy pass was once run in the wrong order and mosaic covered the subtitles instead of the faces. An early cut reused the same clip twice by accident. It was caught before publish, and the edit was rebuilt around a rule to never repeat a source in one edit.",
+    "decisionHtml": "The final creative grade is left to a person in Resolve. That part is deliberately not automated.",
+    "limitationHtml": "GPS-based clip clustering is untested in practice, since the primary device doesn't write GPS to video. Music requires a licensed source and is never generated ad hoc.",
     "tags": ["Process design", "Cost control", "Privacy automation", "ffmpeg · Resolve API · DCTL"],
     "overviewChips": ["ffmpeg", "Resolve API", "Privacy pass"],
     "keyNumber": "2",
-    "keyLabel": "Published productions · locked reusable template · full chain incl. privacy pass",
+    "keyLabel": "Published productions · human approval gate before every render",
     "goalHtml": "Turn raw phone footage into publishable vertical reels without wasting time on repeated renders.",
-    "methodHtml": "Plan, triage and approve the edit before rendering; compute is spent only after a human-approved plan.",
-    "resultHtml": "Built a reusable template, then completed a second production with triage, voiceover, music bed, privacy pass and export.",
+    "methodHtml": "Plan, triage and approve the edit before rendering. Compute is spent only after a human-approved plan.",
+    "resultHtml": "Built a reusable starting point, then completed a second production with triage, voiceover, music bed, privacy pass and export.",
     "stagesLabel": "Workflow — plan approved before compute is spent",
     "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Footage ingest", "body": "Read metadata and group clips.", "miniNodes": ["Read metadata", "Group clips"] },
-      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Privacy pass", "body": "Mosaic bystander faces with a QA contact sheet.", "miniNodes": ["Mosaic bystander faces", "QA contact sheet"] },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Triage + EDIT_PLAN", "body": "Mark KEEP / TRIM / KILL and write the edit plan.", "miniNodes": ["KEEP / TRIM / KILL", "Edit plan written"] },
-      { "num": 4, "actor": "human", "actorLabel": "Human", "title": "Human approval", "body": "No render before sign-off.", "miniNodes": ["Human sign-off required", "No render before approval"] },
-      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Build the cut", "body": "ffmpeg assembles the approved plan.", "miniNodes": ["ffmpeg assembly", "Approved plan only"] },
-      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Final export", "body": "Exported, metadata-stripped, versioned output.", "miniNodes": ["Metadata stripped", "Versioned output"] }
+      { "num": 1, "actor": "sys", "actorLabel": "Script", "title": "Footage ingest", "body": "Read metadata and group clips by time, without moving or rendering anything.", "technicalLabel": "Metadata read", "example": "clips grouped by time gap, not GPS", "detailInput": "raw phone clips", "detailRule": "read metadata, cluster by time gap — never move or render", "detailOutput": "footage index + contact sheets", "miniNodes": ["Read metadata", "Grouped by time gap", "Nothing moved or rendered"] },
+      { "num": 2, "actor": "ai", "actorLabel": "AI", "title": "Privacy pass", "body": "Detect faces and mosaic them by default, with a QA sheet to catch what it misses.", "technicalLabel": "Face detection", "example": "mosaic by default, QA sheet catches misses", "detailInput": "ingested footage", "detailRule": "faces detected and mosaicked by default", "detailOutput": "privacy-passed footage + QA contact sheet", "miniNodes": ["Faces detected", "Mosaicked by default", "QA sheet for misses"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Triage + EDIT_PLAN", "body": "Mark every segment KEEP, TRIM or KILL, then build a low-res preview only.", "technicalLabel": "Clip triage", "example": "KEEP / TRIM / KILL, low-res preview only", "detailInput": "footage index + contact sheets", "detailRule": "every segment classified with a reason; only a low-res preview is built", "detailOutput": "edit plan, not yet rendered", "miniNodes": ["KEEP / TRIM / KILL", "Reason recorded per clip", "Low-res preview only"] },
+      { "num": 4, "actor": "human", "actorLabel": "Human", "title": "Human approval", "body": "A person signs off on the plan. Nothing renders in full before this.", "technicalLabel": "Sign-off", "example": "no full render before sign-off", "detailInput": "edit plan", "detailRuleLabel": "DECISION", "detailRule": "a person approves the plan — never automatic", "detailOutput": "approved plan", "miniNodes": ["Person reviews the plan", "No render before approval", "Plan approved"] },
+      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Build the cut", "body": "ffmpeg assembles exactly what was approved.", "technicalLabel": "Assembly", "example": "ffmpeg assembles the approved plan only", "detailInput": "approved plan", "detailRule": "assemble exactly what was approved, nothing more", "detailOutput": "graded, captioned draft", "miniNodes": ["ffmpeg assembly", "Approved plan only", "Graded + captioned"] },
+      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Final export", "body": "The file is exported with its metadata stripped.", "technicalLabel": "Publish", "example": "metadata stripped before publish", "detailInput": "approved draft", "detailRule": "strip metadata before export", "detailOutput": "published file", "miniNodes": ["Metadata stripped", "Versioned output", "Ready to publish"] }
     ],
-    "valueLine": "Plan-before-render editing pipeline — nothing renders until a human approves the edit plan.",
+    "valueLine": "Decide what stays before spending time on the full render. Nothing renders until a human approves the plan.",
     "miniRoadmap": ["Ingest", "Privacy", "Triage", "Approval", "Render", "Export"],
     "proofChips": ["2 productions", "Privacy pass", "Human approval gate"],
     "finalRoadmap": "Footage ingest → privacy pass → triage + EDIT_PLAN → human approval → build the cut → final export",
-    "finalTakeaway": "Compute is spent only after a human-approved plan."
+    "finalTakeaway": "Compute is spent only after a human-approved plan.",
+    "detailCtaLabel": "View system logic & proof →",
+    "workflowFieldLabel": "APPROVAL GATE",
+    "systemControlStrip": [
+      { "eyebrow": "PLAN", "title": "Low-Res Preview Only" },
+      { "eyebrow": "CONTROL", "title": "Human Approval Gate" },
+      { "eyebrow": "RENDER", "title": "Approved Plan Only" }
+    ],
+    "controlSummaryLine": "2 published productions · human approval before every render.",
+    "detailSubtitle": "A plan-before-render pipeline. Nothing renders in full until a person approves the edit plan.",
+    "detailProofLine": "2 published productions · human approval gate before every render",
+    "whyIntro": "A full render is expensive to redo. Deciding what stays before spending that time is cheaper than rendering repeatedly to fix it.",
+    "systemLogicIntro": "This pipeline keeps planning and rendering separate. A person signs off on the plan while it still only costs a low-res preview.",
+    "systemLogicConcepts": [
+      { "eyebrow": "TRIAGE", "question": "What happens to each clip?", "states": "KEEP · TRIM · KILL" },
+      { "eyebrow": "PRIVACY", "question": "What happens to faces by default?", "states": "Mosaicked by default · QA sheet catches misses" },
+      { "eyebrow": "HUMAN APPROVAL", "question": "Can the plan render in full?", "states": "Approved · not yet approved" },
+      { "eyebrow": "EXPORT", "question": "What ships?", "states": "Metadata stripped · versioned output" }
+    ],
+    "systemLogicPrinciple": "A plan can be technically complete and still not be approved. Nothing reaches a full render until a person signs off on it, and every export leaves with its metadata stripped.",
+    "architectureIntro": "Planning happens at low resolution so a rejected plan costs nothing to redo. Only an approved plan reaches the full-resolution renderer.",
+    "architectureCards": [
+      { "eyebrow": "PLAN", "title": "Low-Res Preview Only", "body": "Triage marks every segment KEEP, TRIM or KILL, then builds a preview — never a full render." },
+      { "eyebrow": "CONTROL", "title": "Human Approval Gate", "body": "A person signs off on the plan. Nothing renders in full before that." },
+      { "eyebrow": "RENDER", "title": "Approved Plan Only", "body": "ffmpeg assembles exactly what was approved, then metadata is stripped before export." }
+    ],
+    "testEvidenceSectionLabel": "PRODUCTION EVIDENCE",
+    "testEvidencePreview": [
+      { "eyebrow": "2 PUBLISHED PRODUCTIONS", "lines": ["Each with a real, enforced approval gate", "Full render only after sign-off"] },
+      { "eyebrow": "CAUGHT BEFORE PUBLISH", "lines": ["Reused clip caught, edit rebuilt around a no-repeat rule", "Privacy-pass ordering bug caught and corrected"] }
+    ],
+    "implementationDetails": [
+      { "title": "ffmpeg", "body": "Assembles exactly the approved plan. Nothing renders before sign-off." },
+      { "title": "Resolve API + DCTL", "body": "Final creative grade, done by a person in Resolve." },
+      { "title": "AI privacy pass", "body": "Detects and mosaics faces by default, with a QA sheet for what it misses." }
+    ],
+    "currentBoundary": "GPS-based clip clustering is untested in practice, since the primary device doesn't write GPS to video. Music requires a licensed source and is never generated ad hoc."
   },
   {
     "id": "blender-comfyui-previs",
@@ -244,29 +573,76 @@
     "total": 7,
     "tier": 3,
     "tierLabel": "Learning lab",
-    "title": "Blender + ComfyUI — controllable AI video on free local models",
+    "title": "Blender + ComfyUI",
     "taglineHtml": "Tests whether local AI video tools can produce controllable motion, camera and material effects.",
+    "problemHtml": "Local AI video generation usually drifts. Camera, motion and structure are hard to control once the model starts generating.",
+    "workflowHtml": "Blender handles structure. Its depth output locks the camera, motion and layout, then a real video model renders the photoreal look on top.",
+    "resultShortHtml": "A genre-transfer test proved the split works: the same depth video, a new prompt, and no reference image produced a coherent new scene with the original composition intact.",
+    "failureHandledHtml": "A rough box chair produced a visibly wrong render. Replacing it with a real 3D chair model fixed it, proof that upgrading the source asset works better than upgrading the prompt. A wrong workflow file was used for one render and logged as a wasted run.",
+    "decisionHtml": "A human body was sculpted twice, and both attempts made it worse. Rather than trying a third variation, the attempt was stopped and the problem was parked until a real downloadable body model is available.",
+    "limitationHtml": "Reference-grade final texture is a real ceiling for the free local pipeline, not something more tuning can fix. Only one of the three content tracks has a full written case study.",
     "tags": ["Generative AI", "Prototyping", "Build-vs-buy", "Blender · Wan2.1 · IPAdapter"],
     "overviewChips": ["Blender", "ComfyUI", "Wan2.1"],
     "keyNumber": "3",
-    "keyLabel": "Finished content tracks · graded masters · written case study",
+    "keyLabel": "content tracks · genre-transfer test passed",
     "goalHtml": "Test whether local AI video tools can produce controllable motion, camera and material effects.",
     "methodHtml": "Use Blender greybox scenes as control layers, then pass depth and reference images into local video generation.",
-    "resultHtml": "Validated the workflow through 3 finished content tracks with graded masters, release formats and a written case study.",
+    "resultHtml": "Validated the workflow through 3 finished content tracks with graded masters and release formats. One track carries a full written case study.",
     "stagesLabel": "Workflow — a 3D control layer feeds the video model",
     "stageCountLabel": "6 stages",
     "stages": [
-      { "num": 1, "actor": "sys", "actorLabel": "3D", "title": "Blender greybox", "body": "Rough 3D scene defines camera and blocking.", "miniNodes": ["Rough 3D scene", "Camera blocking"] },
-      { "num": 2, "actor": "sys", "actorLabel": "3D", "title": "Depth render", "body": "Depth pass becomes the control signal.", "miniNodes": ["Depth pass", "Control signal"] },
-      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Wan2.1 VACE generation", "body": "Local model generates motion from control inputs.", "miniNodes": ["Local model", "Motion generation", "Control inputs"] },
-      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Grade + upscale", "body": "Improve the raw output.", "miniNodes": ["Grade the output", "Upscale"] },
-      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Finish", "body": "Add interpolation and room tone.", "miniNodes": ["Interpolation", "Room tone"] },
-      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Release packages", "body": "Export vertical, square and showcase formats.", "miniNodes": ["Vertical format", "Square format", "Showcase format"] }
+      { "num": 1, "actor": "sys", "actorLabel": "3D", "title": "Blender greybox", "body": "A rough scene defines camera and blocking, deliberately unfinished.", "technicalLabel": "Scene blocking", "example": "rough scene, deliberately unfinished", "detailInput": "scene concept", "detailRule": "rough scene defines camera and blocking, deliberately unfinished", "detailOutput": "positioned 3D scene", "miniNodes": ["Rough 3D scene", "Camera blocking", "Deliberately unfinished"] },
+      { "num": 2, "actor": "sys", "actorLabel": "3D", "title": "Depth render", "body": "A geometric depth pass becomes the control signal.", "technicalLabel": "Depth pass", "example": "geometric depth only, no shading", "detailInput": "Blender scene", "detailRule": "geometric depth pass only, no shading", "detailOutput": "depth control video", "miniNodes": ["Depth pass", "No shading", "Control signal"] },
+      { "num": 3, "actor": "ai", "actorLabel": "AI", "title": "Wan2.1 VACE generation", "body": "Depth locks the structure. The prompt sets the genre and mood.", "technicalLabel": "Controlled render", "example": "depth locks structure, prompt sets mood", "detailInput": "depth video + reference photo + prompt", "detailRule": "depth locks structure; prompt sets genre and mood", "detailOutput": "raw photoreal render", "miniNodes": ["Depth locks structure", "Prompt sets mood", "Raw photoreal render"] },
+      { "num": 4, "actor": "sys", "actorLabel": "Script", "title": "Grade + upscale", "body": "The raw render is color graded and upscaled.", "technicalLabel": "Post polish", "example": "raw render to release-quality case", "detailInput": "raw render", "detailRule": "color grade, then upscale 2x", "detailOutput": "release-quality case", "miniNodes": ["Color graded", "2x upscale", "Release-quality case"] },
+      { "num": 5, "actor": "sys", "actorLabel": "Script", "title": "Finish", "body": "Slow shots are interpolated. Fast shots stay native to avoid ghosting.", "technicalLabel": "Finishing pass", "example": "slow shots interpolated, fast shots stay native", "detailInput": "graded case", "detailRule": "interpolate slow shots only, add procedural room tone", "detailOutput": "finished micro-film", "miniNodes": ["Slow shots interpolated", "Room tone added", "Finished micro-film"] },
+      { "num": 6, "actor": "out", "actorLabel": "Output", "title": "Release packages", "body": "The finished film is exported in vertical, square and showcase formats.", "technicalLabel": "Export", "example": "vertical, square and showcase formats", "detailInput": "finished film", "detailRule": "export multiple formats for release", "detailOutput": "packaged release", "miniNodes": ["Vertical format", "Square format", "Showcase format"] }
     ],
-    "valueLine": "A 3D control layer (Blender) drives local AI video generation for controllable motion and camera.",
+    "valueLine": "Blender locks structure and camera. A real video model renders the photoreal look on top, so the result stays controllable.",
     "miniRoadmap": ["Greybox", "Depth", "AI generate", "Grade", "Finish", "Release"],
-    "proofChips": ["3 content tracks", "Graded masters", "Local models"],
+    "proofChips": ["3 content tracks", "Genre-transfer test", "Local models"],
     "finalRoadmap": "Blender greybox → depth render → Wan2.1 VACE generation → grade + upscale → finish → release packages",
-    "finalTakeaway": "A 3D control layer keeps local AI video generation controllable."
+    "finalTakeaway": "Depth controls structure. The prompt controls mood. That split keeps local AI video controllable.",
+    "detailCtaLabel": "View system logic & proof →",
+    "workflowFieldLabel": "CONTROL LAYER",
+    "systemControlStrip": [
+      { "eyebrow": "STRUCTURE", "title": "Blender Depth Lock" },
+      { "eyebrow": "RENDER", "title": "Wan2.1 VACE" },
+      { "eyebrow": "OUTPUT", "title": "3 Release Formats" }
+    ],
+    "controlSummaryLine": "3 content tracks · genre-transfer test passed · depth locks structure.",
+    "detailSubtitle": "Blender locks structure and camera. A real video model renders the photoreal look on top, so local generation stays controllable.",
+    "detailProofLine": "3 content tracks · genre-transfer test passed",
+    "whyIntro": "Local AI video generation usually drifts once the model starts generating. Camera, motion and structure are hard to hold onto without an external control signal.",
+    "systemLogicIntro": "This pipeline splits the work in two. Blender owns structure. The video model owns appearance.",
+    "systemLogicSectionLabel": "CONTROL MODEL",
+    "systemLogicConcepts": [
+      { "eyebrow": "SIGNAL", "question": "What controls the render?", "states": "Blender depth pass · geometric only, no shading" },
+      { "eyebrow": "FAILURE MODE", "question": "What actually goes wrong?", "states": "Bad source geometry · wrong workflow file · degrading iteration" },
+      { "eyebrow": "RESPONSE", "question": "What fixes it?", "states": "Swap the asset · stop and park · confirm before re-render" }
+    ],
+    "systemLogicPrinciple": "Depth controls structure. The prompt controls mood. When a result is genuinely not working, the fix is usually the source asset, not another round of prompting — and sometimes the right response is to stop and park the attempt.",
+    "decisionCases": [
+      { "eyebrow": "ROUGH BOX CHAIR", "lines": ["Placeholder box, not a real chair", "Visibly wrong render — geometry, not the prompt", "Swapped in a real 3D chair model"] },
+      { "eyebrow": "HUMAN BODY SCULPT", "lines": ["Hand-sculpted figure, two attempts", "Each attempt made the result worse", "Stopped and parked, not forced to a third attempt"] },
+      { "eyebrow": "WRONG WORKFLOW FILE", "lines": ["Wrong ComfyUI workflow used for one render", "Wasted run, logged not hidden", "Correct file confirmed before the next render"] }
+    ],
+    "architectureIntro": "Blender's depth pass is geometry only, with no shading, so it can only constrain structure, never dictate the final look. A separate video model owns everything the depth pass doesn't.",
+    "architectureCards": [
+      { "eyebrow": "STRUCTURE", "title": "Blender Depth Pass", "body": "Camera, motion and blocking come from a rough greybox scene, deliberately unfinished." },
+      { "eyebrow": "RENDER", "title": "Wan2.1 VACE", "body": "Depth locks the structure. Prompt and optional reference image set the mood." },
+      { "eyebrow": "FINISH", "title": "Grade, Upscale, Interpolate", "body": "Color graded, 2x upscaled, and only slow shots interpolated to avoid ghosting." }
+    ],
+    "testEvidenceSectionLabel": "PROOF",
+    "testEvidencePreview": [
+      { "eyebrow": "GENRE-TRANSFER TEST", "lines": ["Same depth video, new prompt, no reference image", "Coherent new scene, original composition intact", "Confirms the structure/appearance split actually holds"] },
+      { "eyebrow": "3 CONTENT TRACKS", "lines": ["Graded masters, multiple release formats", "One track carries a full written case study", "Vertical, square and showcase exports"] }
+    ],
+    "implementationDetails": [
+      { "title": "Blender", "body": "Rough greybox scene defines camera and blocking, deliberately unfinished." },
+      { "title": "Wan2.1 VACE (ComfyUI)", "body": "Depth locks structure. The prompt sets genre and mood." },
+      { "title": "IPAdapter / reference", "body": "Optional reference image steers material and mood without controlling structure." }
+    ],
+    "currentBoundary": "Reference-grade final texture is a ceiling for this free local pipeline, not something more tuning fixes. Only one of the three content tracks has a full written case study so far."
   }
 ]
